@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState, useEffect } from 'react';
 import { 
   Lead, 
@@ -5,33 +7,38 @@ import {
   ActiveTab, 
   UserProfile, 
   FollowUpLog 
-} from './types';
+} from '../types';
 import { 
   getStoredLeads, 
   saveStoredLeads, 
   resetStoredLeads, 
   getStoredProfile, 
-  saveStoredProfile 
-} from './data/mockData';
-import { Sidebar } from './components/layout/Sidebar';
-import { BottomNav } from './components/layout/BottomNav';
-import { TopHeader } from './components/layout/TopHeader';
-import { DashboardView } from './components/dashboard/DashboardView';
-import { LeadListView } from './components/leads/LeadListView';
-import { LeadDetailView } from './components/leads/LeadDetailView';
-import { AddLeadModal } from './components/leads/AddLeadModal';
-import { LogFollowUpModal } from './components/followup/LogFollowUpModal';
-import { FollowUpListView } from './components/followup/FollowUpListView';
-import { ReportsView } from './components/reports/ReportsView';
-import { ProfileView } from './components/profile/ProfileView';
-import { HelpGuideModal } from './components/common/HelpGuideModal';
-import { ToastContainer, ToastMessage } from './components/common/Toast';
+  saveStoredProfile,
+  INITIAL_USER_PROFILE,
+  INITIAL_LEADS
+} from '../data/mockData';
+import { leadService, followUpService, profileService } from '../services/api';
+import { Sidebar } from '../components/layout/Sidebar';
+import { BottomNav } from '../components/layout/BottomNav';
+import { TopHeader } from '../components/layout/TopHeader';
+import { DashboardView } from '../components/dashboard/DashboardView';
+import { LeadListView } from '../components/leads/LeadListView';
+import { LeadDetailView } from '../components/leads/LeadDetailView';
+import { AddLeadModal } from '../components/leads/AddLeadModal';
+import { LogFollowUpModal } from '../components/followup/LogFollowUpModal';
+import { FollowUpListView } from '../components/followup/FollowUpListView';
+import { ReportsView } from '../components/reports/ReportsView';
+import { ProfileView } from '../components/profile/ProfileView';
+import { HelpGuideModal } from '../components/common/HelpGuideModal';
+import { ToastContainer, ToastMessage } from '../components/common/Toast';
 
-export default function App() {
-  const [leads, setLeads] = useState<Lead[]>([]);
-  const [profile, setProfile] = useState<UserProfile>(getStoredProfile());
+export default function HomePage() {
+  const [leads, setLeads] = useState<Lead[]>(INITIAL_LEADS);
+  const [profile, setProfile] = useState<UserProfile>(INITIAL_USER_PROFILE);
   const [activeTab, setActiveTab] = useState<ActiveTab>('dashboard');
   const [selectedLeadId, setSelectedLeadId] = useState<string | null>(null);
+  const [isClient, setIsClient] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   
   // Modals state
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -46,12 +53,6 @@ export default function App() {
   // Toasts
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
 
-  // Initialize leads on mount
-  useEffect(() => {
-    const data = getStoredLeads();
-    setLeads(data);
-  }, []);
-
   const addToast = (type: 'success' | 'error' | 'info', title: string, message?: string) => {
     const id = Date.now().toString();
     setToasts((prev) => [...prev, { id, type, title, message }]);
@@ -64,6 +65,31 @@ export default function App() {
     setToasts((prev) => prev.filter((t) => t.id !== id));
   };
 
+  // Fetch from backend API with fallback to local storage
+  const loadData = async () => {
+    try {
+      setIsLoading(true);
+      const [leadsData, profileData] = await Promise.all([
+        leadService.getLeads().catch(() => getStoredLeads()),
+        profileService.getProfile().catch(() => getStoredProfile()),
+      ]);
+      setLeads(leadsData);
+      setProfile(profileData);
+      saveStoredLeads(leadsData);
+      saveStoredProfile(profileData);
+    } catch {
+      setLeads(getStoredLeads());
+      setProfile(getStoredProfile());
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    setIsClient(true);
+    loadData();
+  }, []);
+
   // Find currently selected lead
   const selectedLead = leads.find((l) => l.id === selectedLeadId) || null;
 
@@ -73,8 +99,8 @@ export default function App() {
   ).length;
 
   // Handler: Add new lead
-  const handleSaveNewLead = (leadData: Partial<Lead>) => {
-    const newLead: Lead = {
+  const handleSaveNewLead = async (leadData: Partial<Lead>) => {
+    const tempLead: Lead = {
       id: `lead-${Date.now()}`,
       name: leadData.name || 'Calon Pelanggan',
       phone: leadData.phone || '081200000000',
@@ -90,23 +116,44 @@ export default function App() {
       followUps: [],
     };
 
-    const updated = [newLead, ...leads];
+    // Optimistic UI update
+    const updated = [tempLead, ...leads];
     setLeads(updated);
     saveStoredLeads(updated);
     setIsAddModalOpen(false);
-
-    // Navigate to newly created lead detail
-    setSelectedLeadId(newLead.id);
+    setSelectedLeadId(tempLead.id);
     setActiveTab('leads');
 
-    addToast('success', 'Lead berhasil ditambahkan!', `${newLead.name} telah masuk ke daftar lead.`);
+    try {
+      const created = await leadService.createLead({
+        name: leadData.name || 'Calon Pelanggan',
+        phone: leadData.phone || '081200000000',
+        city: leadData.city || 'Jakarta',
+        source: leadData.source || 'WhatsApp',
+        productId: leadData.product || 'Produk A — Starter Plan',
+        status: leadData.status || 'Cold',
+        initialNotes: leadData.initialNotes,
+        nextFollowUpDate: leadData.nextFollowUpDate,
+        nextFollowUpTime: leadData.nextFollowUpTime,
+      });
+
+      // Replace temp lead with server response
+      setLeads((prev) => prev.map((l) => (l.id === tempLead.id ? created : l)));
+      setSelectedLeadId(created.id);
+      addToast('success', 'Lead berhasil ditambahkan!', `${created.name} telah masuk ke database.`);
+    } catch {
+      addToast('success', 'Lead disimpan lokal', `${tempLead.name} telah masuk ke daftar lead.`);
+    }
   };
 
   // Handler: Save follow-up log
-  const handleSaveFollowUp = (
+  const handleSaveFollowUp = async (
     leadId: string,
     logData: Omit<FollowUpLog, 'id' | 'createdAt'>
   ) => {
+    const isClosingNow = logData.newStatus === 'Closing';
+
+    // Optimistic update
     const updatedLeads = leads.map((lead) => {
       if (lead.id !== leadId) return lead;
 
@@ -116,16 +163,6 @@ export default function App() {
         createdAt: new Date().toISOString().split('T')[0],
       };
 
-      const isClosingNow = logData.newStatus === 'Closing' && lead.status !== 'Closing';
-
-      if (isClosingNow) {
-        setProfile((prev) => {
-          const updated = { ...prev, closingCount: prev.closingCount + 1 };
-          saveStoredProfile(updated);
-          return updated;
-        });
-      }
-
       return {
         ...lead,
         status: logData.newStatus,
@@ -133,6 +170,9 @@ export default function App() {
         lastFollowUpDate: logData.date,
         nextFollowUpDate: logData.nextFollowUpDate,
         nextFollowUpTime: logData.nextFollowUpTime,
+        lostReason: logData.newStatus === 'Tidak Berhasil' ? logData.lostReason : undefined,
+        closedAt: logData.newStatus === 'Closing' ? logData.date : lead.closedAt,
+        lostAt: logData.newStatus === 'Tidak Berhasil' ? logData.date : (isClosingNow ? undefined : lead.lostAt),
         followUps: [...lead.followUps, newLog],
       };
     });
@@ -140,58 +180,71 @@ export default function App() {
     setLeads(updatedLeads);
     saveStoredLeads(updatedLeads);
 
-    if (logData.newStatus === 'Closing') {
+    if (isClosingNow) {
+      setProfile((prev) => {
+        const updated = { ...prev, closingCount: prev.closingCount + 1 };
+        saveStoredProfile(updated);
+        return updated;
+      });
       addToast('success', '🎉 Selamat! Lead Berhasil Closing', 'Status diperbarui dan progress target bertambah.');
     } else {
       addToast('success', 'Follow up berhasil dicatat', `Status lead sekarang: ${logData.newStatus}`);
     }
+
+    try {
+      const result = await followUpService.saveFollowUp(leadId, logData);
+      setLeads((prev) => prev.map((l) => (l.id === leadId ? result.lead : l)));
+    } catch (e) {
+      console.warn('Saved follow-up locally:', e);
+    }
   };
 
   // Handler: Quick Status Change
-  const handleQuickStatusChange = (leadId: string, newStatus: LeadStatus) => {
-    const updated = leads.map((lead) => {
-      if (lead.id !== leadId) return lead;
+  const handleQuickStatusChange = async (leadId: string, newStatus: LeadStatus) => {
+    const now = new Date();
+    const currentTimeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+    const todayStr = now.toISOString().split('T')[0];
 
-      // Also log automatic status change in timeline
-      const statusLog: FollowUpLog = {
-        id: `fu-${Date.now()}`,
-        date: new Date().toISOString().split('T')[0],
-        time: `${String(new Date().getHours()).padStart(2, '0')}:${String(new Date().getMinutes()).padStart(2, '0')}`,
-        method: 'WhatsApp',
-        result: newStatus === 'Closing' ? 'Siap Membeli' : newStatus === 'Tidak Berhasil' ? 'Tidak Tertarik' : 'Tertarik',
-        notes: `Status diubah menjadi ${newStatus}`,
-        oldStatus: lead.status,
-        newStatus,
-        createdAt: new Date().toISOString().split('T')[0],
-      };
-
-      return {
-        ...lead,
-        status: newStatus,
-        updatedAt: new Date().toISOString().split('T')[0],
-        followUps: [...lead.followUps, statusLog],
-      };
+    handleSaveFollowUp(leadId, {
+      date: todayStr,
+      time: currentTimeStr,
+      method: 'WhatsApp',
+      result: newStatus === 'Closing' ? 'Siap Membeli' : newStatus === 'Tidak Berhasil' ? 'Tidak Tertarik' : 'Tertarik',
+      notes: `Status diubah menjadi ${newStatus}`,
+      oldStatus: leads.find((l) => l.id === leadId)?.status,
+      newStatus,
     });
-
-    setLeads(updated);
-    saveStoredLeads(updated);
-    addToast('info', 'Status diperbarui', `Lead diubah menjadi ${newStatus}`);
   };
 
-  // Handler: Reset mock data
-  const handleResetData = () => {
-    const fresh = resetStoredLeads();
-    setLeads(fresh);
-    setSelectedLeadId(null);
-    setActiveTab('dashboard');
-    addToast('success', 'Data Di-reset', 'Seluruh data lead kembali ke kondisi awal.');
+  // Handler: Reset data
+  const handleResetData = async () => {
+    try {
+      await profileService.resetData();
+      await loadData();
+      setSelectedLeadId(null);
+      setActiveTab('dashboard');
+      addToast('success', 'Data Berhasil Di-reset', 'Database telah dikembalikan ke kondisi awal.');
+    } catch {
+      const fresh = resetStoredLeads();
+      setLeads(fresh);
+      setSelectedLeadId(null);
+      setActiveTab('dashboard');
+      addToast('success', 'Data Di-reset Lokal', 'Seluruh data lead kembali ke kondisi awal.');
+    }
   };
 
   // Handler: Update profile
-  const handleUpdateProfile = (updated: UserProfile) => {
+  const handleUpdateProfile = async (updated: UserProfile) => {
     setProfile(updated);
     saveStoredProfile(updated);
-    addToast('success', 'Profil Diperbarui', 'Data profil sales berhasil disimpan.');
+
+    try {
+      const saved = await profileService.updateProfile(updated);
+      setProfile(saved);
+      addToast('success', 'Profil Diperbarui', 'Data profil sales berhasil disimpan ke database.');
+    } catch {
+      addToast('success', 'Profil Diperbarui', 'Data profil sales berhasil disimpan lokal.');
+    }
   };
 
   // Header title & subtitle based on active tab

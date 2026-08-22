@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState, useMemo } from 'react';
 import { 
   Search, 
@@ -11,9 +13,11 @@ import {
   Package, 
   Phone,
   SlidersHorizontal,
-  X
+  X,
+  History,
+  Calendar
 } from 'lucide-react';
-import { Lead, LeadStatus, LeadSource, FilterState } from '../../types';
+import { Lead, LeadStatus, LeadSource } from '../../types';
 import { StatusBadge } from '../common/StatusBadge';
 import { SourceBadge } from '../common/SourceBadge';
 import { EmptyState } from '../common/EmptyState';
@@ -48,7 +52,8 @@ export const LeadListView: React.FC<LeadListViewProps> = ({
   const [selectedProduct, setSelectedProduct] = useState<string>('all');
   const [selectedCity, setSelectedCity] = useState<string>('all');
   const [selectedSource, setSelectedSource] = useState<string>('all');
-  const [sortBy, setSortBy] = useState<'latest' | 'name' | 'next_followup'>('latest');
+  const [selectedPeriod, setSelectedPeriod] = useState<'all' | 'today' | 'this_week' | 'this_month'>('all');
+  const [sortBy, setSortBy] = useState<'latest' | 'oldest' | 'next_followup' | 'overdue' | 'name'>('latest');
   const [showFiltersMobile, setShowFiltersMobile] = useState(false);
 
   // Status quick filter counts
@@ -65,6 +70,9 @@ export const LeadListView: React.FC<LeadListViewProps> = ({
 
   // Filtered and sorted leads
   const filteredLeads = useMemo(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
     return leads
       .filter((lead) => {
         // Search
@@ -96,27 +104,49 @@ export const LeadListView: React.FC<LeadListViewProps> = ({
           return false;
         }
 
+        // Period filter based on createdAt
+        if (selectedPeriod !== 'all') {
+          const leadDate = new Date(lead.createdAt);
+          leadDate.setHours(0, 0, 0, 0);
+          const diffDays = Math.round((today.getTime() - leadDate.getTime()) / (1000 * 60 * 60 * 24));
+          
+          if (selectedPeriod === 'today' && diffDays !== 0) return false;
+          if (selectedPeriod === 'this_week' && diffDays > 7) return false;
+          if (selectedPeriod === 'this_month' && diffDays > 30) return false;
+        }
+
         return true;
       })
       .sort((a, b) => {
         if (sortBy === 'name') {
           return a.name.localeCompare(b.name);
         }
+        if (sortBy === 'oldest') {
+          return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+        }
         if (sortBy === 'next_followup') {
           if (!a.nextFollowUpDate) return 1;
           if (!b.nextFollowUpDate) return -1;
           return a.nextFollowUpDate.localeCompare(b.nextFollowUpDate);
         }
-        // latest
+        if (sortBy === 'overdue') {
+          const isAOverdue = isDateOverdue(a.nextFollowUpDate);
+          const isBOverdue = isDateOverdue(b.nextFollowUpDate);
+          if (isAOverdue && !isBOverdue) return -1;
+          if (!isAOverdue && isBOverdue) return 1;
+          return (a.nextFollowUpDate || '').localeCompare(b.nextFollowUpDate || '');
+        }
+        // default: latest
         return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
       });
-  }, [leads, search, selectedStatus, selectedProduct, selectedCity, selectedSource, sortBy]);
+  }, [leads, search, selectedStatus, selectedProduct, selectedCity, selectedSource, selectedPeriod, sortBy]);
 
   const hasActiveFilters = 
     selectedStatus !== 'all' || 
     selectedProduct !== 'all' || 
     selectedCity !== 'all' || 
     selectedSource !== 'all' || 
+    selectedPeriod !== 'all' ||
     search.trim() !== '';
 
   const resetFilters = () => {
@@ -125,6 +155,7 @@ export const LeadListView: React.FC<LeadListViewProps> = ({
     setSelectedProduct('all');
     setSelectedCity('all');
     setSelectedSource('all');
+    setSelectedPeriod('all');
   };
 
   return (
@@ -138,7 +169,7 @@ export const LeadListView: React.FC<LeadListViewProps> = ({
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Cari nama, kota, atau nomor WhatsApp..."
+            placeholder="Cari nama calon pelanggan, kota, atau nomor WhatsApp..."
             className="w-full pl-10 pr-10 py-2.5 bg-[#0B1B2E] border border-[#17324D] rounded-xl text-sm text-[#F8FAFC] placeholder-[#94A3B8] focus:outline-none focus:border-[#168BFF] focus:ring-1 focus:ring-[#168BFF] transition-all"
           />
           {search && (
@@ -254,6 +285,19 @@ export const LeadListView: React.FC<LeadListViewProps> = ({
           <option value="Referral">Referral</option>
           <option value="Website">Website</option>
           <option value="Marketplace">Marketplace</option>
+          <option value="Lainnya">Lainnya</option>
+        </select>
+
+        {/* Periode filter */}
+        <select
+          value={selectedPeriod}
+          onChange={(e) => setSelectedPeriod(e.target.value as any)}
+          className="bg-[#0E233D] text-[#F8FAFC] border border-[#17324D] rounded-lg px-3 py-1.5 focus:outline-none focus:border-[#168BFF] cursor-pointer"
+        >
+          <option value="all">Semua Periode</option>
+          <option value="today">Hari Ini</option>
+          <option value="this_week">Minggu Ini</option>
+          <option value="this_month">Bulan Ini</option>
         </select>
 
         {/* Sort by */}
@@ -265,8 +309,10 @@ export const LeadListView: React.FC<LeadListViewProps> = ({
             className="bg-[#0E233D] text-[#F8FAFC] border border-[#17324D] rounded-lg px-3 py-1.5 focus:outline-none focus:border-[#168BFF] cursor-pointer"
           >
             <option value="latest">Terbaru Ditambahkan</option>
+            <option value="oldest">Terlama Ditambahkan</option>
+            <option value="next_followup">Follow Up Terdekat</option>
+            <option value="overdue">Follow Up Terlambat</option>
             <option value="name">Nama (A - Z)</option>
-            <option value="next_followup">Jadwal Follow Up</option>
           </select>
         </div>
 
@@ -303,6 +349,7 @@ export const LeadListView: React.FC<LeadListViewProps> = ({
                   <th className="py-3.5 px-4">Produk</th>
                   <th className="py-3.5 px-4">Sumber</th>
                   <th className="py-3.5 px-4">Status</th>
+                  <th className="py-3.5 px-4">Follow Up Terakhir</th>
                   <th className="py-3.5 px-4">Follow Up Berikutnya</th>
                   <th className="py-3.5 px-4 text-right">Aksi</th>
                 </tr>
@@ -357,13 +404,25 @@ export const LeadListView: React.FC<LeadListViewProps> = ({
                       </td>
 
                       {/* Status */}
-                      <td className="py-3.5 px-4">
+                      <td className="py-3.5 px-4" onClick={() => onSelectLead(lead)}>
                         <StatusBadge status={lead.status} size="sm" />
+                      </td>
+
+                      {/* Follow Up Terakhir */}
+                      <td className="py-3.5 px-4" onClick={() => onSelectLead(lead)}>
+                        {lead.lastFollowUpDate ? (
+                          <div className="flex items-center gap-1 text-slate-300">
+                            <History className="w-3.5 h-3.5 text-[#94A3B8]" />
+                            <span>{formatIndonesianDate(lead.lastFollowUpDate)}</span>
+                          </div>
+                        ) : (
+                          <span className="text-slate-500">Belum ada</span>
+                        )}
                       </td>
 
                       {/* Next Follow Up */}
                       <td className="py-3.5 px-4" onClick={() => onSelectLead(lead)}>
-                        {lead.nextFollowUpDate ? (
+                        {lead.nextFollowUpDate && lead.status !== 'Closing' && lead.status !== 'Tidak Berhasil' ? (
                           <div className="flex items-center gap-1.5">
                             <CalendarClock
                               className={`w-3.5 h-3.5 ${
@@ -449,46 +508,51 @@ export const LeadListView: React.FC<LeadListViewProps> = ({
                     <StatusBadge status={lead.status} size="sm" />
                   </div>
 
-                  {/* Meta: Source & Next Follow Up */}
-                  <div className="flex items-center justify-between text-xs pt-1 border-t border-[#17324D]/60 text-[#94A3B8]">
+                  {/* Middle: Phone + Source */}
+                  <div className="flex items-center justify-between text-xs pt-1 border-t border-[#17324D]/50 text-[#94A3B8]">
+                    <span className="font-mono">{formatDisplayPhone(lead.phone)}</span>
                     <SourceBadge source={lead.source} size="sm" />
-
-                    {lead.nextFollowUpDate && (
-                      <span
-                        className={`flex items-center gap-1 font-medium ${
-                          isOverdue ? 'text-red-400' : isToday ? 'text-amber-400' : 'text-slate-300'
-                        }`}
-                      >
-                        <CalendarClock className="w-3.5 h-3.5" />
-                        <span>
-                          {formatIndonesianDate(lead.nextFollowUpDate)}
-                          {lead.nextFollowUpTime && ` ${lead.nextFollowUpTime}`}
-                        </span>
-                      </span>
-                    )}
                   </div>
 
-                  {/* Actions */}
-                  <div className="flex items-center gap-2 pt-1">
-                    <a
-                      href={waUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      onClick={(e) => e.stopPropagation()}
-                      className="flex-1 flex items-center justify-center gap-2 py-2 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs font-semibold"
-                    >
-                      <MessageCircle className="w-4 h-4" />
-                      <span>WhatsApp</span>
-                    </a>
+                  {/* Bottom: Next Follow Up & Action */}
+                  <div className="flex items-center justify-between pt-1 border-t border-[#17324D]/50">
+                    <div className="text-xs">
+                      {lead.nextFollowUpDate && lead.status !== 'Closing' && lead.status !== 'Tidak Berhasil' ? (
+                        <div className="flex items-center gap-1.5">
+                          <CalendarClock
+                            className={`w-3.5 h-3.5 ${
+                              isOverdue ? 'text-red-400' : isToday ? 'text-amber-400' : 'text-[#168BFF]'
+                            }`}
+                          />
+                          <span className={isOverdue ? 'text-red-400 font-bold' : isToday ? 'text-amber-400 font-bold' : 'text-slate-300'}>
+                            {formatIndonesianDate(lead.nextFollowUpDate)}
+                          </span>
+                        </div>
+                      ) : (
+                        <span className="text-slate-500 text-[11px]">Tidak ada jadwal aktif</span>
+                      )}
+                    </div>
 
-                    <button
-                      type="button"
-                      onClick={() => onSelectLead(lead)}
-                      className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl bg-[#0E233D] hover:bg-[#168BFF] text-[#F8FAFC] border border-[#17324D] text-xs font-semibold"
-                    >
-                      <span>Detail</span>
-                      <ChevronRight className="w-4 h-4" />
-                    </button>
+                    <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                      <a
+                        href={waUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="p-2 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs font-semibold flex items-center gap-1"
+                      >
+                        <MessageCircle className="w-3.5 h-3.5" />
+                        <span>Chat</span>
+                      </a>
+
+                      <button
+                        type="button"
+                        onClick={() => onSelectLead(lead)}
+                        className="p-2 rounded-xl bg-[#0E233D] hover:bg-[#168BFF] text-[#F8FAFC] border border-[#17324D] text-xs font-semibold flex items-center gap-1"
+                      >
+                        <span>Detail</span>
+                        <ChevronRight className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                   </div>
                 </div>
               );

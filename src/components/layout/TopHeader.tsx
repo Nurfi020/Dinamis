@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import { Calendar, ChevronDown, Bell, Search, Sparkles } from 'lucide-react';
 import { UserProfile } from '../../types';

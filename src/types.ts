@@ -10,7 +10,7 @@ export type LeadSource =
   | 'Marketplace'
   | 'Lainnya';
 
-export type FollowUpMethod = 'WhatsApp' | 'Telepon' | 'Meeting' | 'Email';
+export type FollowUpMethod = 'WhatsApp' | 'Telepon' | 'Meeting' | 'Email' | 'Lainnya';
 
 export type FollowUpResult = 
   | 'Tertarik'
@@ -20,6 +20,15 @@ export type FollowUpResult =
   | 'Siap Membeli'
   | 'Tidak Tertarik'
   | 'Tidak Bisa Dihubungi'
+  | 'Buka Kembali'
+  | 'Lainnya';
+
+export type LostReason = 
+  | 'Harga terlalu mahal'
+  | 'Memilih kompetitor'
+  | 'Tidak membutuhkan produk'
+  | 'Tidak dapat dihubungi'
+  | 'Nomor tidak valid'
   | 'Lainnya';
 
 export interface FollowUpLog {
@@ -31,6 +40,7 @@ export interface FollowUpLog {
   notes?: string;
   oldStatus?: LeadStatus;
   newStatus: LeadStatus;
+  lostReason?: LostReason | string;
   nextFollowUpDate?: string;
   nextFollowUpTime?: string;
   createdAt: string;
@@ -50,6 +60,9 @@ export interface Lead {
   lastFollowUpDate?: string;
   nextFollowUpDate?: string;
   nextFollowUpTime?: string;
+  closedAt?: string;
+  lostAt?: string;
+  lostReason?: LostReason | string;
   followUps: FollowUpLog[];
 }
 
@@ -72,5 +85,5 @@ export interface FilterState {
   city: string; // 'all' or specific city
   source: string; // 'all' or LeadSource
   dateRange: 'all' | 'today' | 'this_week' | 'this_month' | 'last_month';
-  sortBy: 'latest' | 'oldest' | 'next_followup' | 'name';
+  sortBy: 'latest' | 'oldest' | 'next_followup' | 'overdue' | 'name';
 }

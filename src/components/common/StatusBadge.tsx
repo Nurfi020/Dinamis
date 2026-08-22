@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import { LeadStatus } from '../../types';
 import { getStatusTheme } from '../../utils/helpers';

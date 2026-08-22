@@ -1,0 +1,88 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id            String     @id @default(cuid())
+  name          String
+  email         String     @unique
+  phone         String
+  role          String     @default("Senior Sales Executive")
+  monthlyTarget Int        @default(20)
+  avatarUrl     String?
+  passwordHash  String?
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  leads         Lead[]
+  followUps     FollowUp[]
+
+  @@map("users")
+}
+
+model Product {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  leads     Lead[]
+
+  @@map("products")
+}
+
+model Lead {
+  id               String     @id @default(cuid())
+  salesId          String
+  name             String
+  phone            String
+  city             String
+  source           String     // WhatsApp, Facebook, Instagram, TikTok, Website, Referral, Marketplace, Lainnya
+  productId        String
+  status           String     @default("Cold") // Cold, Warm, Hot, Closing, Tidak Berhasil
+  initialNotes     String?
+  lostReason       String?    // Harga terlalu mahal, Memilih kompetitor, Tidak membutuhkan produk, dll.
+  lastFollowUpDate String?
+  nextFollowUpDate String?
+  nextFollowUpTime String?
+  closedAt         DateTime?
+  lostAt           DateTime?
+  isDeleted        Boolean    @default(false)
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+
+  sales            User       @relation(fields: [salesId], references: [id])
+  product          Product    @relation(fields: [productId], references: [id])
+  followUps        FollowUp[]
+
+  @@map("leads")
+}
+
+model FollowUp {
+  id               String   @id @default(cuid())
+  leadId           String
+  salesId          String
+  date             String   // YYYY-MM-DD
+  time             String   // HH:mm
+  method           String   // WhatsApp, Telepon, Meeting, Email, Lainnya
+  result           String   // Tertarik, Minta Harga, Minta Detail, Masih Pertimbangkan, Siap Membeli, Tidak Tertarik, Tidak Bisa Dihubungi, Buka Kembali, Lainnya
+  notes            String?
+  oldStatus        String?
+  newStatus        String
+  lostReason       String?
+  nextFollowUpDate String?
+  nextFollowUpTime String?
+  createdAt        DateTime @default(now())
+
+  lead             Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  sales            User     @relation(fields: [salesId], references: [id])
+
+  @@map("follow_ups")
+}

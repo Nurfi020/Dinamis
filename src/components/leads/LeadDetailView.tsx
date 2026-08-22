@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState } from 'react';
 import { 
   ArrowLeft, 
@@ -15,7 +17,10 @@ import {
   Sparkles,
   Calendar,
   AlertCircle,
-  FileText
+  FileText,
+  RotateCcw,
+  History,
+  AlertTriangle
 } from 'lucide-react';
 import { Lead, LeadStatus, FollowUpLog } from '../../types';
 import { StatusBadge } from '../common/StatusBadge';
@@ -162,6 +167,18 @@ export const LeadDetailView: React.FC<LeadDetailViewProps> = ({
 
           {/* Action Buttons matching specs */}
           <div className="flex flex-wrap items-center gap-2.5">
+            {/* Reopen Button if status is Tidak Berhasil (Rule 9) */}
+            {lead.status === 'Tidak Berhasil' && (
+              <button
+                type="button"
+                onClick={onOpenLogFollowUp}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/40 text-xs font-bold transition-all shadow-[0_0_15px_rgba(245,158,11,0.2)] active:scale-95"
+              >
+                <RotateCcw className="w-4 h-4 text-amber-400" />
+                <span>Buka Kembali Prospek</span>
+              </button>
+            )}
+
             {/* WhatsApp */}
             <a
               href={waUrl}
@@ -197,7 +214,7 @@ export const LeadDetailView: React.FC<LeadDetailViewProps> = ({
                 <CalendarClock className="w-4 h-4 text-[#168BFF]" />
                 <span>Jadwal Follow Up</span>
               </h3>
-              {lead.nextFollowUpDate && (
+              {lead.nextFollowUpDate && lead.status !== 'Closing' && lead.status !== 'Tidak Berhasil' && (
                 <span
                   className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
                     isOverdue
@@ -212,7 +229,7 @@ export const LeadDetailView: React.FC<LeadDetailViewProps> = ({
               )}
             </div>
 
-            {lead.nextFollowUpDate ? (
+            {lead.nextFollowUpDate && lead.status !== 'Closing' && lead.status !== 'Tidak Berhasil' ? (
               <div className="p-3.5 bg-[#06111F] rounded-xl border border-[#17324D] space-y-2">
                 <div className="flex items-baseline justify-between">
                   <span className="text-base font-extrabold text-[#F8FAFC]">
@@ -251,14 +268,22 @@ export const LeadDetailView: React.FC<LeadDetailViewProps> = ({
               </div>
             ) : (
               <div className="p-4 bg-[#06111F] rounded-xl border border-[#17324D] text-center text-xs text-[#94A3B8]">
-                <p>Belum ada jadwal follow up berikutnya.</p>
-                <button
-                  type="button"
-                  onClick={onOpenLogFollowUp}
-                  className="mt-2 text-xs text-[#168BFF] hover:underline font-semibold"
-                >
-                  + Jadwalkan Sekarang
-                </button>
+                <p>
+                  {lead.status === 'Closing'
+                    ? '🎉 Prospek sudah closing (deal).'
+                    : lead.status === 'Tidak Berhasil'
+                    ? 'Prospek status tidak berhasil.'
+                    : 'Belum ada jadwal follow up berikutnya.'}
+                </p>
+                {lead.status !== 'Closing' && (
+                  <button
+                    type="button"
+                    onClick={onOpenLogFollowUp}
+                    className="mt-2 text-xs text-[#168BFF] hover:underline font-semibold"
+                  >
+                    + Jadwalkan Sekarang
+                  </button>
+                )}
               </div>
             )}
           </div>
@@ -300,6 +325,22 @@ export const LeadDetailView: React.FC<LeadDetailViewProps> = ({
               <div className="flex items-center justify-between">
                 <span className="text-[#94A3B8]">Status Saat Ini</span>
                 <StatusBadge status={lead.status} size="sm" />
+              </div>
+
+              {lead.lostReason && (
+                <div className="flex items-center justify-between">
+                  <span className="text-red-400">Alasan Lost</span>
+                  <span className="font-medium text-red-300 bg-red-950/40 px-2 py-0.5 rounded border border-red-500/30">
+                    {lead.lostReason}
+                  </span>
+                </div>
+              )}
+
+              <div className="flex items-center justify-between">
+                <span className="text-[#94A3B8]">Follow Up Terakhir</span>
+                <span className="font-medium text-slate-300">
+                  {lead.lastFollowUpDate ? formatFullIndonesianDate(lead.lastFollowUpDate) : 'Belum ada'}
+                </span>
               </div>
 
               <div className="flex items-center justify-between">
@@ -389,6 +430,13 @@ export const LeadDetailView: React.FC<LeadDetailViewProps> = ({
                             <StatusBadge status={log.oldStatus} size="sm" />
                             <ArrowRight className="w-3 h-3 text-[#22D3EE]" />
                             <StatusBadge status={log.newStatus} size="sm" />
+                          </div>
+                        )}
+
+                        {/* Lost reason in log */}
+                        {log.lostReason && (
+                          <div className="text-xs text-red-400 bg-red-950/20 p-2 rounded border border-red-500/30">
+                            <b>Alasan Tidak Berhasil:</b> {log.lostReason}
                           </div>
                         )}
 

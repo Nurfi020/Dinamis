@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState } from 'react';
 import { 
   MessageCircle, 
@@ -8,7 +10,10 @@ import {
   Calendar, 
   Clock, 
   Sparkles,
-  ArrowRight
+  ArrowRight,
+  HelpCircle,
+  AlertTriangle,
+  RotateCcw
 } from 'lucide-react';
 import { Modal } from '../common/Modal';
 import { 
@@ -16,7 +21,8 @@ import {
   LeadStatus, 
   FollowUpMethod, 
   FollowUpResult, 
-  FollowUpLog 
+  FollowUpLog,
+  LostReason
 } from '../../types';
 import { triggerClosingConfetti } from '../../utils/helpers';
 
@@ -36,6 +42,7 @@ export const LogFollowUpModal: React.FC<LogFollowUpModalProps> = ({
   const [method, setMethod] = useState<FollowUpMethod>('WhatsApp');
   const [result, setResult] = useState<FollowUpResult>('Tertarik');
   const [newStatus, setNewStatus] = useState<LeadStatus>(lead.status);
+  const [lostReason, setLostReason] = useState<LostReason>('Harga terlalu mahal');
   const [notes, setNotes] = useState('');
   
   // Next follow up date helper calculation
@@ -47,7 +54,7 @@ export const LogFollowUpModal: React.FC<LogFollowUpModalProps> = ({
 
   const [nextDate, setNextDate] = useState<string>(getFormattedDate(1)); // Besok by default
   const [nextTime, setNextTime] = useState<string>('10:00');
-  const [noNextFollowUp, setNoNextFollowUp] = useState(false);
+  const [noNextFollowUp, setNoNextFollowUp] = useState(lead.status === 'Closing' || lead.status === 'Tidak Berhasil');
 
   const methodsList: { id: FollowUpMethod; label: string; icon: any }[] = [
     { id: 'WhatsApp', label: 'WhatsApp', icon: MessageCircle },
@@ -64,6 +71,16 @@ export const LogFollowUpModal: React.FC<LogFollowUpModalProps> = ({
     'Siap Membeli',
     'Tidak Tertarik',
     'Tidak Bisa Dihubungi',
+    ...(lead.status === 'Tidak Berhasil' ? ['Buka Kembali' as FollowUpResult] : []),
+    'Lainnya',
+  ];
+
+  const lostReasonsList: LostReason[] = [
+    'Harga terlalu mahal',
+    'Memilih kompetitor',
+    'Tidak membutuhkan produk',
+    'Tidak dapat dihubungi',
+    'Nomor tidak valid',
     'Lainnya',
   ];
 
@@ -83,10 +100,15 @@ export const LogFollowUpModal: React.FC<LogFollowUpModalProps> = ({
     } else if (res === 'Tidak Tertarik') {
       setNewStatus('Tidak Berhasil');
       setNoNextFollowUp(true);
+    } else if (res === 'Buka Kembali') {
+      setNewStatus('Warm');
+      setNoNextFollowUp(false);
     } else if (res === 'Minta Harga' || res === 'Minta Detail') {
       if (lead.status === 'Cold') setNewStatus('Warm');
     }
   };
+
+  const isReopening = lead.status === 'Tidak Berhasil' && (newStatus === 'Cold' || newStatus === 'Warm' || newStatus === 'Hot');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -102,12 +124,13 @@ export const LogFollowUpModal: React.FC<LogFollowUpModalProps> = ({
       date: now.toISOString().split('T')[0],
       time: currentTimeStr,
       method,
-      result,
+      result: isReopening ? 'Buka Kembali' : result,
       notes: notes.trim() || undefined,
       oldStatus: lead.status,
       newStatus,
-      nextFollowUpDate: noNextFollowUp ? undefined : nextDate,
-      nextFollowUpTime: noNextFollowUp ? undefined : nextTime,
+      lostReason: newStatus === 'Tidak Berhasil' ? lostReason : undefined,
+      nextFollowUpDate: (noNextFollowUp || newStatus === 'Closing' || newStatus === 'Tidak Berhasil') ? undefined : nextDate,
+      nextFollowUpTime: (noNextFollowUp || newStatus === 'Closing' || newStatus === 'Tidak Berhasil') ? undefined : nextTime,
     });
 
     onClose();
@@ -122,6 +145,16 @@ export const LogFollowUpModal: React.FC<LogFollowUpModalProps> = ({
       maxWidth="lg"
     >
       <form onSubmit={handleSubmit} className="space-y-4 text-xs">
+        {/* Reopen Notice if applicable */}
+        {isReopening && (
+          <div className="p-3 bg-amber-500/15 border border-amber-500/30 rounded-xl text-amber-300 flex items-center gap-2">
+            <RotateCcw className="w-4 h-4 text-amber-400 shrink-0" />
+            <span>
+              <b>Buka Kembali Prospek:</b> Lead dari status <i>Tidak Berhasil</i> akan diaktifkan kembali menjadi <b>{newStatus}</b> dan dicatat di riwayat.
+            </span>
+          </div>
+        )}
+
         {/* 1. Metode Follow Up (Pilihan Cepat) */}
         <div>
           <label className="block font-semibold text-[#F8FAFC] mb-1.5">
@@ -150,7 +183,7 @@ export const LogFollowUpModal: React.FC<LogFollowUpModalProps> = ({
           </div>
         </div>
 
-        {/* 2. Hasil Follow Up (8 Quick Chips) */}
+        {/* 2. Hasil Follow Up (Quick Chips) */}
         <div>
           <label className="block font-semibold text-[#F8FAFC] mb-1.5">
             Hasil Interaksi <span className="text-red-400">*</span>
@@ -197,7 +230,14 @@ export const LogFollowUpModal: React.FC<LogFollowUpModalProps> = ({
                 <button
                   key={s.id}
                   type="button"
-                  onClick={() => setNewStatus(s.id)}
+                  onClick={() => {
+                    setNewStatus(s.id);
+                    if (s.id === 'Closing' || s.id === 'Tidak Berhasil') {
+                      setNoNextFollowUp(true);
+                    } else {
+                      setNoNextFollowUp(false);
+                    }
+                  }}
                   className={`py-2 px-1 rounded-xl text-[11px] font-bold border transition-all text-center ${
                     isSelected
                       ? s.id === 'Hot'
@@ -219,76 +259,103 @@ export const LogFollowUpModal: React.FC<LogFollowUpModalProps> = ({
           </div>
         </div>
 
-        {/* 4. Jadwal Follow Up Berikutnya */}
-        <div className="p-3 bg-[#06111F] rounded-xl border border-[#17324D] space-y-2.5">
-          <div className="flex items-center justify-between">
-            <span className="font-semibold text-[#F8FAFC]">Jadwal Follow Up Berikutnya</span>
-            <label className="flex items-center gap-1.5 text-xs text-[#94A3B8] cursor-pointer">
-              <input
-                type="checkbox"
-                checked={noNextFollowUp}
-                onChange={(e) => setNoNextFollowUp(e.target.checked)}
-                className="rounded border-[#17324D] bg-[#0E233D] text-[#168BFF]"
-              />
-              <span>Tidak perlu follow up lagi</span>
+        {/* 3.1 Alasan Tidak Berhasil jika status Tidak Berhasil (Sesuai 06-business-rule.md) */}
+        {newStatus === 'Tidak Berhasil' && (
+          <div className="p-3 bg-red-950/20 rounded-xl border border-red-500/30 space-y-2">
+            <label className="block font-semibold text-red-400">
+              Alasan Tidak Berhasil <span className="text-red-400">*</span>
             </label>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
+              {lostReasonsList.map((reason) => (
+                <button
+                  key={reason}
+                  type="button"
+                  onClick={() => setLostReason(reason)}
+                  className={`p-2 rounded-lg text-xs font-medium border text-center transition-all ${
+                    lostReason === reason
+                      ? 'bg-red-500/30 text-red-300 border-red-400 font-bold'
+                      : 'bg-[#0E233D] text-[#94A3B8] border-[#17324D] hover:text-white'
+                  }`}
+                >
+                  {reason}
+                </button>
+              ))}
+            </div>
           </div>
+        )}
 
-          {!noNextFollowUp && (
-            <>
-              {/* Quick date chips */}
-              <div className="flex flex-wrap gap-1.5">
-                {[
-                  { label: 'Hari Ini', offset: 0 },
-                  { label: 'Besok', offset: 1 },
-                  { label: '3 Hari Lagi', offset: 3 },
-                  { label: '1 Minggu Lagi', offset: 7 },
-                ].map((item) => (
-                  <button
-                    key={item.label}
-                    type="button"
-                    onClick={() => setNextDate(getFormattedDate(item.offset))}
-                    className={`px-2.5 py-1 rounded-lg text-xs font-medium border transition-all ${
-                      nextDate === getFormattedDate(item.offset)
-                        ? 'bg-[#168BFF] text-white border-[#168BFF]'
-                        : 'bg-[#0E233D] text-[#94A3B8] border-[#17324D] hover:text-white'
-                    }`}
-                  >
-                    {item.label}
-                  </button>
-                ))}
-              </div>
+        {/* 4. Jadwal Follow Up Berikutnya */}
+        {newStatus !== 'Closing' && newStatus !== 'Tidak Berhasil' && (
+          <div className="p-3 bg-[#06111F] rounded-xl border border-[#17324D] space-y-2.5">
+            <div className="flex items-center justify-between">
+              <span className="font-semibold text-[#F8FAFC]">Jadwal Follow Up Berikutnya</span>
+              <label className="flex items-center gap-1.5 text-xs text-[#94A3B8] cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={noNextFollowUp}
+                  onChange={(e) => setNoNextFollowUp(e.target.checked)}
+                  className="rounded border-[#17324D] bg-[#0E233D] text-[#168BFF]"
+                />
+                <span>Tidak perlu follow up lagi</span>
+              </label>
+            </div>
 
-              {/* Date & Time Selectors */}
-              <div className="grid grid-cols-2 gap-2 pt-1">
-                <div>
-                  <label className="block text-[11px] text-[#94A3B8] mb-1">Tanggal</label>
-                  <input
-                    type="date"
-                    value={nextDate}
-                    onChange={(e) => setNextDate(e.target.value)}
-                    className="w-full px-3 py-2 bg-[#0B1B2E] border border-[#17324D] rounded-xl text-xs text-white focus:outline-none focus:border-[#168BFF]"
-                  />
+            {!noNextFollowUp && (
+              <>
+                {/* Quick date chips */}
+                <div className="flex flex-wrap gap-1.5">
+                  {[
+                    { label: 'Hari Ini', offset: 0 },
+                    { label: 'Besok', offset: 1 },
+                    { label: '3 Hari Lagi', offset: 3 },
+                    { label: '1 Minggu Lagi', offset: 7 },
+                  ].map((item) => (
+                    <button
+                      key={item.label}
+                      type="button"
+                      onClick={() => setNextDate(getFormattedDate(item.offset))}
+                      className={`px-2.5 py-1 rounded-lg text-xs font-medium border transition-all ${
+                        nextDate === getFormattedDate(item.offset)
+                          ? 'bg-[#168BFF] text-white border-[#168BFF]'
+                          : 'bg-[#0E233D] text-[#94A3B8] border-[#17324D] hover:text-white'
+                      }`}
+                    >
+                      {item.label}
+                    </button>
+                  ))}
                 </div>
-                <div>
-                  <label className="block text-[11px] text-[#94A3B8] mb-1">Waktu</label>
-                  <select
-                    value={nextTime}
-                    onChange={(e) => setNextTime(e.target.value)}
-                    className="w-full px-3 py-2 bg-[#0B1B2E] border border-[#17324D] rounded-xl text-xs text-white focus:outline-none focus:border-[#168BFF]"
-                  >
-                    <option value="09:00">09:00 Pagi</option>
-                    <option value="10:30">10:30 Pagi</option>
-                    <option value="13:00">13:00 Siang</option>
-                    <option value="15:00">15:00 Sore</option>
-                    <option value="16:30">16:30 Sore</option>
-                    <option value="19:00">19:00 Malam</option>
-                  </select>
+
+                {/* Date & Time Selectors */}
+                <div className="grid grid-cols-2 gap-2 pt-1">
+                  <div>
+                    <label className="block text-[11px] text-[#94A3B8] mb-1">Tanggal</label>
+                    <input
+                      type="date"
+                      value={nextDate}
+                      onChange={(e) => setNextDate(e.target.value)}
+                      className="w-full px-3 py-2 bg-[#0B1B2E] border border-[#17324D] rounded-xl text-xs text-white focus:outline-none focus:border-[#168BFF]"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] text-[#94A3B8] mb-1">Waktu</label>
+                    <select
+                      value={nextTime}
+                      onChange={(e) => setNextTime(e.target.value)}
+                      className="w-full px-3 py-2 bg-[#0B1B2E] border border-[#17324D] rounded-xl text-xs text-white focus:outline-none focus:border-[#168BFF]"
+                    >
+                      <option value="09:00">09:00 Pagi</option>
+                      <option value="10:30">10:30 Pagi</option>
+                      <option value="13:00">13:00 Siang</option>
+                      <option value="15:00">15:00 Sore</option>
+                      <option value="16:30">16:30 Sore</option>
+                      <option value="19:00">19:00 Malam</option>
+                    </select>
+                  </div>
                 </div>
-              </div>
-            </>
-          )}
-        </div>
+              </>
+            )}
+          </div>
+        )}
 
         {/* 5. Catatan Tambahan (Opsional) */}
         <div>
@@ -300,7 +367,7 @@ export const LogFollowUpModal: React.FC<LogFollowUpModalProps> = ({
             rows={2}
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
-            placeholder="Contoh: Customer minta diskon 10% dan minta dikirimkan quotation..."
+            placeholder="Contoh: Customer minta penawaran harga khusus paket starter..."
             className="w-full p-3 bg-[#06111F] border border-[#17324D] rounded-xl text-xs text-[#F8FAFC] placeholder-[#94A3B8] focus:outline-none focus:border-[#168BFF]"
           />
         </div>

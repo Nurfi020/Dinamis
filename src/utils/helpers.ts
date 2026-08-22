@@ -163,10 +163,15 @@ export function isDateUpcoming(dateStr?: string): boolean {
 }
 
 export function triggerClosingConfetti() {
-  confetti({
-    particleCount: 80,
-    spread: 70,
-    origin: { y: 0.6 },
-    colors: ['#168BFF', '#22D3EE', '#10B981', '#F59E0B'],
-  });
+  if (typeof window === 'undefined') return;
+  try {
+    confetti({
+      particleCount: 80,
+      spread: 70,
+      origin: { y: 0.6 },
+      colors: ['#168BFF', '#22D3EE', '#10B981', '#F59E0B'],
+    });
+  } catch (e) {
+    console.error('Confetti error:', e);
+  }
 }

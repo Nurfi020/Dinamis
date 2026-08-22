@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import { Modal } from './Modal';
 import { Sparkles, MessageCircle, Flame, CheckCircle2, CalendarClock, MousePointer, ShieldCheck } from 'lucide-react';
