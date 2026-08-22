@@ -1,0 +1,6 @@
+{
+  "name": "Kelola Lead Sales",
+  "description": "Aplikasi CRM sederhana untuk Sales untuk mencatat lead, memantau status, melakukan follow up, dan melihat laporan performa.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
