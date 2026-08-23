@@ -86,3 +86,59 @@ model FollowUp {
 
   @@map("follow_ups")
 }
+
+model License {
+  id              String          @id @default(cuid())
+  licenseKeyHash  String          @unique
+  licenseKeyLast4 String
+  productCode     String          @default("KEL0LA-LEAD")
+  plan            String          @default("lifetime")
+  status          String          @default("pending") // pending, active, suspended, revoked
+  maxDevices      Int             @default(1)
+  isTest          Boolean         @default(false)
+  notes           String?
+  activatedAt     DateTime?
+  lastVerifiedAt  DateTime?
+  revokedAt       DateTime?
+  expiresAt       DateTime?       // Lifetime = null
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  devices         LicenseDevice[]
+  tokens          ActivationToken[]
+
+  @@map("licenses")
+}
+
+model LicenseDevice {
+  id              String    @id @default(cuid())
+  licenseId       String
+  deviceId        String
+  deviceName      String    @default("Unknown Device")
+  browser         String    @default("Unknown Browser")
+  operatingSystem String    @default("Unknown OS")
+  status          String    @default("active") // active, deactivated
+  activatedAt     DateTime  @default(now())
+  lastSeenAt      DateTime  @default(now())
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  license         License   @relation(fields: [licenseId], references: [id], onDelete: Cascade)
+
+  @@unique([licenseId, deviceId])
+  @@map("license_devices")
+}
+
+model ActivationToken {
+  id         String    @id @default(cuid())
+  token      String    @unique
+  licenseId  String
+  deviceId   String
+  issuedAt   DateTime  @default(now())
+  expiresAt  DateTime? // Lifetime = null
+  createdAt  DateTime  @default(now())
+
+  license    License   @relation(fields: [licenseId], references: [id], onDelete: Cascade)
+
+  @@map("activation_tokens")
+}

@@ -76,7 +76,30 @@ export interface UserProfile {
   closingCount: number;
 }
 
-export type ActiveTab = 'dashboard' | 'leads' | 'followup' | 'reports' | 'profile';
+export type ActiveTab = 'dashboard' | 'leads' | 'followup' | 'reports' | 'profile' | 'admin_licenses';
+
+export interface LicenseInfo {
+  id: string;
+  plan: 'lifetime';
+  status: 'active' | 'pending' | 'suspended' | 'revoked';
+  productCode: 'KEL0LA-LEAD';
+  licenseKeyLast4: string;
+  fullKeyMasked?: string;
+  isTest?: boolean;
+  activatedAt: string;
+  lastVerifiedAt?: string;
+  expiresAt: null;
+  deviceName?: string;
+  browser?: string;
+  operatingSystem?: string;
+}
+
+export interface StoredActivationState {
+  token: string;
+  license: LicenseInfo;
+  deviceId: string;
+  lastVerifiedTimestamp: number;
+}
 
 export interface FilterState {
   search: string;

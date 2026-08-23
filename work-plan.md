@@ -273,10 +273,30 @@ model FollowUp {
 | `GET` | `/api/follow-ups/summary` | Ambil lead yang dikelompokkan: Overdue, Today, Upcoming | Returns `200 OK` (`{ overdue, today, upcoming }`) |
 | `GET` | `/api/reports/dashboard` | Ambil 5 metrik kartu, grafik tren, donut status, ranking sumber | Returns `200 OK` (Dashboard metrics object) |
 | `GET` | `/api/reports/performance` | Ambil konversi closing, breakdown sumber/produk/kota, export data | Returns `200 OK` (Performance metrics object) |
+| `POST` | `/api/license/activate` | Aktivasi License Key Lifetime + Device Binding (1 User 1 Device) | Body: `{ licenseKey, deviceId, ... }` ➔ `200 OK` / `400` / `409` |
+| `POST` | `/api/license/verify` | Verifikasi token aktivasi dan device binding | Body: `{ activationToken, deviceId }` ➔ `200 OK` / `401` / `403` |
+| `POST` | `/api/license/validate` | Validasi lisensi fleksibel (Header/Body) | Returns `200 OK` (Valid status + License info) |
+| `POST` | `/api/license/deactivate` | Pelepasan ikatan perangkat (Reset Perangkat) | Body: `{ activationToken, deviceId }` ➔ `200 OK` |
+| `GET` | `/api/license/status` | Info status layanan lisensi | Returns `200 OK` |
+| `GET` | `/api/license/admin/list` | Admin: Direktori lisensi & perangkat terikat | Returns `200 OK` (Array of licenses + device info) |
+| `POST` | `/api/license/admin/create` | Admin: Generate License Key Lifetime baru | Body: `{ notes }` ➔ `200 OK` + Key |
+| `POST` | `/api/license/admin/reset-device` | Admin: Reset ikatan perangkat untuk lisensi | Body: `{ licenseId }` ➔ `200 OK` |
+| `POST` | `/api/license/admin/status` | Admin: Update status lisensi (active, suspended, revoked) | Body: `{ licenseId, status }` ➔ `200 OK` |
 
 ---
 
-## 🧪 5. Skenario Pengujian Kualitas (Testing & Verification)
+## 🔐 5. Spesifikasi Sistem License Key Lifetime (1 User, 1 Device)
+
+* **Format Kunci Standar:** `KLDN-LIFE-XXXX-XXXX-XXXX`
+* **Keamanan Server-Side:**
+  - Hashing HMAC SHA-256 server-side dengan `SERVER_SECRET` (key asli tidak disimpan plaintext di database).
+  - Rate limiting (sliding window) pada endpoint `/api/license/activate` untuk mencegah brute force.
+  - Kebijakan 1 Perangkat: Lisensi yang sudah aktif tidak dapat diaktifkan di perangkat lain sebelum dilakukan Reset Perangkat.
+  - Mode Offline Grace Period: Akses offline hingga 7 hari sebelum mewajibkan sinkronisasi ulang ke server.
+
+---
+
+## 🧪 6. Skenario Pengujian Kualitas (Testing & Verification)
 
 - [x] **Test Case 1: Alur Siklus Penuh Lead Menuju Closing**
   - [x] Input lead baru status Cold dengan jadwal follow up esok hari.
@@ -307,6 +327,13 @@ model FollowUp {
 - [x] **Test Case 5: Reset Demo Data & Responsivitas Layar**
   - [x] Klik reset data demo di menu Pengaturan ➔ database kembali ke kondisi 10 lead awal seeder.
   - [x] Uji tampilan pada viewport Mobile (375px), Tablet (768px), dan Desktop (1440px) ➔ pastikan bebas scroll horizontal dan bottom nav mobile berfungsi responsif.
+
+- [x] **Test Case 6: Sistem Lisensi Lifetime (1 User 1 Device)**
+  - [x] Saat aplikasi pertama kali dibuka tanpa lisensi ➔ layar aktivasi lisensi muncul otomatis.
+  - [x] Memasukkan Test Key `KLDN-LIFE-TEST-TEST-0001` ➔ validasi server berhasil dan dashboard terbuka.
+  - [x] Membuka menu Pengaturan & Profil ➔ informasi status lisensi lifetime, masking key, perangkat terikat, dan verifikasi terakhir tampil lengkap.
+  - [x] Menekan tombol Reset Perangkat ➔ ikatan perangkat dilepaskan dan kembali ke layar aktivasi tanpa menghapus data lead lokal.
+  - [x] Admin License Key Manager ➔ dapat membuat key baru, melihat daftar key, dan mereset status lisensi secara instan.
 
 ---
 

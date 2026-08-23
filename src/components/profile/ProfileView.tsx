@@ -13,27 +13,41 @@ import {
   Check, 
   Sparkles, 
   MessageSquare,
-  ShieldCheck
+  ShieldCheck,
+  KeyRound,
+  Laptop,
+  Clock,
+  Wrench,
+  AlertTriangle
 } from 'lucide-react';
-import { UserProfile } from '../../types';
+import { UserProfile, LicenseInfo } from '../../types';
 import { formatDisplayPhone } from '../../utils/helpers';
+import { getClientDeviceMetadata } from '../../utils/device';
+import { AdminLicensesModal } from '../license/AdminLicensesModal';
 
 interface ProfileViewProps {
   profile: UserProfile;
+  license?: LicenseInfo | null;
   onUpdateProfile: (updated: UserProfile) => void;
   onResetData: () => void;
+  onDeactivateLicense: () => void;
 }
 
 export const ProfileView: React.FC<ProfileViewProps> = ({
   profile,
+  license,
   onUpdateProfile,
   onResetData,
+  onDeactivateLicense,
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [name, setName] = useState(profile.name);
   const [email, setEmail] = useState(profile.email);
   const [phone, setPhone] = useState(profile.phone);
   const [target, setTarget] = useState(profile.monthlyTarget);
+  const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
+
+  const deviceMeta = getClientDeviceMetadata();
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,6 +62,24 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
   };
 
   const targetPct = Math.min(Math.round((profile.closingCount / profile.monthlyTarget) * 100), 100);
+
+  const formattedActivatedDate = license?.activatedAt
+    ? new Date(license.activatedAt).toLocaleDateString('id-ID', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+      })
+    : '23 Agustus 2026';
+
+  const formattedLastVerified = license?.lastVerifiedAt
+    ? new Date(license.lastVerifiedAt).toLocaleString('id-ID', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      })
+    : 'Baru saja terverifikasi';
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto pb-24 md:pb-12">
@@ -71,6 +103,112 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
             <p className="text-xs text-[#94A3B8]">{profile.email}</p>
             <p className="text-xs font-mono text-emerald-400">{formatDisplayPhone(profile.phone)}</p>
           </div>
+        </div>
+      </div>
+
+      {/* Dedicated License Card (1 User, 1 Device Lifetime) */}
+      <div className="bg-[#0B1B2E] border border-[#17324D] rounded-2xl p-6 shadow-lg space-y-4 relative overflow-hidden">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#17324D] pb-3">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 flex items-center justify-center">
+              <ShieldCheck className="w-4 h-4" />
+            </div>
+            <div>
+              <h3 className="text-base font-bold text-[#F8FAFC]">Status Lisensi Aplikasi</h3>
+              <p className="text-xs text-[#94A3B8]">Lisensi Lifetime (1 User, 1 Device)</p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <span className="px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 text-xs font-bold flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              <span>LISENSI AKTIF</span>
+            </span>
+
+            <button
+              type="button"
+              onClick={() => setIsAdminModalOpen(true)}
+              className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-[#17324D] transition-colors text-xs flex items-center gap-1"
+              title="Admin License Manager"
+            >
+              <Wrench className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </div>
+
+        {/* License Details Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-xs">
+          <div className="p-3 bg-[#06111F] rounded-xl border border-[#17324D]">
+            <span className="text-[#94A3B8] block text-[11px]">Tipe Paket</span>
+            <span className="font-bold text-white mt-0.5 block flex items-center gap-1.5">
+              <Sparkles className="w-3.5 h-3.5 text-[#22D3EE]" />
+              <span>Lifetime (Seumur Hidup)</span>
+            </span>
+          </div>
+
+          <div className="p-3 bg-[#06111F] rounded-xl border border-[#17324D]">
+            <span className="text-[#94A3B8] block text-[11px]">License Key</span>
+            <span className="font-mono font-bold text-[#22D3EE] mt-0.5 block">
+              {license?.fullKeyMasked || `KLDN-LIFE-****-****-${license?.licenseKeyLast4 || '8Q4T'}`}
+            </span>
+          </div>
+
+          <div className="p-3 bg-[#06111F] rounded-xl border border-[#17324D]">
+            <span className="text-[#94A3B8] block text-[11px]">Perangkat Terikat</span>
+            <span className="font-semibold text-white mt-0.5 block truncate flex items-center gap-1.5">
+              <Laptop className="w-3.5 h-3.5 text-[#168BFF] shrink-0" />
+              <span>{deviceMeta.deviceName}</span>
+            </span>
+          </div>
+
+          <div className="p-3 bg-[#06111F] rounded-xl border border-[#17324D]">
+            <span className="text-[#94A3B8] block text-[11px]">Tanggal Aktivasi</span>
+            <span className="font-semibold text-white mt-0.5 block">
+              {formattedActivatedDate}
+            </span>
+          </div>
+
+          <div className="p-3 bg-[#06111F] rounded-xl border border-[#17324D]">
+            <span className="text-[#94A3B8] block text-[11px]">Verifikasi Terakhir</span>
+            <span className="font-semibold text-emerald-400 mt-0.5 block flex items-center gap-1">
+              <Clock className="w-3 h-3" />
+              <span>{formattedLastVerified}</span>
+            </span>
+          </div>
+
+          <div className="p-3 bg-[#06111F] rounded-xl border border-[#17324D]">
+            <span className="text-[#94A3B8] block text-[11px]">Mode Offline</span>
+            <span className="font-semibold text-white mt-0.5 block">
+              Grace Period 7 Hari Aktif
+            </span>
+          </div>
+        </div>
+
+        {/* Reset Device Action Box */}
+        <div className="pt-2 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-[#06111F]/60 p-4 rounded-xl border border-[#17324D]">
+          <div>
+            <h4 className="text-xs font-bold text-[#F8FAFC]">Reset Binding Perangkat</h4>
+            <p className="text-[11px] text-[#94A3B8] mt-0.5">
+              Ingin memindahkan lisensi ke laptop atau komputer lain? Lepaskan ikatan perangkat ini terlebih dahulu.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => {
+              if (
+                confirm(
+                  'Apakah Anda yakin ingin melepaskan lisensi dari perangkat ini? Aplikasi akan kembali ke halaman aktivasi, namun seluruh data Lead Anda tetap tersimpan aman di browser.'
+                )
+              ) {
+                onDeactivateLicense();
+              }
+            }}
+            className="px-3.5 py-2 rounded-xl bg-orange-500/10 hover:bg-orange-500/20 text-orange-400 border border-orange-500/30 text-xs font-bold transition-all flex items-center gap-1.5 shrink-0"
+          >
+            <RotateCcw className="w-3.5 h-3.5" />
+            <span>Reset Perangkat</span>
+          </button>
         </div>
       </div>
 
@@ -217,6 +355,12 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
           <span>Reset ke Data Default</span>
         </button>
       </div>
+
+      {/* Modals */}
+      <AdminLicensesModal
+        isOpen={isAdminModalOpen}
+        onClose={() => setIsAdminModalOpen(false)}
+      />
     </div>
   );
 };

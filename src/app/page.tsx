@@ -31,6 +31,9 @@ import { ReportsView } from '../components/reports/ReportsView';
 import { ProfileView } from '../components/profile/ProfileView';
 import { HelpGuideModal } from '../components/common/HelpGuideModal';
 import { ToastContainer, ToastMessage } from '../components/common/Toast';
+import { ActivateView } from '../components/license/ActivateView';
+import { LicenseClient } from '../services/licenseClient';
+import { LicenseInfo } from '../types';
 
 export default function HomePage() {
   const [leads, setLeads] = useState<Lead[]>(INITIAL_LEADS);
@@ -39,6 +42,11 @@ export default function HomePage() {
   const [selectedLeadId, setSelectedLeadId] = useState<string | null>(null);
   const [isClient, setIsClient] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+
+  // License state
+  const [isLicenseChecking, setIsLicenseChecking] = useState(true);
+  const [isActivated, setIsActivated] = useState(false);
+  const [licenseInfo, setLicenseInfo] = useState<LicenseInfo | null>(null);
   
   // Modals state
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -85,10 +93,37 @@ export default function HomePage() {
     }
   };
 
+  // Check license on initial mount
   useEffect(() => {
     setIsClient(true);
-    loadData();
+    const checkLicense = async () => {
+      setIsLicenseChecking(true);
+      try {
+        const verifyResult = await LicenseClient.verify();
+        if (verifyResult.valid && verifyResult.license) {
+          setIsActivated(true);
+          setLicenseInfo(verifyResult.license);
+          loadData();
+        } else {
+          setIsActivated(false);
+          setLicenseInfo(null);
+        }
+      } catch (e) {
+        setIsActivated(false);
+        setLicenseInfo(null);
+      } finally {
+        setIsLicenseChecking(false);
+      }
+    };
+    checkLicense();
   }, []);
+
+  const handleDeactivateLicense = async () => {
+    await LicenseClient.deactivate();
+    setIsActivated(false);
+    setLicenseInfo(null);
+    addToast('info', 'Perangkat Dilepaskan', 'Lisensi berhasil dinonaktifkan dari perangkat ini.');
+  };
 
   // Find currently selected lead
   const selectedLead = leads.find((l) => l.id === selectedLeadId) || null;
@@ -288,6 +323,39 @@ export default function HomePage() {
 
   const headerInfo = getHeaderInfo();
 
+  if (!isClient || isLicenseChecking) {
+    return (
+      <div className="min-h-screen bg-[#06111F] text-[#F8FAFC] flex flex-col items-center justify-center p-4">
+        <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-[#168BFF] to-[#22D3EE] flex items-center justify-center text-white mb-4 shadow-[0_0_25px_rgba(22,139,255,0.5)] animate-pulse">
+          <span className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
+        </div>
+        <p className="text-sm font-bold text-white tracking-wide">Kelola Lead Sales CRM</p>
+        <p className="text-xs text-[#22D3EE] mt-1 font-mono">Memeriksa lisensi perangkat...</p>
+      </div>
+    );
+  }
+
+  if (!isActivated) {
+    return (
+      <div className="min-h-screen bg-[#06111F]">
+        <ActivateView
+          onActivationSuccess={(lic) => {
+            setIsActivated(true);
+            setLicenseInfo(lic);
+            loadData();
+            addToast('success', 'Lisensi Lifetime Aktif!', 'Selamat datang di Kelola Lead Sales CRM.');
+          }}
+          onOpenHelp={() => setIsHelpOpen(true)}
+        />
+        <HelpGuideModal
+          isOpen={isHelpOpen}
+          onClose={() => setIsHelpOpen(false)}
+        />
+        <ToastContainer toasts={toasts} onDismiss={removeToast} />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[#06111F] text-[#F8FAFC] flex font-sans antialiased">
       {/* 1. Desktop Left Sidebar */}
@@ -393,8 +461,10 @@ export default function HomePage() {
           {activeTab === 'profile' && (
             <ProfileView
               profile={profile}
+              license={licenseInfo}
               onUpdateProfile={handleUpdateProfile}
               onResetData={handleResetData}
+              onDeactivateLicense={handleDeactivateLicense}
             />
           )}
         </main>
