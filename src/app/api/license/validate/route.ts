@@ -8,7 +8,7 @@ export async function POST(req: NextRequest) {
     const deviceId = body.deviceId || req.headers.get('x-device-id');
     const productCode = body.productCode || 'KEL0LA-LEAD';
 
-    const result = LicenseService.verify({
+    const result = await LicenseService.verify({
       activationToken: activationToken || '',
       deviceId: deviceId || '',
       productCode,
@@ -39,7 +39,7 @@ export async function GET(req: NextRequest) {
     const activationToken = searchParams.get('token') || req.headers.get('authorization')?.replace('Bearer ', '') || '';
     const deviceId = searchParams.get('deviceId') || req.headers.get('x-device-id') || '';
 
-    const result = LicenseService.verify({
+    const result = await LicenseService.verify({
       activationToken,
       deviceId,
       productCode: 'KEL0LA-LEAD',

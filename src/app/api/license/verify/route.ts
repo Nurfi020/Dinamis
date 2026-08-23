@@ -6,7 +6,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json().catch(() => ({}));
     const { activationToken, deviceId, productCode } = body;
 
-    const result = LicenseService.verify({
+    const result = await LicenseService.verify({
       activationToken,
       deviceId,
       productCode,

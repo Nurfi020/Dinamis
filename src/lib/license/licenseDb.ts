@@ -1,6 +1,7 @@
 import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
+import { prisma } from '@/lib/prisma';
 import { License, LicenseDevice, ActivationTokenRecord } from './types';
 
 // Server-side secret for hashing and signing (never sent to client)
@@ -47,10 +48,10 @@ interface DatabaseSchema {
 }
 
 // Initial Seed Keys
-const INITIAL_TEST_KEY = 'KLDN-LIFE-TEST-TEST-0001';
-const SAMPLE_LIFETIME_KEY_1 = 'KLDN-LIFE-A7X9-K2MP-8Q4T';
-const SAMPLE_LIFETIME_KEY_2 = 'KLDN-LIFE-9R2M-5P8X-3W7V';
-const SAMPLE_LIFETIME_KEY_3 = 'KLDN-LIFE-J4K8-M2N6-Q9X1';
+export const INITIAL_TEST_KEY = 'KLDN-LIFE-TEST-TEST-0001';
+export const SAMPLE_LIFETIME_KEY_1 = 'KLDN-LIFE-A7X9-K2MP-8Q4T';
+export const SAMPLE_LIFETIME_KEY_2 = 'KLDN-LIFE-9R2M-5P8X-3W7V';
+export const SAMPLE_LIFETIME_KEY_3 = 'KLDN-LIFE-J4K8-M2N6-Q9X1';
 
 function createInitialSeed(): DatabaseSchema {
   const now = new Date().toISOString();
@@ -130,10 +131,12 @@ function createInitialSeed(): DatabaseSchema {
 }
 
 class LicenseDatabase {
-  private data: DatabaseSchema;
+  private fallbackData: DatabaseSchema;
+  private isPrismaInitialized = false;
 
   constructor() {
-    this.data = this.loadFromDisk();
+    this.fallbackData = this.loadFromDisk();
+    this.ensurePrismaSeeds();
   }
 
   private loadFromDisk(): DatabaseSchema {
@@ -161,84 +164,402 @@ class LicenseDatabase {
     }
   }
 
-  public getLicenses(): License[] {
-    return this.data.licenses;
-  }
-
-  public getDevices(): LicenseDevice[] {
-    return this.data.devices;
-  }
-
-  public getTokens(): ActivationTokenRecord[] {
-    return this.data.tokens;
-  }
-
-  public findLicenseByHash(hash: string): License | undefined {
-    return this.data.licenses.find((l) => l.licenseKeyHash === hash);
-  }
-
-  public findLicenseById(id: string): License | undefined {
-    return this.data.licenses.find((l) => l.id === id);
-  }
-
-  public findActiveDeviceByLicenseId(licenseId: string): LicenseDevice | undefined {
-    return this.data.devices.find((d) => d.licenseId === licenseId && d.status === 'active');
-  }
-
-  public findDeviceByLicenseAndDeviceId(licenseId: string, deviceId: string): LicenseDevice | undefined {
-    return this.data.devices.find((d) => d.licenseId === licenseId && d.deviceId === deviceId);
-  }
-
-  public findTokenRecord(token: string): ActivationTokenRecord | undefined {
-    return this.data.tokens.find((t) => t.token === token);
-  }
-
-  public addLicense(license: License): void {
-    this.data.licenses.push(license);
-    this.saveToDisk(this.data);
-  }
-
-  public updateLicense(updated: License): void {
-    const idx = this.data.licenses.findIndex((l) => l.id === updated.id);
-    if (idx !== -1) {
-      this.data.licenses[idx] = updated;
-      this.saveToDisk(this.data);
+  private async ensurePrismaSeeds() {
+    if (this.isPrismaInitialized) return;
+    try {
+      if (prisma && prisma.license) {
+        const count = await prisma.license.count();
+        if (count === 0) {
+          const seeds = createInitialSeed().licenses;
+          for (const s of seeds) {
+            await prisma.license.create({
+              data: {
+                id: s.id,
+                licenseKeyHash: s.licenseKeyHash,
+                licenseKeyLast4: s.licenseKeyLast4,
+                productCode: s.productCode,
+                plan: s.plan,
+                status: s.status,
+                maxDevices: s.maxDevices,
+                isTest: s.isTest || false,
+                notes: s.notes,
+              },
+            });
+          }
+        }
+        this.isPrismaInitialized = true;
+      }
+    } catch (err) {
+      // Prisma database may not be available or table not migrated yet, use disk store
     }
   }
 
-  public addOrUpdateDevice(device: LicenseDevice): void {
-    const idx = this.data.devices.findIndex((d) => d.id === device.id || (d.licenseId === device.licenseId && d.deviceId === device.deviceId));
+  public async getLicenses(): Promise<License[]> {
+    try {
+      if (prisma && prisma.license) {
+        const records = await prisma.license.findMany({
+          orderBy: { createdAt: 'desc' },
+        });
+        if (records && records.length > 0) {
+          return records.map((r) => ({
+            id: r.id,
+            licenseKeyHash: r.licenseKeyHash,
+            licenseKeyLast4: r.licenseKeyLast4,
+            productCode: r.productCode,
+            plan: 'lifetime',
+            status: r.status as any,
+            maxDevices: r.maxDevices,
+            createdAt: r.createdAt.toISOString(),
+            activatedAt: r.activatedAt ? r.activatedAt.toISOString() : null,
+            lastVerifiedAt: r.lastVerifiedAt ? r.lastVerifiedAt.toISOString() : null,
+            revokedAt: r.revokedAt ? r.revokedAt.toISOString() : null,
+            expiresAt: null,
+            isTest: r.isTest,
+            notes: r.notes || undefined,
+          }));
+        }
+      }
+    } catch (e) {
+      // fallback
+    }
+    return this.fallbackData.licenses;
+  }
+
+  public async getDevices(): Promise<LicenseDevice[]> {
+    try {
+      if (prisma && prisma.licenseDevice) {
+        const records = await prisma.licenseDevice.findMany();
+        if (records) {
+          return records.map((d) => ({
+            id: d.id,
+            licenseId: d.licenseId,
+            deviceId: d.deviceId,
+            deviceName: d.deviceName,
+            browser: d.browser,
+            operatingSystem: d.operatingSystem,
+            activatedAt: d.activatedAt.toISOString(),
+            lastSeenAt: d.lastSeenAt.toISOString(),
+            status: d.status as any,
+          }));
+        }
+      }
+    } catch (e) {
+      // fallback
+    }
+    return this.fallbackData.devices;
+  }
+
+  public async getTokens(): Promise<ActivationTokenRecord[]> {
+    try {
+      if (prisma && prisma.activationToken) {
+        const records = await prisma.activationToken.findMany();
+        if (records) {
+          return records.map((t) => ({
+            token: t.token,
+            licenseId: t.licenseId,
+            deviceId: t.deviceId,
+            issuedAt: t.issuedAt.toISOString(),
+            expiresAt: null,
+          }));
+        }
+      }
+    } catch (e) {
+      // fallback
+    }
+    return this.fallbackData.tokens;
+  }
+
+  public async findLicenseByHash(hash: string): Promise<License | undefined> {
+    try {
+      if (prisma && prisma.license) {
+        const r = await prisma.license.findUnique({
+          where: { licenseKeyHash: hash },
+        });
+        if (r) {
+          return {
+            id: r.id,
+            licenseKeyHash: r.licenseKeyHash,
+            licenseKeyLast4: r.licenseKeyLast4,
+            productCode: r.productCode,
+            plan: 'lifetime',
+            status: r.status as any,
+            maxDevices: r.maxDevices,
+            createdAt: r.createdAt.toISOString(),
+            activatedAt: r.activatedAt ? r.activatedAt.toISOString() : null,
+            lastVerifiedAt: r.lastVerifiedAt ? r.lastVerifiedAt.toISOString() : null,
+            revokedAt: r.revokedAt ? r.revokedAt.toISOString() : null,
+            expiresAt: null,
+            isTest: r.isTest,
+            notes: r.notes || undefined,
+          };
+        }
+      }
+    } catch (e) {
+      // fallback
+    }
+    return this.fallbackData.licenses.find((l) => l.licenseKeyHash === hash);
+  }
+
+  public async findLicenseById(id: string): Promise<License | undefined> {
+    try {
+      if (prisma && prisma.license) {
+        const r = await prisma.license.findUnique({
+          where: { id },
+        });
+        if (r) {
+          return {
+            id: r.id,
+            licenseKeyHash: r.licenseKeyHash,
+            licenseKeyLast4: r.licenseKeyLast4,
+            productCode: r.productCode,
+            plan: 'lifetime',
+            status: r.status as any,
+            maxDevices: r.maxDevices,
+            createdAt: r.createdAt.toISOString(),
+            activatedAt: r.activatedAt ? r.activatedAt.toISOString() : null,
+            lastVerifiedAt: r.lastVerifiedAt ? r.lastVerifiedAt.toISOString() : null,
+            revokedAt: r.revokedAt ? r.revokedAt.toISOString() : null,
+            expiresAt: null,
+            isTest: r.isTest,
+            notes: r.notes || undefined,
+          };
+        }
+      }
+    } catch (e) {
+      // fallback
+    }
+    return this.fallbackData.licenses.find((l) => l.id === id);
+  }
+
+  public async findActiveDeviceByLicenseId(licenseId: string): Promise<LicenseDevice | undefined> {
+    try {
+      if (prisma && prisma.licenseDevice) {
+        const d = await prisma.licenseDevice.findFirst({
+          where: { licenseId, status: 'active' },
+        });
+        if (d) {
+          return {
+            id: d.id,
+            licenseId: d.licenseId,
+            deviceId: d.deviceId,
+            deviceName: d.deviceName,
+            browser: d.browser,
+            operatingSystem: d.operatingSystem,
+            activatedAt: d.activatedAt.toISOString(),
+            lastSeenAt: d.lastSeenAt.toISOString(),
+            status: d.status as any,
+          };
+        }
+      }
+    } catch (e) {
+      // fallback
+    }
+    return this.fallbackData.devices.find((d) => d.licenseId === licenseId && d.status === 'active');
+  }
+
+  public async findDeviceByLicenseAndDeviceId(licenseId: string, deviceId: string): Promise<LicenseDevice | undefined> {
+    try {
+      if (prisma && prisma.licenseDevice) {
+        const d = await prisma.licenseDevice.findUnique({
+          where: {
+            licenseId_deviceId: { licenseId, deviceId },
+          },
+        });
+        if (d) {
+          return {
+            id: d.id,
+            licenseId: d.licenseId,
+            deviceId: d.deviceId,
+            deviceName: d.deviceName,
+            browser: d.browser,
+            operatingSystem: d.operatingSystem,
+            activatedAt: d.activatedAt.toISOString(),
+            lastSeenAt: d.lastSeenAt.toISOString(),
+            status: d.status as any,
+          };
+        }
+      }
+    } catch (e) {
+      // fallback
+    }
+    return this.fallbackData.devices.find((d) => d.licenseId === licenseId && d.deviceId === deviceId);
+  }
+
+  public async findTokenRecord(token: string): Promise<ActivationTokenRecord | undefined> {
+    try {
+      if (prisma && prisma.activationToken) {
+        const t = await prisma.activationToken.findUnique({
+          where: { token },
+        });
+        if (t) {
+          return {
+            token: t.token,
+            licenseId: t.licenseId,
+            deviceId: t.deviceId,
+            issuedAt: t.issuedAt.toISOString(),
+            expiresAt: null,
+          };
+        }
+      }
+    } catch (e) {
+      // fallback
+    }
+    return this.fallbackData.tokens.find((t) => t.token === token);
+  }
+
+  public async addLicense(license: License): Promise<void> {
+    try {
+      if (prisma && prisma.license) {
+        await prisma.license.create({
+          data: {
+            id: license.id,
+            licenseKeyHash: license.licenseKeyHash,
+            licenseKeyLast4: license.licenseKeyLast4,
+            productCode: license.productCode,
+            plan: license.plan,
+            status: license.status,
+            maxDevices: license.maxDevices,
+            isTest: license.isTest || false,
+            notes: license.notes,
+            activatedAt: license.activatedAt ? new Date(license.activatedAt) : null,
+            lastVerifiedAt: license.lastVerifiedAt ? new Date(license.lastVerifiedAt) : null,
+            revokedAt: license.revokedAt ? new Date(license.revokedAt) : null,
+          },
+        });
+      }
+    } catch (e) {
+      // fallback
+    }
+    this.fallbackData.licenses.push(license);
+    this.saveToDisk(this.fallbackData);
+  }
+
+  public async updateLicense(updated: License): Promise<void> {
+    try {
+      if (prisma && prisma.license) {
+        await prisma.license.update({
+          where: { id: updated.id },
+          data: {
+            status: updated.status,
+            activatedAt: updated.activatedAt ? new Date(updated.activatedAt) : null,
+            lastVerifiedAt: updated.lastVerifiedAt ? new Date(updated.lastVerifiedAt) : null,
+            revokedAt: updated.revokedAt ? new Date(updated.revokedAt) : null,
+            notes: updated.notes,
+          },
+        });
+      }
+    } catch (e) {
+      // fallback
+    }
+    const idx = this.fallbackData.licenses.findIndex((l) => l.id === updated.id);
     if (idx !== -1) {
-      this.data.devices[idx] = device;
+      this.fallbackData.licenses[idx] = updated;
+      this.saveToDisk(this.fallbackData);
+    }
+  }
+
+  public async addOrUpdateDevice(device: LicenseDevice): Promise<void> {
+    try {
+      if (prisma && prisma.licenseDevice) {
+        await prisma.licenseDevice.upsert({
+          where: {
+            licenseId_deviceId: {
+              licenseId: device.licenseId,
+              deviceId: device.deviceId,
+            },
+          },
+          create: {
+            id: device.id,
+            licenseId: device.licenseId,
+            deviceId: device.deviceId,
+            deviceName: device.deviceName,
+            browser: device.browser,
+            operatingSystem: device.operatingSystem,
+            status: device.status,
+            activatedAt: new Date(device.activatedAt),
+            lastSeenAt: new Date(device.lastSeenAt),
+          },
+          update: {
+            deviceName: device.deviceName,
+            browser: device.browser,
+            operatingSystem: device.operatingSystem,
+            status: device.status,
+            lastSeenAt: new Date(device.lastSeenAt),
+          },
+        });
+      }
+    } catch (e) {
+      // fallback
+    }
+    const idx = this.fallbackData.devices.findIndex(
+      (d) => d.id === device.id || (d.licenseId === device.licenseId && d.deviceId === device.deviceId)
+    );
+    if (idx !== -1) {
+      this.fallbackData.devices[idx] = device;
     } else {
-      this.data.devices.push(device);
+      this.fallbackData.devices.push(device);
     }
-    this.saveToDisk(this.data);
+    this.saveToDisk(this.fallbackData);
   }
 
-  public saveToken(record: ActivationTokenRecord): void {
-    this.data.tokens = this.data.tokens.filter(
+  public async saveToken(record: ActivationTokenRecord): Promise<void> {
+    try {
+      if (prisma && prisma.activationToken) {
+        await prisma.activationToken.deleteMany({
+          where: { licenseId: record.licenseId, deviceId: record.deviceId },
+        });
+        await prisma.activationToken.create({
+          data: {
+            token: record.token,
+            licenseId: record.licenseId,
+            deviceId: record.deviceId,
+            issuedAt: new Date(record.issuedAt),
+          },
+        });
+      }
+    } catch (e) {
+      // fallback
+    }
+    this.fallbackData.tokens = this.fallbackData.tokens.filter(
       (t) => !(t.licenseId === record.licenseId && t.deviceId === record.deviceId)
     );
-    this.data.tokens.push(record);
-    this.saveToDisk(this.data);
+    this.fallbackData.tokens.push(record);
+    this.saveToDisk(this.fallbackData);
   }
 
-  public removeTokensForLicense(licenseId: string): void {
-    this.data.tokens = this.data.tokens.filter((t) => t.licenseId !== licenseId);
-    this.saveToDisk(this.data);
+  public async removeTokensForLicense(licenseId: string): Promise<void> {
+    try {
+      if (prisma && prisma.activationToken) {
+        await prisma.activationToken.deleteMany({
+          where: { licenseId },
+        });
+      }
+    } catch (e) {
+      // fallback
+    }
+    this.fallbackData.tokens = this.fallbackData.tokens.filter((t) => t.licenseId !== licenseId);
+    this.saveToDisk(this.fallbackData);
   }
 
-  public removeTokensForDevice(licenseId: string, deviceId: string): void {
-    this.data.tokens = this.data.tokens.filter(
+  public async removeTokensForDevice(licenseId: string, deviceId: string): Promise<void> {
+    try {
+      if (prisma && prisma.activationToken) {
+        await prisma.activationToken.deleteMany({
+          where: { licenseId, deviceId },
+        });
+      }
+    } catch (e) {
+      // fallback
+    }
+    this.fallbackData.tokens = this.fallbackData.tokens.filter(
       (t) => !(t.licenseId === licenseId && t.deviceId === deviceId)
     );
-    this.saveToDisk(this.data);
+    this.saveToDisk(this.fallbackData);
   }
 
-  public resetAllToSeed(): void {
-    this.data = createInitialSeed();
-    this.saveToDisk(this.data);
+  public async resetAllToSeed(): Promise<void> {
+    this.fallbackData = createInitialSeed();
+    this.saveToDisk(this.fallbackData);
   }
 }
 

@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const success = LicenseService.resetDeviceByAdmin(licenseId);
+    const success = await LicenseService.resetDeviceByAdmin(licenseId);
 
     return NextResponse.json({ success });
   } catch (error: any) {

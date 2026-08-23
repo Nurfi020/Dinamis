@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const result = LicenseService.activate({
+    const result = await LicenseService.activate({
       licenseKey,
       deviceId,
       deviceName,

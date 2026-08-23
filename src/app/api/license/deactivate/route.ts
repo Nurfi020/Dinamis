@@ -6,7 +6,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json().catch(() => ({}));
     const { activationToken, deviceId } = body;
 
-    const result = LicenseService.deactivate({
+    const result = await LicenseService.deactivate({
       activationToken,
       deviceId,
     });

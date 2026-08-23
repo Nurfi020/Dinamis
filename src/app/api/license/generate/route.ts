@@ -6,7 +6,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json().catch(() => ({}));
     const { notes } = body;
 
-    const result = LicenseService.createNewKey(notes || 'API Generated Lifetime Key');
+    const result = await LicenseService.createNewKey(notes || 'API Generated Lifetime Key');
 
     return NextResponse.json({
       success: true,

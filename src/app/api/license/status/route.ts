@@ -8,7 +8,7 @@ export async function GET(req: NextRequest) {
     const deviceId = searchParams.get('deviceId') || req.headers.get('x-device-id');
 
     if (activationToken && deviceId) {
-      const result = LicenseService.verify({
+      const result = await LicenseService.verify({
         activationToken,
         deviceId,
         productCode: 'KEL0LA-LEAD',

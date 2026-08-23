@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const success = LicenseService.updateStatusByAdmin(licenseId, 'revoked');
+    const success = await LicenseService.updateStatusByAdmin(licenseId, 'revoked');
 
     return NextResponse.json({ success });
   } catch (error: any) {

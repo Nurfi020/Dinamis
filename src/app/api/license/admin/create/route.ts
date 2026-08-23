@@ -6,7 +6,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json().catch(() => ({}));
     const { notes } = body;
 
-    const created = LicenseService.createNewKey(notes);
+    const created = await LicenseService.createNewKey(notes);
 
     return NextResponse.json({
       success: true,

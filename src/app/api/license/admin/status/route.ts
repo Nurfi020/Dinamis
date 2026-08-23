@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const success = LicenseService.updateStatusByAdmin(licenseId, status);
+    const success = await LicenseService.updateStatusByAdmin(licenseId, status);
 
     return NextResponse.json({ success });
   } catch (error: any) {

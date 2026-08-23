@@ -27,7 +27,7 @@ export class LicenseService {
   /**
    * Activate a license key on a device (1 Device Policy)
    */
-  public static activate(req: ActivateRequest): {
+  public static async activate(req: ActivateRequest): Promise<{
     success: boolean;
     status: number;
     error?: string;
@@ -45,7 +45,7 @@ export class LicenseService {
       browser: string;
       operatingSystem: string;
     };
-  } {
+  }> {
     const rawKey = req.licenseKey;
     const deviceId = req.deviceId?.trim();
     const deviceName = req.deviceName?.trim() || 'Unknown Device';
@@ -70,7 +70,7 @@ export class LicenseService {
 
     const normalized = normalizeKey(rawKey);
     const keyHash = hashLicenseKey(normalized);
-    const license = licenseDb.findLicenseByHash(keyHash);
+    const license = await licenseDb.findLicenseByHash(keyHash);
 
     if (!license) {
       return {
@@ -105,7 +105,7 @@ export class LicenseService {
     }
 
     // Check device binding (1 Device Enforcement)
-    const existingActiveDevice = licenseDb.findActiveDeviceByLicenseId(license.id);
+    const existingActiveDevice = await licenseDb.findActiveDeviceByLicenseId(license.id);
     const now = new Date().toISOString();
 
     if (existingActiveDevice && existingActiveDevice.deviceId !== deviceId) {
@@ -129,7 +129,7 @@ export class LicenseService {
       lastSeenAt: now,
       status: 'active',
     };
-    licenseDb.addOrUpdateDevice(deviceRecord);
+    await licenseDb.addOrUpdateDevice(deviceRecord);
 
     // Update license record
     const updatedLicense: License = {
@@ -138,11 +138,11 @@ export class LicenseService {
       activatedAt: license.activatedAt || now,
       lastVerifiedAt: now,
     };
-    licenseDb.updateLicense(updatedLicense);
+    await licenseDb.updateLicense(updatedLicense);
 
     // Issue activation token
     const token = generateActivationToken(license.id, deviceId);
-    licenseDb.saveToken({
+    await licenseDb.saveToken({
       token,
       licenseId: license.id,
       deviceId,
@@ -173,7 +173,7 @@ export class LicenseService {
   /**
    * Verify activation token and device binding
    */
-  public static verify(req: VerifyRequest): {
+  public static async verify(req: VerifyRequest): Promise<{
     valid: boolean;
     status: number;
     error?: string;
@@ -189,7 +189,7 @@ export class LicenseService {
       expiresAt: null;
       deviceName?: string;
     };
-  } {
+  }> {
     const { activationToken, deviceId } = req;
 
     if (!activationToken || !deviceId) {
@@ -200,7 +200,7 @@ export class LicenseService {
       };
     }
 
-    const tokenRecord = licenseDb.findTokenRecord(activationToken);
+    const tokenRecord = await licenseDb.findTokenRecord(activationToken);
     if (!tokenRecord) {
       return {
         valid: false,
@@ -217,7 +217,7 @@ export class LicenseService {
       };
     }
 
-    const license = licenseDb.findLicenseById(tokenRecord.licenseId);
+    const license = await licenseDb.findLicenseById(tokenRecord.licenseId);
     if (!license) {
       return {
         valid: false,
@@ -234,7 +234,7 @@ export class LicenseService {
       };
     }
 
-    const device = licenseDb.findDeviceByLicenseAndDeviceId(license.id, deviceId);
+    const device = await licenseDb.findDeviceByLicenseAndDeviceId(license.id, deviceId);
     if (!device || device.status !== 'active') {
       return {
         valid: false,
@@ -246,10 +246,10 @@ export class LicenseService {
     const now = new Date().toISOString();
     // Update last seen and verified
     device.lastSeenAt = now;
-    licenseDb.addOrUpdateDevice(device);
+    await licenseDb.addOrUpdateDevice(device);
 
     license.lastVerifiedAt = now;
-    licenseDb.updateLicense(license);
+    await licenseDb.updateLicense(license);
 
     return {
       valid: true,
@@ -272,12 +272,12 @@ export class LicenseService {
   /**
    * Deactivate license on device (Reset Perangkat)
    */
-  public static deactivate(req: DeactivateRequest): {
+  public static async deactivate(req: DeactivateRequest): Promise<{
     success: boolean;
     status: number;
     error?: string;
     message?: string;
-  } {
+  }> {
     const { activationToken, deviceId } = req;
 
     if (!activationToken && !deviceId) {
@@ -285,17 +285,18 @@ export class LicenseService {
     }
 
     // Find any active device matching deviceId
-    const devices = licenseDb.getDevices().filter((d) => d.deviceId === deviceId && d.status === 'active');
+    const allDevices = await licenseDb.getDevices();
+    const devices = allDevices.filter((d) => d.deviceId === deviceId && d.status === 'active');
     
     for (const d of devices) {
       d.status = 'deactivated';
-      licenseDb.addOrUpdateDevice(d);
-      licenseDb.removeTokensForDevice(d.licenseId, d.deviceId);
+      await licenseDb.addOrUpdateDevice(d);
+      await licenseDb.removeTokensForDevice(d.licenseId, d.deviceId);
       
-      const lic = licenseDb.findLicenseById(d.licenseId);
+      const lic = await licenseDb.findLicenseById(d.licenseId);
       if (lic) {
         lic.lastVerifiedAt = new Date().toISOString();
-        licenseDb.updateLicense(lic);
+        await licenseDb.updateLicense(lic);
       }
     }
 
@@ -309,8 +310,9 @@ export class LicenseService {
   /**
    * Admin: List all licenses with device info
    */
-  public static listAll(query?: { search?: string; status?: string }) {
-    let licenses = [...licenseDb.getLicenses()];
+  public static async listAll(query?: { search?: string; status?: string }) {
+    const allLicenses = await licenseDb.getLicenses();
+    let licenses = [...allLicenses];
 
     if (query?.status && query.status !== 'all') {
       licenses = licenses.filter((l) => l.status === query.status);
@@ -326,7 +328,7 @@ export class LicenseService {
       );
     }
 
-    const devices = licenseDb.getDevices();
+    const devices = await licenseDb.getDevices();
 
     return licenses.map((lic) => {
       const boundDevice = devices.find((d) => d.licenseId === lic.id && d.status === 'active');
@@ -349,7 +351,7 @@ export class LicenseService {
   /**
    * Admin: Create new Lifetime Key
    */
-  public static createNewKey(notes?: string): { key: string; license: License } {
+  public static async createNewKey(notes?: string): Promise<{ key: string; license: License }> {
     const key = generateLifetimeKey();
     const keyHash = hashLicenseKey(key);
     const last4 = key.slice(-4);
@@ -372,44 +374,45 @@ export class LicenseService {
       notes: notes || 'Generated Lifetime License Key',
     };
 
-    licenseDb.addLicense(license);
+    await licenseDb.addLicense(license);
     return { key, license };
   }
 
   /**
    * Admin: Reset Device Binding for a license
    */
-  public static resetDeviceByAdmin(licenseId: string): boolean {
-    const license = licenseDb.findLicenseById(licenseId);
+  public static async resetDeviceByAdmin(licenseId: string): Promise<boolean> {
+    const license = await licenseDb.findLicenseById(licenseId);
     if (!license) return false;
 
-    const devices = licenseDb.getDevices().filter((d) => d.licenseId === licenseId);
-    devices.forEach((d) => {
+    const allDevices = await licenseDb.getDevices();
+    const devices = allDevices.filter((d) => d.licenseId === licenseId);
+    for (const d of devices) {
       d.status = 'deactivated';
-      licenseDb.addOrUpdateDevice(d);
-    });
+      await licenseDb.addOrUpdateDevice(d);
+    }
 
-    licenseDb.removeTokensForLicense(licenseId);
+    await licenseDb.removeTokensForLicense(licenseId);
     license.status = 'pending';
-    licenseDb.updateLicense(license);
+    await licenseDb.updateLicense(license);
     return true;
   }
 
   /**
    * Admin: Update License Status (pending, active, suspended, revoked)
    */
-  public static updateStatusByAdmin(licenseId: string, status: License['status']): boolean {
-    const license = licenseDb.findLicenseById(licenseId);
+  public static async updateStatusByAdmin(licenseId: string, status: License['status']): Promise<boolean> {
+    const license = await licenseDb.findLicenseById(licenseId);
     if (!license) return false;
 
     license.status = status;
     if (status === 'revoked') {
       license.revokedAt = new Date().toISOString();
-      licenseDb.removeTokensForLicense(licenseId);
+      await licenseDb.removeTokensForLicense(licenseId);
     } else if (status === 'suspended') {
-      licenseDb.removeTokensForLicense(licenseId);
+      await licenseDb.removeTokensForLicense(licenseId);
     }
-    licenseDb.updateLicense(license);
+    await licenseDb.updateLicense(license);
     return true;
   }
 }

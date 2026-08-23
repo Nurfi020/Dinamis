@@ -7,7 +7,7 @@ export async function GET(req: NextRequest) {
     const search = searchParams.get('search') || undefined;
     const status = searchParams.get('status') || undefined;
 
-    const list = LicenseService.listAll({ search, status });
+    const list = await LicenseService.listAll({ search, status });
 
     return NextResponse.json({
       success: true,
