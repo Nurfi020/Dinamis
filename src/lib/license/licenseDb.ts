@@ -28,11 +28,11 @@ export function generateRandomSegment(length: number = 4): string {
   return result;
 }
 
-export function generateLifetimeKey(): string {
+export function generateLifetimeKey(prefix: string = 'DINA'): string {
   const seg1 = generateRandomSegment(4);
   const seg2 = generateRandomSegment(4);
   const seg3 = generateRandomSegment(4);
-  return `KLDN-LIFE-${seg1}-${seg2}-${seg3}`;
+  return `${prefix}-${seg1}-${seg2}-${seg3}`;
 }
 
 export function generateActivationToken(licenseId: string, deviceId: string): string {
@@ -48,17 +48,18 @@ interface DatabaseSchema {
 }
 
 // Initial Seed Keys
-export const INITIAL_TEST_KEY = 'KLDN-LIFE-TEST-TEST-0001';
-export const SAMPLE_LIFETIME_KEY_1 = 'KLDN-LIFE-A7X9-K2MP-8Q4T';
-export const SAMPLE_LIFETIME_KEY_2 = 'KLDN-LIFE-9R2M-5P8X-3W7V';
-export const SAMPLE_LIFETIME_KEY_3 = 'KLDN-LIFE-J4K8-M2N6-Q9X1';
+export const INITIAL_TEST_KEY = 'DINA-TEST-TEST-0001';
+export const SAMPLE_LIFETIME_KEY_1 = 'DINA-A7X9-K2MP-8Q4T';
+export const SAMPLE_LIFETIME_KEY_2 = 'DINA-9R2M-5P8X-3W7V';
+export const SAMPLE_LIFETIME_KEY_3 = 'DINA-J4K8-M2N6-Q9X1';
+export const LEGACY_TEST_KEY = 'KLDN-LIFE-TEST-TEST-0001';
 
 function createInitialSeed(): DatabaseSchema {
   const now = new Date().toISOString();
 
   const licenses: License[] = [
     {
-      id: 'lic-dev-test-0001',
+      id: 'lic-dina-test-0001',
       licenseKeyHash: hashLicenseKey(INITIAL_TEST_KEY),
       licenseKeyLast4: '0001',
       productCode: 'KEL0LA-LEAD',
@@ -71,10 +72,10 @@ function createInitialSeed(): DatabaseSchema {
       revokedAt: null,
       expiresAt: null,
       isTest: true,
-      notes: 'Development / Testing License Key',
+      notes: 'Development / Testing License Key (DINA)',
     },
     {
-      id: 'lic-life-0001',
+      id: 'lic-dina-0001',
       licenseKeyHash: hashLicenseKey(SAMPLE_LIFETIME_KEY_1),
       licenseKeyLast4: '8Q4T',
       productCode: 'KEL0LA-LEAD',
@@ -90,7 +91,7 @@ function createInitialSeed(): DatabaseSchema {
       notes: 'Lifetime License #1 (Sample Batch)',
     },
     {
-      id: 'lic-life-0002',
+      id: 'lic-dina-0002',
       licenseKeyHash: hashLicenseKey(SAMPLE_LIFETIME_KEY_2),
       licenseKeyLast4: '3W7V',
       productCode: 'KEL0LA-LEAD',
@@ -106,7 +107,7 @@ function createInitialSeed(): DatabaseSchema {
       notes: 'Lifetime License #2 (Sample Batch)',
     },
     {
-      id: 'lic-life-0003',
+      id: 'lic-dina-0003',
       licenseKeyHash: hashLicenseKey(SAMPLE_LIFETIME_KEY_3),
       licenseKeyLast4: 'Q9X1',
       productCode: 'KEL0LA-LEAD',
@@ -120,6 +121,22 @@ function createInitialSeed(): DatabaseSchema {
       expiresAt: null,
       isTest: false,
       notes: 'Lifetime License #3 (Sample Batch)',
+    },
+    {
+      id: 'lic-legacy-test-0001',
+      licenseKeyHash: hashLicenseKey(LEGACY_TEST_KEY),
+      licenseKeyLast4: '0001',
+      productCode: 'KEL0LA-LEAD',
+      plan: 'lifetime',
+      status: 'pending',
+      maxDevices: 1,
+      createdAt: now,
+      activatedAt: null,
+      lastVerifiedAt: null,
+      revokedAt: null,
+      expiresAt: null,
+      isTest: true,
+      notes: 'Legacy Test License Key (KLDN)',
     },
   ];
 

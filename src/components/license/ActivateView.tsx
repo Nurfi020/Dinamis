@@ -36,13 +36,19 @@ export const ActivateView: React.FC<ActivateViewProps> = ({
 
   const deviceMeta = getClientDeviceMetadata();
 
-  // Auto-format key while typing (KLDN-LIFE-XXXX-XXXX-XXXX)
+  // Auto-format key while typing (DINA-XXXX-XXXX-XXXX or KLDN-LIFE-XXXX-XXXX-XXXX)
   const handleKeyChange = (val: string) => {
     let clean = val.toUpperCase().replace(/[^A-Z0-9]/g, '');
     
-    // If it doesn't start with KLDN, or user pastes raw text
     let formatted = clean;
-    if (clean.startsWith('KLDNLIFE')) {
+    if (clean.startsWith('DINA')) {
+      const remaining = clean.slice(4);
+      const parts = ['DINA'];
+      if (remaining.length > 0) parts.push(remaining.slice(0, 4));
+      if (remaining.length > 4) parts.push(remaining.slice(4, 8));
+      if (remaining.length > 8) parts.push(remaining.slice(8, 12));
+      formatted = parts.join('-');
+    } else if (clean.startsWith('KLDNLIFE')) {
       const remaining = clean.slice(8);
       const parts = ['KLDN', 'LIFE'];
       if (remaining.length > 0) parts.push(remaining.slice(0, 4));
@@ -63,7 +69,7 @@ export const ActivateView: React.FC<ActivateViewProps> = ({
   };
 
   const handleUseTestKey = () => {
-    setLicenseKey('KLDN-LIFE-TEST-TEST-0001');
+    setLicenseKey('DINA-TEST-TEST-0001');
     if (errorMessage) setErrorMessage(null);
   };
 
@@ -160,14 +166,14 @@ export const ActivateView: React.FC<ActivateViewProps> = ({
                 type="text"
                 value={licenseKey}
                 onChange={(e) => handleKeyChange(e.target.value)}
-                placeholder="KLDN-LIFE-XXXX-XXXX-XXXX"
+                placeholder="DINA-XXXX-XXXX-XXXX"
                 autoComplete="off"
                 spellCheck="false"
                 className="w-full px-4 py-3 bg-[#06111F] border border-[#17324D] focus:border-[#168BFF] rounded-xl text-center font-mono font-bold text-sm tracking-wider text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-[#168BFF]/30 transition-all uppercase"
               />
             </div>
             <p className="text-[10px] text-slate-400 text-center">
-              Format: <span className="font-mono text-slate-300">KLDN-LIFE-XXXX-XXXX-XXXX</span>
+              Format: <span className="font-mono text-slate-300">DINA-XXXX-XXXX-XXXX</span> (Lifetime)
             </p>
           </div>
 

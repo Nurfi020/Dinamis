@@ -1,3 +1,4 @@
+import crypto from 'crypto';
 import {
   licenseDb,
   hashLicenseKey,
@@ -15,17 +16,17 @@ import {
 
 export class LicenseService {
   /**
-   * Validate key format: KLDN-LIFE-XXXX-XXXX-XXXX
+   * Validate key format: DINA-XXXX-XXXX-XXXX or KLDN-LIFE-XXXX-XXXX-XXXX or XXXX-XXXX-XXXX-XXXX
    */
   public static isValidKeyFormat(key: string): boolean {
     if (!key) return false;
     const normalized = normalizeKey(key);
-    const regex = /^KLDN-LIFE-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}$/;
+    const regex = /^DINA-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}$|^KLDN-LIFE-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}$|^[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}$/;
     return regex.test(normalized);
   }
 
   /**
-   * Activate a license key on a device (1 Device Policy)
+   * Activate a license key on a device (1 Device Policy / maxDevices)
    */
   public static async activate(req: ActivateRequest): Promise<{
     success: boolean;
@@ -64,7 +65,7 @@ export class LicenseService {
       return {
         success: false,
         status: 400,
-        error: 'Format License Key tidak valid. Format harus: KLDN-LIFE-XXXX-XXXX-XXXX',
+        error: 'Format License Key tidak valid. Contoh format: DINA-XXXX-XXXX-XXXX',
       };
     }
 
@@ -80,11 +81,11 @@ export class LicenseService {
       };
     }
 
-    if (license.productCode !== 'KEL0LA-LEAD') {
+    if (license.productCode !== 'KEL0LA-LEAD' && license.productCode !== 'DINAMIS-APP') {
       return {
         success: false,
         status: 403,
-        error: 'License Key ini bukan untuk produk Kelola Lead Sales.',
+        error: 'License Key ini bukan untuk produk ini.',
       };
     }
 
@@ -104,7 +105,7 @@ export class LicenseService {
       };
     }
 
-    // Check device binding (1 Device Enforcement)
+    // Check device binding (maxDevices Enforcement)
     const existingActiveDevice = await licenseDb.findActiveDeviceByLicenseId(license.id);
     const now = new Date().toISOString();
 
@@ -113,13 +114,13 @@ export class LicenseService {
       return {
         success: false,
         status: 409,
-        error: `Lisensi ini sudah terpasang pada perangkat lain (${existingActiveDevice.deviceName || 'Perangkat Lain'}). Satu lisensi Lifetime hanya berlaku untuk 1 perangkat. Silakan lakukan Reset Perangkat terlebih dahulu di perangkat lama atau hubungi admin.`,
+        error: `Lisensi ini sudah terpasang pada perangkat lain (${existingActiveDevice.deviceName || 'Perangkat Lain'}). Lisensi hanya berlaku untuk ${license.maxDevices || 1} perangkat. Silakan lakukan Reset Perangkat terlebih dahulu di perangkat lama atau hubungi admin.`,
       };
     }
 
     // Bind or update device
     const deviceRecord: LicenseDevice = {
-      id: existingActiveDevice?.id || `dev-bind-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+      id: existingActiveDevice?.id || `dev-${Date.now()}-${crypto.randomBytes(4).toString('hex')}`,
       licenseId: license.id,
       deviceId,
       deviceName,
@@ -137,6 +138,7 @@ export class LicenseService {
       status: 'active',
       activatedAt: license.activatedAt || now,
       lastVerifiedAt: now,
+      expiresAt: null,
     };
     await licenseDb.updateLicense(updatedLicense);
 
@@ -351,14 +353,14 @@ export class LicenseService {
   /**
    * Admin: Create new Lifetime Key
    */
-  public static async createNewKey(notes?: string): Promise<{ key: string; license: License }> {
-    const key = generateLifetimeKey();
+  public static async createNewKey(notes?: string, prefix: string = 'DINA'): Promise<{ key: string; license: License }> {
+    const key = generateLifetimeKey(prefix);
     const keyHash = hashLicenseKey(key);
     const last4 = key.slice(-4);
     const now = new Date().toISOString();
 
     const license: License = {
-      id: `lic-life-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`,
+      id: `lic-${prefix.toLowerCase()}-${Date.now().toString(36)}-${crypto.randomBytes(4).toString('hex')}`,
       licenseKeyHash: keyHash,
       licenseKeyLast4: last4,
       productCode: 'KEL0LA-LEAD',
