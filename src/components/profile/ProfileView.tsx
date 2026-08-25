@@ -141,7 +141,9 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                 <KeyRound className="w-3.5 h-3.5 text-[#00A651]" />
                 <span>Kunci Lisensi Terdaftar</span>
               </div>
-              <p className="font-mono font-bold text-[#17221C]">{license.licenseKey}</p>
+              <p className="font-mono font-bold text-[#17221C]">
+                {license.fullKeyMasked || `••••-••••-••••-${license.licenseKeyLast4}`}
+              </p>
             </div>
 
             <div className="p-3 bg-[#F7F9F8] rounded-xl border border-[#E2E9E4] space-y-1">
@@ -149,7 +151,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                 <Laptop className="w-3.5 h-3.5 text-[#00A651]" />
                 <span>Device Terikat (Terkunci)</span>
               </div>
-              <p className="font-medium text-[#17221C] truncate">{deviceMeta.deviceModel} ({deviceMeta.os})</p>
+              <p className="font-medium text-[#17221C] truncate">{deviceMeta.deviceName}</p>
             </div>
           </div>
 
