@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React from 'react';
 import { useRouter } from 'next/navigation';
@@ -13,7 +13,7 @@ export default function ActivatePage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#06111F]">
+    <div className="min-h-screen bg-[#F7F9F8]">
       <ActivateView onActivationSuccess={handleActivationSuccess} />
     </div>
   );

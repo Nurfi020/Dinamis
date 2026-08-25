@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
@@ -98,58 +98,32 @@ export default function AdminLicensesPage() {
     setGenerating(true);
     setError(null);
     try {
-      const res = await fetch('/api/license/generate', {
+      const res = await fetch('/api/license/admin/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          notes: newKeyNotes || 'Dinamis Lifetime License Key',
-          prefix: keyPrefix || 'DINA',
+          notes: newKeyNotes.trim() || undefined,
+          prefix: keyPrefix,
         }),
       });
-      const data = await res.json();
+      const json = await res.json();
 
-      if (data.success && data.key) {
-        setFreshGeneratedKey(data.key);
+      if (json.success && json.licenseKey) {
+        setFreshGeneratedKey(json.licenseKey);
         setNewKeyNotes('');
         await fetchLicenses();
       } else {
-        setError(data.error || 'Gagal membuat License Key.');
+        setError(json.error || 'Gagal membuat kunci lisensi baru.');
       }
     } catch (err: any) {
-      setError(err.message || 'Gagal membuat License Key.');
+      setError(err.message || 'Gagal menghubungi server.');
     } finally {
       setGenerating(false);
     }
   };
 
-  const handleRevoke = async (licenseId: string) => {
-    if (!confirm('Apakah Anda yakin ingin MENCABUT (Revoke) lisensi ini? Akses perangkat akan langsung dihentikan dan tidak dapat diaktifkan kembali.')) {
-      return;
-    }
-
-    setActionLoadingId(licenseId);
-    try {
-      const res = await fetch('/api/license/revoke', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ licenseId }),
-      });
-      const data = await res.json();
-
-      if (data.success) {
-        await fetchLicenses();
-      } else {
-        alert(data.error || 'Gagal mencabut lisensi.');
-      }
-    } catch (err: any) {
-      alert('Terjadi kesalahan jaringan.');
-    } finally {
-      setActionLoadingId(null);
-    }
-  };
-
   const handleResetDevice = async (licenseId: string) => {
-    if (!confirm('Reset ikatan perangkat untuk lisensi ini? Perangkat lama akan dilepaskan sehingga lisensi dapat dipasang di perangkat baru.')) {
+    if (!confirm('Apakah Anda yakin ingin me-reset (melepaskan) perangkat dari lisensi ini? User dapat mengaktifkannya di perangkat baru.')) {
       return;
     }
 
@@ -160,12 +134,38 @@ export default function AdminLicensesPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ licenseId }),
       });
-      const data = await res.json();
+      const json = await res.json();
 
-      if (data.success) {
+      if (json.success) {
         await fetchLicenses();
       } else {
-        alert(data.error || 'Gagal mereset perangkat.');
+        alert(json.error || 'Gagal me-reset perangkat.');
+      }
+    } catch (err: any) {
+      alert('Terjadi kesalahan jaringan.');
+    } finally {
+      setActionLoadingId(null);
+    }
+  };
+
+  const handleRevoke = async (licenseId: string) => {
+    if (!confirm('PERINGATAN: Mencabut (revoke) lisensi akan menonaktifkannya secara permanen! Lanjutkan?')) {
+      return;
+    }
+
+    setActionLoadingId(licenseId);
+    try {
+      const res = await fetch('/api/license/admin/status', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ licenseId, status: 'revoked' }),
+      });
+      const json = await res.json();
+
+      if (json.success) {
+        await fetchLicenses();
+      } else {
+        alert(json.error || 'Gagal mencabut lisensi.');
       }
     } catch (err: any) {
       alert('Terjadi kesalahan jaringan.');
@@ -177,20 +177,13 @@ export default function AdminLicensesPage() {
   const copyToClipboard = (text: string, id: string) => {
     navigator.clipboard.writeText(text);
     setCopiedId(id);
-    setTimeout(() => setCopiedId(null), 2500);
+    setTimeout(() => setCopiedId(null), 2000);
   };
-
-  // Stats calculation
-  const totalCount = licenses.length;
-  const activeCount = licenses.filter((l) => l.status === 'active').length;
-  const pendingCount = licenses.filter((l) => l.status === 'pending').length;
-  const revokedCount = licenses.filter((l) => l.status === 'revoked').length;
 
   const formatDate = (dateStr: string | null) => {
     if (!dateStr) return '-';
     try {
-      const d = new Date(dateStr);
-      return d.toLocaleDateString('id-ID', {
+      return new Date(dateStr).toLocaleString('id-ID', {
         day: '2-digit',
         month: 'short',
         year: 'numeric',
@@ -203,390 +196,261 @@ export default function AdminLicensesPage() {
   };
 
   return (
-    <div id="admin-licenses-page" className="min-h-screen bg-[#06111F] text-[#F8FAFC] p-4 md:p-8 font-sans">
+    <div className="min-h-screen bg-[#F7F9F8] text-[#17221C] p-4 sm:p-6 lg:p-8 font-sans">
       <div className="max-w-7xl mx-auto space-y-6">
         
-        {/* Top Navigation / Breadcrumbs */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#0E233D] pb-5">
+        {/* Top Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white border border-[#E2E9E4] rounded-2xl p-5 shadow-sm">
           <div className="flex items-center gap-3">
             <button
-              id="back-to-dashboard-btn"
               type="button"
               onClick={() => router.push('/')}
-              className="p-2.5 rounded-xl bg-[#0B1B2B] hover:bg-[#168BFF] text-white transition-colors border border-[#163354]"
+              className="p-2 rounded-xl bg-[#F7F9F8] hover:bg-[#E8F7EF] border border-[#E2E9E4] text-[#66736B] hover:text-[#006B3C] transition-colors cursor-pointer"
               title="Kembali ke Dashboard"
             >
-              <ArrowLeft className="w-4 h-4" />
+              <ArrowLeft className="w-5 h-5" />
             </button>
             <div>
               <div className="flex items-center gap-2">
-                <ShieldCheck className="w-5 h-5 text-[#168BFF]" />
-                <h1 className="text-xl md:text-2xl font-bold tracking-tight text-white">
-                  Admin License Management
+                <ShieldCheck className="w-6 h-6 text-[#00A651]" />
+                <h1 className="text-xl sm:text-2xl font-extrabold text-[#17221C] tracking-tight">
+                  Manajemen Lisensi Admin
                 </h1>
-                <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-[#168BFF]/20 text-[#168BFF] border border-[#168BFF]/30">
-                  Prisma Server DB
-                </span>
               </div>
-              <p className="text-xs text-[#94A3B8] mt-0.5">
-                Kelola hak akses, status aktivasi, dan kebijakan 1 Perangkat untuk seluruh Lisensi Lifetime.
+              <p className="text-xs text-[#66736B] mt-0.5">
+                Kelola kunci lisensi lifetime, reset binding perangkat, dan buat lisensi baru
               </p>
             </div>
           </div>
 
           <div className="flex items-center gap-2">
             <button
-              id="refresh-licenses-btn"
               type="button"
               onClick={fetchLicenses}
               disabled={loading}
-              className="px-3.5 py-2 rounded-xl bg-[#0B1B2B] hover:bg-[#163354] text-xs font-semibold text-[#94A3B8] hover:text-white border border-[#163354] flex items-center gap-2 transition-colors disabled:opacity-50"
+              className="px-3.5 py-2 rounded-xl bg-white hover:bg-[#F7F9F8] border border-[#E2E9E4] text-xs font-semibold text-[#17221C] flex items-center gap-2 transition-all cursor-pointer"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
-              <span>Segarkan Data</span>
+              <span>Muat Ulang</span>
             </button>
           </div>
         </div>
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <div className="p-4 rounded-xl bg-[#0B1B2B]/80 border border-[#163354] space-y-1">
-            <p className="text-[11px] font-medium text-[#94A3B8]">Total Lisensi</p>
-            <p className="text-2xl font-bold text-white">{totalCount}</p>
+        {/* Error Alert */}
+        {error && (
+          <div className="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-center gap-2.5">
+            <AlertTriangle className="w-4 h-4 shrink-0 text-rose-500" />
+            <span>{error}</span>
           </div>
-          <div className="p-4 rounded-xl bg-[#0B1B2B]/80 border border-emerald-500/30 space-y-1">
-            <p className="text-[11px] font-medium text-emerald-400">Aktif Terpasang</p>
-            <p className="text-2xl font-bold text-emerald-400">{activeCount}</p>
-          </div>
-          <div className="p-4 rounded-xl bg-[#0B1B2B]/80 border border-amber-500/30 space-y-1">
-            <p className="text-[11px] font-medium text-amber-400">Menunggu Aktivasi (Pending)</p>
-            <p className="text-2xl font-bold text-amber-400">{pendingCount}</p>
-          </div>
-          <div className="p-4 rounded-xl bg-[#0B1B2B]/80 border border-rose-500/30 space-y-1">
-            <p className="text-[11px] font-medium text-rose-400">Dicabut (Revoked)</p>
-            <p className="text-2xl font-bold text-rose-400">{revokedCount}</p>
-          </div>
-        </div>
+        )}
 
-        {/* Generator Panel */}
-        <div id="license-generator-card" className="p-5 rounded-2xl bg-gradient-to-br from-[#0B1B2B] to-[#081524] border border-[#168BFF]/30 shadow-lg space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-lg bg-[#168BFF]/20 border border-[#168BFF]/40 flex items-center justify-center text-[#168BFF]">
-                <KeyRound className="w-4 h-4" />
-              </div>
-              <div>
-                <h2 className="text-sm font-bold text-white">Generate License Key Baru</h2>
-                <p className="text-[11px] text-[#94A3B8]">
-                  Buat License Key kriptografis format standar DINA-XXXX-XXXX-XXXX.
-                </p>
-              </div>
-            </div>
+        {/* Section: Generate License Key */}
+        <div className="bg-white border border-[#E2E9E4] rounded-2xl p-5 shadow-sm space-y-4">
+          <div className="flex items-center gap-2">
+            <Sparkles className="w-5 h-5 text-[#00A651]" />
+            <h2 className="text-base font-bold text-[#17221C]">Generate Kunci Lisensi Baru</h2>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-end">
-            <div className="sm:col-span-3 space-y-1">
-              <label className="text-[11px] font-semibold text-[#94A3B8]">Format Prefix</label>
+          <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
+            <div className="sm:col-span-3">
+              <label className="block text-[11px] font-bold text-[#17221C] mb-1">Prefix Format</label>
               <select
                 value={keyPrefix}
                 onChange={(e) => setKeyPrefix(e.target.value)}
-                className="w-full px-3 py-2 bg-[#06111F] border border-[#163354] rounded-xl text-xs text-white focus:outline-none focus:border-[#168BFF]"
+                className="w-full px-3.5 py-2.5 bg-[#F7F9F8] border border-[#E2E9E4] rounded-xl text-xs text-[#17221C] font-mono focus:outline-none focus:border-[#00A651]"
               >
-                <option value="DINA">DINA-XXXX-XXXX-XXXX</option>
-                <option value="KLDN-LIFE">KLDN-LIFE-XXXX-XXXX-XXXX</option>
+                <option value="DINA">DINA (Dinamis / Lifetime)</option>
+                <option value="KLDN">KLDN (Legacy Kelola Lead)</option>
               </select>
             </div>
 
-            <div className="sm:col-span-6 space-y-1">
-              <label className="text-[11px] font-semibold text-[#94A3B8]">Catatan Lisensi / Klien</label>
+            <div className="sm:col-span-6">
+              <label className="block text-[11px] font-bold text-[#17221C] mb-1">Catatan Pengguna / Pembeli</label>
               <input
                 type="text"
+                placeholder="Contoh: Lisensi Budi Santoso - PT Maju Jaya"
                 value={newKeyNotes}
                 onChange={(e) => setNewKeyNotes(e.target.value)}
-                placeholder="Contoh: Pembelian Lifetime User PT Dinamis Digital"
-                className="w-full px-3 py-2 bg-[#06111F] border border-[#163354] rounded-xl text-xs text-white placeholder-[#64748B] focus:outline-none focus:border-[#168BFF]"
+                className="w-full px-3.5 py-2.5 bg-[#F7F9F8] border border-[#E2E9E4] rounded-xl text-xs text-[#17221C] focus:outline-none focus:border-[#00A651]"
               />
             </div>
 
-            <div className="sm:col-span-3">
+            <div className="sm:col-span-3 flex items-end">
               <button
-                id="generate-license-btn"
                 type="button"
                 onClick={handleGenerateKey}
                 disabled={generating}
-                className="w-full py-2 px-4 rounded-xl bg-[#168BFF] hover:bg-[#168BFF]/90 text-white text-xs font-semibold flex items-center justify-center gap-2 transition-all shadow-[0_0_15px_rgba(22,139,255,0.4)] disabled:opacity-50"
+                className="w-full py-2.5 px-4 rounded-xl bg-[#00A651] hover:bg-[#006B3C] disabled:opacity-50 text-white font-bold text-xs shadow-sm flex items-center justify-center gap-2 transition-all cursor-pointer"
               >
-                {generating ? (
-                  <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                ) : (
-                  <Plus className="w-3.5 h-3.5" />
-                )}
-                <span>Generate License</span>
+                <Plus className="w-4 h-4" />
+                <span>{generating ? 'Membuat...' : 'Buat Lisensi'}</span>
               </button>
             </div>
           </div>
 
-          {/* Freshly Generated Key Alert */}
+          {/* Fresh Generated Key Card */}
           {freshGeneratedKey && (
-            <div id="fresh-key-banner" className="p-4 rounded-xl bg-[#168BFF]/10 border border-[#168BFF]/50 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 animate-in fade-in">
-              <div className="space-y-1">
-                <div className="flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-[#168BFF]" />
-                  <span className="text-xs font-bold text-white">License Key Baru Berhasil Dibuat:</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <code className="text-sm md:text-base font-mono font-bold text-[#38BDF8] tracking-wider bg-[#06111F] px-3 py-1 rounded-lg border border-[#163354]">
-                    {freshGeneratedKey}
-                  </code>
-                </div>
-                <p className="text-[10px] text-amber-300 flex items-center gap-1">
-                  <Info className="w-3 h-3" />
-                  Salin dan berikan key ini ke pengguna. Server hanya menyimpan hash untuk keamanan.
-                </p>
+            <div className="p-4 rounded-xl bg-[#E8F7EF] border border-[#A7F3D0] space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-[#006B3C] flex items-center gap-1.5">
+                  <CheckCircle2 className="w-4 h-4 text-[#00A651]" />
+                  Kunci Lisensi Baru Berhasil Dibuat!
+                </span>
+                <span className="text-[10px] text-[#66736B]">Simpan kunci ini sebelum menutup</span>
               </div>
 
-              <button
-                type="button"
-                onClick={() => copyToClipboard(freshGeneratedKey, 'fresh-key')}
-                className="px-4 py-2 rounded-lg bg-[#168BFF] hover:bg-[#168BFF]/90 text-white text-xs font-semibold flex items-center gap-2 transition-colors whitespace-nowrap shadow-[0_0_10px_rgba(22,139,255,0.3)]"
-              >
-                {copiedId === 'fresh-key' ? (
-                  <>
-                    <Check className="w-3.5 h-3.5 text-emerald-300" />
-                    <span>Tersalin!</span>
-                  </>
-                ) : (
-                  <>
-                    <Copy className="w-3.5 h-3.5" />
-                    <span>Copy License</span>
-                  </>
-                )}
-              </button>
+              <div className="flex items-center justify-between gap-3 bg-white p-3 rounded-lg border border-[#A7F3D0]">
+                <span className="font-mono font-bold text-sm tracking-wider text-[#17221C] select-all">
+                  {freshGeneratedKey}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => copyToClipboard(freshGeneratedKey, 'fresh')}
+                  className="px-3 py-1.5 rounded-lg bg-[#E8F7EF] hover:bg-[#A7F3D0] text-xs font-bold text-[#006B3C] flex items-center gap-1.5 transition-colors cursor-pointer"
+                >
+                  {copiedId === 'fresh' ? <Check className="w-3.5 h-3.5 text-[#00A651]" /> : <Copy className="w-3.5 h-3.5" />}
+                  <span>{copiedId === 'fresh' ? 'Tersalin!' : 'Salin Kunci'}</span>
+                </button>
+              </div>
             </div>
           )}
         </div>
 
-        {/* Filter & Search Toolbar */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-2">
-          {/* Status Tabs */}
-          <div className="flex items-center gap-1 bg-[#0B1B2B] p-1 rounded-xl border border-[#163354] overflow-x-auto">
-            {['all', 'pending', 'active', 'suspended', 'revoked'].map((tab) => (
-              <button
-                key={tab}
-                type="button"
-                onClick={() => setStatusFilter(tab)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium capitalize transition-colors whitespace-nowrap ${
-                  statusFilter === tab
-                    ? 'bg-[#168BFF] text-white shadow-sm'
-                    : 'text-[#94A3B8] hover:text-white hover:bg-[#163354]/50'
-                }`}
-              >
-                {tab === 'all' ? 'Semua Status' : tab}
-              </button>
-            ))}
-          </div>
-
-          {/* Search Box */}
-          <div className="relative w-full sm:w-72">
-            <Search className="w-3.5 h-3.5 text-[#64748B] absolute left-3 top-1/2 -translate-y-1/2" />
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Cari ID, 4 digit akhir, catatan..."
-              className="w-full pl-9 pr-3 py-2 bg-[#0B1B2B] border border-[#163354] rounded-xl text-xs text-white placeholder-[#64748B] focus:outline-none focus:border-[#168BFF]"
-            />
-          </div>
-        </div>
-
-        {/* Table View */}
-        <div className="bg-[#0B1B2B] border border-[#163354] rounded-2xl overflow-hidden shadow-xl">
-          {loading ? (
-            <div className="p-12 text-center text-[#94A3B8] space-y-3">
-              <RefreshCw className="w-6 h-6 animate-spin mx-auto text-[#168BFF]" />
-              <p className="text-xs">Memuat data lisensi dari database...</p>
+        {/* Section: License List & Filters */}
+        <div className="bg-white border border-[#E2E9E4] rounded-2xl p-5 shadow-sm space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <KeyRound className="w-5 h-5 text-[#00A651]" />
+              <h2 className="text-base font-bold text-[#17221C]">
+                Daftar Lisensi Terdaftar ({licenses.length})
+              </h2>
             </div>
-          ) : error ? (
-            <div className="p-12 text-center text-rose-400 space-y-2">
-              <AlertTriangle className="w-6 h-6 mx-auto" />
-              <p className="text-xs font-semibold">{error}</p>
+
+            <div className="flex items-center gap-2">
+              {/* Search */}
+              <div className="relative">
+                <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[#66736B]" />
+                <input
+                  type="text"
+                  placeholder="Cari ID, catatan..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-8 pr-3 py-1.5 bg-[#F7F9F8] border border-[#E2E9E4] rounded-xl text-xs text-[#17221C] focus:outline-none focus:border-[#00A651] w-48 sm:w-64"
+                />
+              </div>
+
+              {/* Status Filter */}
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="px-3 py-1.5 bg-[#F7F9F8] border border-[#E2E9E4] rounded-xl text-xs text-[#17221C] focus:outline-none focus:border-[#00A651] cursor-pointer"
+              >
+                <option value="all">Semua Status</option>
+                <option value="pending">Pending</option>
+                <option value="active">Active</option>
+                <option value="suspended">Suspended</option>
+                <option value="revoked">Revoked</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Table */}
+          {loading ? (
+            <div className="p-12 text-center text-xs text-[#66736B] flex items-center justify-center gap-2">
+              <RefreshCw className="w-4 h-4 animate-spin text-[#00A651]" />
+              <span>Memuat data lisensi...</span>
             </div>
           ) : licenses.length === 0 ? (
-            <div className="p-12 text-center text-[#94A3B8] space-y-2">
-              <KeyRound className="w-6 h-6 mx-auto opacity-40" />
-              <p className="text-xs">Tidak ada lisensi yang cocok dengan kriteria pencarian.</p>
+            <div className="p-12 text-center text-xs text-[#66736B] bg-[#F7F9F8] rounded-xl border border-[#E2E9E4]">
+              Tidak ada data lisensi yang ditemukan.
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
-                <thead className="bg-[#06111F]/90 text-[#94A3B8] border-b border-[#163354] uppercase tracking-wider text-[10px]">
+            <div className="overflow-x-auto border border-[#E2E9E4] rounded-xl">
+              <table className="w-full text-xs text-left">
+                <thead className="bg-[#F7F9F8] text-[#66736B] border-b border-[#E2E9E4] uppercase text-[10px] font-bold">
                   <tr>
-                    <th className="px-4 py-3 font-semibold">Key / Last 4</th>
-                    <th className="px-4 py-3 font-semibold">Status</th>
-                    <th className="px-4 py-3 font-semibold">Product & Plan</th>
-                    <th className="px-4 py-3 font-semibold">Max Devices</th>
-                    <th className="px-4 py-3 font-semibold">Perangkat Terpasang</th>
-                    <th className="px-4 py-3 font-semibold">Created At</th>
-                    <th className="px-4 py-3 font-semibold">Activated At</th>
-                    <th className="px-4 py-3 font-semibold">Last Verified</th>
-                    <th className="px-4 py-3 font-semibold">Revoked At</th>
-                    <th className="px-4 py-3 font-semibold text-right">Aksi</th>
+                    <th className="px-4 py-3">Kunci (Masked)</th>
+                    <th className="px-4 py-3">Status</th>
+                    <th className="px-4 py-3">Perangkat Terikat</th>
+                    <th className="px-4 py-3">Catatan</th>
+                    <th className="px-4 py-3">Dibuat</th>
+                    <th className="px-4 py-3 text-right">Aksi</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#163354]/60">
-                  {licenses.map((lic) => {
-                    const isRevoked = lic.status === 'revoked';
-                    const isSuspended = lic.status === 'suspended';
-                    const isActive = lic.status === 'active';
-
-                    return (
-                      <tr
-                        key={lic.id}
-                        className={`hover:bg-[#163354]/20 transition-colors ${
-                          isRevoked ? 'opacity-60 bg-rose-950/10' : ''
-                        }`}
-                      >
-                        {/* Key / Last 4 */}
-                        <td className="px-4 py-3">
-                          <div className="space-y-0.5">
-                            <div className="flex items-center gap-1.5">
-                              <span className="font-mono font-semibold text-white">
-                                ••••-••••-••••-{lic.licenseKeyLast4}
-                              </span>
-                              {lic.isTest && (
-                                <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
-                                  TEST
-                                </span>
-                              )}
-                            </div>
-                            <div className="text-[10px] text-[#64748B] font-mono">
-                              ID: {lic.id}
-                            </div>
-                            {lic.notes && (
-                              <div className="text-[10px] text-[#94A3B8] italic truncate max-w-xs">
-                                {lic.notes}
-                              </div>
-                            )}
-                          </div>
-                        </td>
-
-                        {/* Status */}
-                        <td className="px-4 py-3">
-                          {lic.status === 'active' && (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
-                              <CheckCircle2 className="w-3 h-3" />
-                              Active
-                            </span>
-                          )}
-                          {lic.status === 'pending' && (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-semibold bg-amber-500/15 text-amber-400 border border-amber-500/30">
-                              <Clock className="w-3 h-3" />
-                              Pending
-                            </span>
-                          )}
-                          {lic.status === 'suspended' && (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-semibold bg-orange-500/15 text-orange-400 border border-orange-500/30">
-                              <Ban className="w-3 h-3" />
-                              Suspended
-                            </span>
-                          )}
-                          {lic.status === 'revoked' && (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-semibold bg-rose-500/15 text-rose-400 border border-rose-500/30">
-                              <XCircle className="w-3 h-3" />
-                              Revoked
-                            </span>
-                          )}
-                        </td>
-
-                        {/* Product & Plan */}
-                        <td className="px-4 py-3">
-                          <div className="space-y-0.5">
-                            <span className="font-semibold text-white block">{lic.productCode}</span>
-                            <span className="inline-block px-1.5 py-0.2 rounded text-[9px] font-semibold bg-blue-500/20 text-blue-300">
-                              {lic.plan.toUpperCase()} (No Expiry)
-                            </span>
-                          </div>
-                        </td>
-
-                        {/* Max Devices */}
-                        <td className="px-4 py-3">
-                          <span className="font-semibold text-white">
-                            {lic.maxDevices || 1} Device
+                <tbody className="divide-y divide-[#E2E9E4]">
+                  {licenses.map((lic) => (
+                    <tr key={lic.id} className="hover:bg-[#F7F9F8] transition-colors">
+                      <td className="px-4 py-3 font-mono font-bold text-[#17221C]">
+                        {lic.isTest ? 'DINA-TEST-TEST-0001' : `••••-••••-••••-${lic.licenseKeyLast4}`}
+                        {lic.isTest && (
+                          <span className="ml-2 px-1.5 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-200 text-[9px] font-bold">
+                            TEST
                           </span>
-                        </td>
+                        )}
+                      </td>
 
-                        {/* Active Device */}
-                        <td className="px-4 py-3">
-                          {lic.activeDevice ? (
-                            <div className="space-y-0.5 max-w-[200px]">
-                              <div className="flex items-center gap-1 text-white font-medium truncate">
-                                <Laptop className="w-3 h-3 text-[#168BFF] shrink-0" />
-                                <span className="truncate">{lic.activeDevice.deviceName}</span>
-                              </div>
-                              <div className="text-[10px] text-[#64748B] truncate">
-                                {lic.activeDevice.operatingSystem} • {lic.activeDevice.browser}
-                              </div>
-                              <div className="text-[9px] text-[#94A3B8]">
-                                Last Seen: {formatDate(lic.activeDevice.lastSeenAt)}
-                              </div>
-                            </div>
-                          ) : (
-                            <span className="text-[#64748B] italic">Belum terikat</span>
-                          )}
-                        </td>
+                      <td className="px-4 py-3">
+                        <span
+                          className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                            lic.status === 'active'
+                              ? 'bg-[#E8F7EF] text-[#006B3C] border border-[#A7F3D0]'
+                              : lic.status === 'pending'
+                              ? 'bg-blue-50 text-blue-700 border border-blue-200'
+                              : 'bg-rose-50 text-rose-700 border border-rose-200'
+                          }`}
+                        >
+                          {lic.status}
+                        </span>
+                      </td>
 
-                        {/* Created At */}
-                        <td className="px-4 py-3 text-[#94A3B8] whitespace-nowrap">
-                          {formatDate(lic.createdAt)}
-                        </td>
-
-                        {/* Activated At */}
-                        <td className="px-4 py-3 text-[#94A3B8] whitespace-nowrap">
-                          {formatDate(lic.activatedAt)}
-                        </td>
-
-                        {/* Last Verified */}
-                        <td className="px-4 py-3 text-[#94A3B8] whitespace-nowrap">
-                          {formatDate(lic.lastVerifiedAt)}
-                        </td>
-
-                        {/* Revoked At */}
-                        <td className="px-4 py-3 text-rose-400 whitespace-nowrap">
-                          {formatDate(lic.revokedAt)}
-                        </td>
-
-                        {/* Action Buttons */}
-                        <td className="px-4 py-3 text-right">
-                          <div className="flex items-center justify-end gap-1.5">
-                            {lic.activeDevice && !isRevoked && (
-                              <button
-                                type="button"
-                                onClick={() => handleResetDevice(lic.id)}
-                                disabled={actionLoadingId === lic.id}
-                                className="p-1.5 rounded-lg bg-[#0E233D] hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 transition-colors"
-                                title="Reset Perangkat (Lepaskan Device)"
-                              >
-                                <RotateCcw className="w-3.5 h-3.5" />
-                              </button>
-                            )}
-
-                            {!isRevoked && (
-                              <button
-                                type="button"
-                                onClick={() => handleRevoke(lic.id)}
-                                disabled={actionLoadingId === lic.id}
-                                className="px-2 py-1 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 text-[10px] font-semibold transition-colors flex items-center gap-1"
-                                title="Cabut Lisensi Permanen"
-                              >
-                                <Ban className="w-3 h-3" />
-                                <span>Revoke</span>
-                              </button>
-                            )}
+                      <td className="px-4 py-3 text-[#66736B]">
+                        {lic.activeDevice ? (
+                          <div className="flex items-center gap-1.5 text-[#17221C] font-semibold">
+                            <Laptop className="w-3.5 h-3.5 text-[#00A651]" />
+                            <span>{lic.activeDevice.deviceName || 'Active Device'}</span>
                           </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
+                        ) : (
+                          <span className="italic">Belum terikat</span>
+                        )}
+                      </td>
+
+                      <td className="px-4 py-3 text-[#66736B] max-w-xs truncate">
+                        {lic.notes || '-'}
+                      </td>
+
+                      <td className="px-4 py-3 text-[#66736B]">
+                        {formatDate(lic.createdAt)}
+                      </td>
+
+                      <td className="px-4 py-3 text-right">
+                        <div className="flex items-center justify-end gap-1.5">
+                          {lic.activeDevice && (
+                            <button
+                              type="button"
+                              onClick={() => handleResetDevice(lic.id)}
+                              disabled={actionLoadingId === lic.id}
+                              className="px-2.5 py-1 rounded-lg bg-orange-50 hover:bg-orange-100 text-orange-700 border border-orange-200 text-[11px] font-bold flex items-center gap-1 transition-colors cursor-pointer"
+                              title="Reset Perangkat"
+                            >
+                              <RotateCcw className="w-3 h-3" />
+                              <span>Reset Binding</span>
+                            </button>
+                          )}
+
+                          {lic.status !== 'revoked' && (
+                            <button
+                              type="button"
+                              onClick={() => handleRevoke(lic.id)}
+                              disabled={actionLoadingId === lic.id}
+                              className="px-2 py-1 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-[10px] font-bold transition-colors cursor-pointer"
+                            >
+                              Revoke
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </div>
