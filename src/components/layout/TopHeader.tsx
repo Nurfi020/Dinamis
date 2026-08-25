@@ -2,12 +2,13 @@
 
 import React from 'react';
 import { Calendar, ChevronDown, Bell } from 'lucide-react';
-import { UserProfile } from '../../types';
+import { UserProfile, DevModeInfo } from '../../types';
 
 interface TopHeaderProps {
   title: string;
   subtitle?: string;
   profile: UserProfile;
+  devModeInfo?: DevModeInfo | null;
   onOpenProfile: () => void;
   onOpenFollowUps: () => void;
   followUpCount: number;
@@ -19,6 +20,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
   title,
   subtitle,
   profile,
+  devModeInfo,
   onOpenProfile,
   onOpenFollowUps,
   followUpCount,
@@ -29,9 +31,17 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
     <header className="bg-white/90 backdrop-blur-md sticky top-0 z-20 px-4 sm:px-8 py-4 border-b border-[#E2E9E4] flex items-center justify-between gap-4">
       {/* Page Title & Subtitle */}
       <div>
-        <h1 className="text-xl sm:text-2xl font-extrabold text-[#17221C] tracking-tight flex items-center gap-2">
-          {title}
-        </h1>
+        <div className="flex items-center gap-2.5">
+          <h1 className="text-xl sm:text-2xl font-extrabold text-[#17221C] tracking-tight flex items-center gap-2">
+            {title}
+          </h1>
+          {devModeInfo?.isDevMode && (
+            <span className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-50 border border-amber-200 text-amber-800 text-[10px] font-extrabold tracking-tight">
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+              <span>DEV MODE ({devModeInfo.remainingDays}d)</span>
+            </span>
+          )}
+        </div>
         {subtitle && (
           <p className="text-xs sm:text-sm text-[#66736B] mt-0.5">{subtitle}</p>
         )}

@@ -6,7 +6,9 @@ import {
   LeadStatus, 
   ActiveTab, 
   UserProfile, 
-  FollowUpLog 
+  FollowUpLog,
+  LicenseInfo,
+  DevModeInfo
 } from '../types';
 import { 
   getStoredLeads, 
@@ -33,7 +35,7 @@ import { HelpGuideModal } from '../components/common/HelpGuideModal';
 import { ToastContainer, ToastMessage } from '../components/common/Toast';
 import { ActivateView } from '../components/license/ActivateView';
 import { LicenseClient } from '../services/licenseClient';
-import { LicenseInfo } from '../types';
+import { DevModeClient } from '../services/devModeClient';
 
 export default function HomePage() {
   const [leads, setLeads] = useState<Lead[]>(INITIAL_LEADS);
@@ -43,10 +45,11 @@ export default function HomePage() {
   const [isClient, setIsClient] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  // License state
+  // License & Dev Mode state
   const [isLicenseChecking, setIsLicenseChecking] = useState(true);
   const [isActivated, setIsActivated] = useState(false);
   const [licenseInfo, setLicenseInfo] = useState<LicenseInfo | null>(null);
+  const [devModeInfo, setDevModeInfo] = useState<DevModeInfo | null>(null);
   
   // Modals state
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -93,35 +96,51 @@ export default function HomePage() {
     }
   };
 
-  // Check license on initial mount
+  // Check Development Mode & License on initial mount
   useEffect(() => {
     setIsClient(true);
-    const checkLicense = async () => {
+    const checkAccess = async () => {
       setIsLicenseChecking(true);
       try {
+        // 1. Check if official Development Mode is active (development env + localhost + within 30 days)
+        const devCheck = await DevModeClient.checkStatus();
+        if (devCheck.isDevMode) {
+          setIsActivated(true);
+          setDevModeInfo(devCheck);
+          setLicenseInfo(null);
+          loadData();
+          setIsLicenseChecking(false);
+          return;
+        }
+
+        // 2. Production or non-dev flow: Standard license verification
         const verifyResult = await LicenseClient.verify();
         if (verifyResult.valid && verifyResult.license) {
           setIsActivated(true);
+          setDevModeInfo(null);
           setLicenseInfo(verifyResult.license);
           loadData();
         } else {
           setIsActivated(false);
+          setDevModeInfo(null);
           setLicenseInfo(null);
         }
       } catch (e) {
         setIsActivated(false);
+        setDevModeInfo(null);
         setLicenseInfo(null);
       } finally {
         setIsLicenseChecking(false);
       }
     };
-    checkLicense();
+    checkAccess();
   }, []);
 
   const handleDeactivateLicense = async () => {
     await LicenseClient.deactivate();
     setIsActivated(false);
     setLicenseInfo(null);
+    setDevModeInfo(null);
     addToast('info', 'Perangkat Dilepaskan', 'Lisensi berhasil dinonaktifkan dari perangkat ini.');
   };
 
@@ -144,13 +163,13 @@ export default function HomePage() {
       followUps: [],
     };
 
-    // Optimistic UI
-    setLeads((prev) => [newLead, ...prev]);
-    saveStoredLeads([newLead, ...leads]);
-    addToast('success', 'Lead berhasil ditambahkan ✓', `${newLead.name} telah masuk ke daftar calon pelanggan.`);
+    // Optimistic UI update
+    const updated = [newLead, ...leads];
+    setLeads(updated);
+    saveStoredLeads(updated);
 
     try {
-      const savedLead = await leadService.createLead({
+      const created = await leadService.createLead({
         name: newLeadData.name,
         phone: newLeadData.phone,
         city: newLeadData.city,
@@ -158,63 +177,72 @@ export default function HomePage() {
         productId: newLeadData.product,
         status: newLeadData.status,
         initialNotes: newLeadData.initialNotes,
-        nextFollowUpDate: newLeadData.nextFollowUpDate,
-        nextFollowUpTime: newLeadData.nextFollowUpTime,
       });
-      setLeads((prev) => prev.map((l) => (l.id === tempId ? savedLead : l)));
-    } catch (e) {
-      console.warn('Saved locally (API fallback):', e);
+      // Replace with real database record
+      setLeads((prev) => prev.map((l) => (l.id === tempId ? created : l)));
+      addToast('success', 'Lead Baru Berhasil Ditambahkan', `${newLead.name} telah masuk ke daftar prospek.`);
+    } catch {
+      addToast('success', 'Lead Disimpan Lokal', `${newLead.name} berhasil ditambahkan (Mode Offline).`);
     }
+
+    setIsAddModalOpen(false);
   };
 
-  // Handler: Save Follow Up Log
+  // Handler: Log follow up
   const handleSaveFollowUp = async (leadId: string, logData: Omit<FollowUpLog, 'id' | 'createdAt'>) => {
+    const now = new Date();
     const newLog: FollowUpLog = {
       ...logData,
-      id: `fu-${Date.now()}`,
-      createdAt: new Date().toISOString(),
+      id: `log-${Date.now()}`,
+      createdAt: now.toISOString(),
     };
 
-    setLeads((prev) =>
-      prev.map((l) => {
-        if (l.id === leadId) {
-          const isClosing = logData.newStatus === 'Closing';
-          const isFailed = logData.newStatus === 'Tidak Berhasil';
-          
-          return {
-            ...l,
-            status: logData.newStatus,
-            updatedAt: new Date().toISOString(),
-            lastFollowUpDate: logData.date,
-            nextFollowUpDate: logData.nextFollowUpDate || (isClosing || isFailed ? undefined : l.nextFollowUpDate),
-            nextFollowUpTime: logData.nextFollowUpTime || (isClosing || isFailed ? undefined : l.nextFollowUpTime),
-            closedAt: isClosing ? new Date().toISOString() : l.closedAt,
-            lostAt: isFailed ? new Date().toISOString() : l.lostAt,
-            lostReason: isFailed ? logData.lostReason : l.lostReason,
-            followUps: [newLog, ...l.followUps],
-          };
-        }
-        return l;
-      })
-    );
+    // Optimistic update
+    const updated = leads.map((lead) => {
+      if (lead.id === leadId) {
+        const isClosing = logData.newStatus === 'Closing';
+        const isLost = logData.newStatus === 'Tidak Berhasil';
 
+        return {
+          ...lead,
+          status: logData.newStatus,
+          lastFollowUpDate: logData.date,
+          nextFollowUpDate: isClosing || isLost ? undefined : logData.nextFollowUpDate,
+          nextFollowUpTime: isClosing || isLost ? undefined : logData.nextFollowUpTime,
+          closedAt: isClosing ? now.toISOString() : lead.closedAt,
+          lostAt: isLost ? now.toISOString() : lead.lostAt,
+          lostReason: isLost ? logData.lostReason : undefined,
+          updatedAt: now.toISOString(),
+          followUps: [newLog, ...(lead.followUps || [])],
+        };
+      }
+      return lead;
+    });
+
+    setLeads(updated);
+    saveStoredLeads(updated);
+
+    // If closing -> increment user profile target achievement
     if (logData.newStatus === 'Closing') {
-      setProfile((prev) => {
-        const updated = { ...prev, closingCount: prev.closingCount + 1 };
-        saveStoredProfile(updated);
-        return updated;
-      });
-      addToast('success', 'Selamat! Lead Berhasil Closing ✓', 'Status diperbarui dan progress target bertambah.');
+      const updatedProfile = {
+        ...profile,
+        closingCount: profile.closingCount + 1,
+      };
+      setProfile(updatedProfile);
+      saveStoredProfile(updatedProfile);
+      addToast('success', '🎉 DEAL CLOSING BERHASIL!', 'Selamat! Target closing Anda bertambah.');
     } else {
-      addToast('success', 'Follow Up berhasil dicatat ✓', `Status lead sekarang: ${logData.newStatus}`);
+      addToast('success', 'Follow Up Dicatat', 'Riwayat aktivitas lead berhasil diperbarui.');
     }
 
     try {
-      const result = await followUpService.saveFollowUp(leadId, logData);
-      setLeads((prev) => prev.map((l) => (l.id === leadId ? result.lead : l)));
-    } catch (e) {
-      console.warn('Saved follow-up locally:', e);
+      await followUpService.saveFollowUp(leadId, logData);
+    } catch {
+      // offline fallback
     }
+
+    setIsLogFollowUpOpen(false);
+    setLeadForFollowUp(null);
   };
 
   // Handler: Quick Status Change
@@ -232,7 +260,7 @@ export default function HomePage() {
       oldStatus: leads.find((l) => l.id === leadId)?.status,
       newStatus,
     });
-    addToast('success', `Status lead diubah menjadi ${newStatus} ✓`);
+    addToast('success', `Status lead diubah menjadi ${newStatus}`);
   };
 
   // Handler: Reset data
@@ -242,13 +270,13 @@ export default function HomePage() {
       await loadData();
       setSelectedLeadId(null);
       setActiveTab('dashboard');
-      addToast('success', 'Data Berhasil Di-reset ✓', 'Database telah dikembalikan ke kondisi awal.');
+      addToast('success', 'Data Berhasil Di-reset', 'Database telah dikembalikan ke kondisi awal.');
     } catch {
       const fresh = resetStoredLeads();
       setLeads(fresh);
       setSelectedLeadId(null);
       setActiveTab('dashboard');
-      addToast('success', 'Data Di-reset Lokal ✓', 'Seluruh data lead kembali ke kondisi awal.');
+      addToast('success', 'Data Di-reset Lokal', 'Seluruh data lead kembali ke kondisi awal.');
     }
   };
 
@@ -260,9 +288,9 @@ export default function HomePage() {
     try {
       const saved = await profileService.updateProfile(updated);
       setProfile(saved);
-      addToast('success', 'Profil Diperbarui ✓', 'Data profil sales berhasil disimpan ke database.');
+      addToast('success', 'Profil Diperbarui', 'Data profil sales berhasil disimpan ke database.');
     } catch {
-      addToast('success', 'Profil Diperbarui ✓', 'Data profil sales berhasil disimpan lokal.');
+      addToast('success', 'Profil Diperbarui', 'Data profil sales berhasil disimpan lokal.');
     }
   };
 
@@ -271,7 +299,7 @@ export default function HomePage() {
     if (selectedLead && activeTab === 'leads') {
       return {
         title: selectedLead.name,
-        subtitle: `${selectedLead.product.split('—')[0].trim()} • ${selectedLead.city}`,
+        subtitle: `${selectedLead.product.split('-')[0].trim()} • ${selectedLead.city}`,
       };
     }
     switch (activeTab) {
@@ -309,22 +337,23 @@ export default function HomePage() {
 
   if (!isClient || isLicenseChecking) {
     return (
-      <div className="min-h-screen bg-[#06111F] text-[#F8FAFC] flex flex-col items-center justify-center p-4">
-        <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-[#168BFF] to-[#22D3EE] flex items-center justify-center text-white mb-4 shadow-[0_0_25px_rgba(22,139,255,0.5)] animate-pulse">
+      <div className="min-h-screen bg-[#F7F9F8] text-[#17221C] flex flex-col items-center justify-center p-4">
+        <div className="w-12 h-12 rounded-2xl bg-[#00A651] flex items-center justify-center text-white mb-4 shadow-sm animate-pulse">
           <span className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
         </div>
-        <p className="text-sm font-bold text-white tracking-wide">Kelola Lead Sales CRM</p>
-        <p className="text-xs text-[#22D3EE] mt-1 font-mono">Memeriksa lisensi perangkat...</p>
+        <p className="text-sm font-bold text-[#17221C] tracking-wide">Kelola Lead Sales CRM</p>
+        <p className="text-xs text-[#006B3C] mt-1 font-mono font-semibold">Memeriksa lisensi & environment...</p>
       </div>
     );
   }
 
   if (!isActivated) {
     return (
-      <div className="min-h-screen bg-[#06111F]">
+      <div className="min-h-screen bg-[#F7F9F8]">
         <ActivateView
           onActivationSuccess={(lic) => {
             setIsActivated(true);
+            setDevModeInfo(null);
             setLicenseInfo(lic);
             loadData();
             addToast('success', 'Lisensi Lifetime Aktif!', 'Selamat datang di Kelola Lead Sales CRM.');
@@ -353,6 +382,7 @@ export default function HomePage() {
         onOpenAddLead={() => setIsAddModalOpen(true)}
         followUpCount={followUpCount}
         onOpenHelp={() => setIsHelpOpen(true)}
+        devModeInfo={devModeInfo}
       />
 
       {/* 2. Main Content Area */}
@@ -362,6 +392,7 @@ export default function HomePage() {
           title={headerInfo.title}
           subtitle={headerInfo.subtitle}
           profile={profile}
+          devModeInfo={devModeInfo}
           onOpenProfile={() => {
             setSelectedLeadId(null);
             setActiveTab('profile');
@@ -446,6 +477,7 @@ export default function HomePage() {
             <ProfileView
               profile={profile}
               license={licenseInfo}
+              devModeInfo={devModeInfo}
               onUpdateProfile={handleUpdateProfile}
               onResetData={handleResetData}
               onDeactivateLicense={handleDeactivateLicense}

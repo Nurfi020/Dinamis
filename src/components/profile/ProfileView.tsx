@@ -16,9 +16,11 @@ import {
   Laptop,
   Clock,
   Wrench,
-  AlertTriangle
+  AlertTriangle,
+  Code2,
+  Calendar
 } from 'lucide-react';
-import { UserProfile, LicenseInfo } from '../../types';
+import { UserProfile, LicenseInfo, DevModeInfo } from '../../types';
 import { formatDisplayPhone } from '../../utils/helpers';
 import { getClientDeviceMetadata } from '../../utils/device';
 import { AdminLicensesModal } from '../license/AdminLicensesModal';
@@ -26,6 +28,7 @@ import { AdminLicensesModal } from '../license/AdminLicensesModal';
 interface ProfileViewProps {
   profile: UserProfile;
   license?: LicenseInfo | null;
+  devModeInfo?: DevModeInfo | null;
   onUpdateProfile: (updated: UserProfile) => void;
   onResetData: () => void;
   onDeactivateLicense?: () => void;
@@ -34,6 +37,7 @@ interface ProfileViewProps {
 export const ProfileView: React.FC<ProfileViewProps> = ({
   profile,
   license,
+  devModeInfo,
   onUpdateProfile,
   onResetData,
   onDeactivateLicense,
@@ -61,23 +65,21 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
 
   const targetPct = Math.min(Math.round((profile.closingCount / profile.monthlyTarget) * 100), 100);
 
-  const formattedActivatedDate = license?.activatedAt
-    ? new Date(license.activatedAt).toLocaleDateString('id-ID', {
+  const formattedDevExpires = devModeInfo?.expiresAt
+    ? new Date(devModeInfo.expiresAt).toLocaleDateString('id-ID', {
         day: 'numeric',
         month: 'long',
         year: 'numeric',
       })
-    : '23 Agustus 2026';
+    : '25 September 2026';
 
-  const formattedLastVerified = license?.lastVerifiedAt
-    ? new Date(license.lastVerifiedAt).toLocaleString('id-ID', {
+  const formattedDevStart = devModeInfo?.startDate
+    ? new Date(devModeInfo.startDate).toLocaleDateString('id-ID', {
         day: 'numeric',
-        month: 'short',
+        month: 'long',
         year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
       })
-    : 'Baru saja terverifikasi';
+    : '26 Agustus 2026';
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto pb-24 md:pb-12">
@@ -104,8 +106,71 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
         </div>
       </div>
 
-      {/* Dedicated License Card */}
-      {license && (
+      {/* 1. If Development Mode is Active: Show Dev Mode Card */}
+      {devModeInfo?.isDevMode && (
+        <div className="bg-white border border-amber-200 rounded-2xl p-6 shadow-sm space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-amber-100 pb-3">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-xl bg-amber-50 text-amber-700 border border-amber-200 flex items-center justify-center">
+                <Code2 className="w-4 h-4" />
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-[#17221C]">Status: Mode Pengembangan (Development Mode)</h3>
+                <p className="text-xs text-amber-800">Akses sementara untuk pengujian lokal (Bukan lisensi production)</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <span className="px-3 py-1 rounded-full bg-amber-50 text-amber-800 border border-amber-200 text-xs font-bold flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+                <span>DEV MODE ({devModeInfo.remainingDays} Hari Tersisa)</span>
+              </span>
+
+              <button
+                type="button"
+                onClick={() => setIsAdminModalOpen(true)}
+                className="p-1.5 rounded-lg text-[#66736B] hover:text-[#17221C] hover:bg-slate-100 transition-colors text-xs flex items-center gap-1 cursor-pointer"
+                title="Admin License Manager"
+              >
+                <Wrench className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+            <div className="p-3 bg-[#F7F9F8] rounded-xl border border-[#E2E9E4] space-y-1">
+              <div className="flex items-center gap-1.5 text-[#66736B]">
+                <Calendar className="w-3.5 h-3.5 text-amber-600" />
+                <span>Mulai Sesi Dev</span>
+              </div>
+              <p className="font-semibold text-[#17221C]">{formattedDevStart}</p>
+            </div>
+
+            <div className="p-3 bg-[#F7F9F8] rounded-xl border border-[#E2E9E4] space-y-1">
+              <div className="flex items-center gap-1.5 text-[#66736B]">
+                <Clock className="w-3.5 h-3.5 text-amber-600" />
+                <span>Berakhir Pada</span>
+              </div>
+              <p className="font-bold text-[#17221C]">{formattedDevExpires}</p>
+            </div>
+
+            <div className="p-3 bg-[#F7F9F8] rounded-xl border border-[#E2E9E4] space-y-1">
+              <div className="flex items-center gap-1.5 text-[#66736B]">
+                <Laptop className="w-3.5 h-3.5 text-[#00A651]" />
+                <span>Host / Environment</span>
+              </div>
+              <p className="font-semibold text-[#17221C]">{devModeInfo.host || 'localhost'} (dev)</p>
+            </div>
+          </div>
+
+          <p className="text-[11px] text-[#66736B] bg-amber-50/50 p-2.5 rounded-xl border border-amber-100">
+            Catatan: Mode ini otomatis nonaktif setelah 30 hari atau bila aplikasi dijalankan di environment production (Vercel).
+          </p>
+        </div>
+      )}
+
+      {/* 2. If Regular License is Active: Show Production License Card */}
+      {!devModeInfo?.isDevMode && license && (
         <div className="bg-white border border-[#E2E9E4] rounded-2xl p-6 shadow-sm space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#E2E9E4] pb-3">
             <div className="flex items-center gap-2.5">

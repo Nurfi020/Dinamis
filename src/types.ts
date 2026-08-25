@@ -1,4 +1,4 @@
-export type LeadStatus = 'Cold' | 'Warm' | 'Hot' | 'Closing' | 'Tidak Berhasil';
+﻿export type LeadStatus = 'Cold' | 'Warm' | 'Hot' | 'Closing' | 'Tidak Berhasil';
 
 export type LeadSource = 
   | 'WhatsApp'
@@ -109,4 +109,13 @@ export interface FilterState {
   source: string; // 'all' or LeadSource
   dateRange: 'all' | 'today' | 'this_week' | 'this_month' | 'last_month';
   sortBy: 'latest' | 'oldest' | 'next_followup' | 'overdue' | 'name';
+}
+
+export interface DevModeInfo {
+  isDevMode: boolean;
+  startDate?: string;
+  expiresAt?: string;
+  remainingDays?: number;
+  environment?: string;
+  host?: string;
 }
