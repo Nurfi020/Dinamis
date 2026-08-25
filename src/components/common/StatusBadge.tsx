@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React from 'react';
 import { LeadStatus } from '../../types';
@@ -20,9 +20,9 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({
   const theme = getStatusTheme(status);
 
   const sizeClasses = {
-    sm: 'text-xs px-2 py-0.5 gap-1.5',
-    md: 'text-xs px-2.5 py-1 gap-1.5 font-medium',
-    lg: 'text-sm px-3 py-1.5 gap-2 font-semibold',
+    sm: 'text-[11px] px-2 py-0.5 gap-1.5 font-semibold',
+    md: 'text-xs px-2.5 py-1 gap-1.5 font-semibold',
+    lg: 'text-sm px-3.5 py-1.5 gap-2 font-bold',
   };
 
   const dotSizes = {
@@ -33,10 +33,10 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({
 
   return (
     <span
-      className={`inline-flex items-center rounded-full border whitespace-nowrap tracking-wide transition-all ${theme.bg} ${theme.text} ${theme.border} ${theme.glow} ${sizeClasses[size]} ${className}`}
+      className={`inline-flex items-center rounded-full border whitespace-nowrap tracking-tight transition-all shadow-none ${theme.bg} ${theme.text} ${theme.border} ${sizeClasses[size]} ${className}`}
     >
       {showDot && (
-        <span className={`rounded-full ${theme.dot} ${dotSizes[size]}`} />
+        <span className={`rounded-full shrink-0 ${theme.dot} ${dotSizes[size]}`} />
       )}
       <span>{theme.label}</span>
     </span>

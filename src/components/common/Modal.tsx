@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useEffect } from 'react';
 import { X } from 'lucide-react';
@@ -47,30 +47,31 @@ export const Modal: React.FC<ModalProps> = ({
       {/* Backdrop */}
       <div
         onClick={onClose}
-        className="fixed inset-0 bg-black/75 backdrop-blur-sm transition-opacity animate-in fade-in duration-200"
+        className="fixed inset-0 bg-black/40 backdrop-blur-sm transition-opacity animate-in fade-in duration-200"
       />
 
       {/* Modal Dialog */}
       <div
-        className={`relative w-full ${maxWidthClasses[maxWidth]} bg-[#0B1B2E] border border-[#17324D] rounded-2xl shadow-2xl shadow-black/80 overflow-hidden z-10 my-auto animate-in zoom-in-95 fade-in duration-200`}
+        className={`relative w-full ${maxWidthClasses[maxWidth]} bg-white border border-[#E2E9E4] rounded-2xl shadow-xl overflow-hidden z-10 my-auto animate-in zoom-in-95 fade-in duration-200`}
       >
         {/* Modal Header */}
-        <div className="flex items-start justify-between p-5 border-b border-[#17324D] bg-[#0E233D]/50">
+        <div className="flex items-start justify-between px-6 py-5 border-b border-[#E2E9E4] bg-[#F7F9F8]">
           <div>
-            <h3 className="text-lg font-bold text-[#F8FAFC] tracking-tight">{title}</h3>
-            {subtitle && <p className="text-xs text-[#94A3B8] mt-0.5">{subtitle}</p>}
+            <h3 className="text-lg font-bold text-[#17221C] tracking-tight">{title}</h3>
+            {subtitle && <p className="text-xs text-[#66736B] mt-0.5">{subtitle}</p>}
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="p-1.5 rounded-lg text-[#94A3B8] hover:text-[#F8FAFC] hover:bg-[#17324D] transition-colors"
+            className="p-1.5 rounded-xl text-[#66736B] hover:text-[#17221C] hover:bg-slate-200/60 transition-colors"
+            aria-label="Tutup"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Modal Content */}
-        <div className="p-5 max-h-[80vh] overflow-y-auto">{children}</div>
+        <div className="p-6 max-h-[80vh] overflow-y-auto">{children}</div>
       </div>
     </div>
   );

@@ -1,21 +1,16 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useMemo } from 'react';
 import { 
   Search, 
   Plus, 
-  Filter, 
   MessageCircle, 
   ChevronRight, 
-  ArrowUpDown, 
   CalendarClock, 
   MapPin, 
-  Package, 
-  Phone,
   SlidersHorizontal,
   X,
-  History,
-  Calendar
+  CheckCircle2
 } from 'lucide-react';
 import { Lead, LeadStatus, LeadSource } from '../../types';
 import { StatusBadge } from '../common/StatusBadge';
@@ -52,7 +47,6 @@ export const LeadListView: React.FC<LeadListViewProps> = ({
   const [selectedProduct, setSelectedProduct] = useState<string>('all');
   const [selectedCity, setSelectedCity] = useState<string>('all');
   const [selectedSource, setSelectedSource] = useState<string>('all');
-  const [selectedPeriod, setSelectedPeriod] = useState<'all' | 'today' | 'this_week' | 'this_month'>('all');
   const [sortBy, setSortBy] = useState<'latest' | 'oldest' | 'next_followup' | 'overdue' | 'name'>('latest');
   const [showFiltersMobile, setShowFiltersMobile] = useState(false);
 
@@ -70,9 +64,6 @@ export const LeadListView: React.FC<LeadListViewProps> = ({
 
   // Filtered and sorted leads
   const filteredLeads = useMemo(() => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
     return leads
       .filter((lead) => {
         // Search
@@ -104,367 +95,369 @@ export const LeadListView: React.FC<LeadListViewProps> = ({
           return false;
         }
 
-        // Period filter based on createdAt
-        if (selectedPeriod !== 'all') {
-          const leadDate = new Date(lead.createdAt);
-          leadDate.setHours(0, 0, 0, 0);
-          const diffDays = Math.round((today.getTime() - leadDate.getTime()) / (1000 * 60 * 60 * 24));
-          
-          if (selectedPeriod === 'today' && diffDays !== 0) return false;
-          if (selectedPeriod === 'this_week' && diffDays > 7) return false;
-          if (selectedPeriod === 'this_month' && diffDays > 30) return false;
-        }
-
         return true;
       })
       .sort((a, b) => {
-        if (sortBy === 'name') {
-          return a.name.localeCompare(b.name);
+        if (sortBy === 'latest') {
+          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
         }
         if (sortBy === 'oldest') {
           return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
         }
+        if (sortBy === 'name') {
+          return a.name.localeCompare(b.name);
+        }
         if (sortBy === 'next_followup') {
           if (!a.nextFollowUpDate) return 1;
           if (!b.nextFollowUpDate) return -1;
-          return a.nextFollowUpDate.localeCompare(b.nextFollowUpDate);
+          return new Date(a.nextFollowUpDate).getTime() - new Date(b.nextFollowUpDate).getTime();
         }
         if (sortBy === 'overdue') {
-          const isAOverdue = isDateOverdue(a.nextFollowUpDate);
-          const isBOverdue = isDateOverdue(b.nextFollowUpDate);
-          if (isAOverdue && !isBOverdue) return -1;
-          if (!isAOverdue && isBOverdue) return 1;
-          return (a.nextFollowUpDate || '').localeCompare(b.nextFollowUpDate || '');
+          const aOver = isDateOverdue(a.nextFollowUpDate) ? 1 : 0;
+          const bOver = isDateOverdue(b.nextFollowUpDate) ? 1 : 0;
+          return bOver - aOver;
         }
-        // default: latest
-        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        return 0;
       });
-  }, [leads, search, selectedStatus, selectedProduct, selectedCity, selectedSource, selectedPeriod, sortBy]);
+  }, [leads, search, selectedStatus, selectedProduct, selectedCity, selectedSource, sortBy]);
 
-  const hasActiveFilters = 
-    selectedStatus !== 'all' || 
-    selectedProduct !== 'all' || 
-    selectedCity !== 'all' || 
-    selectedSource !== 'all' || 
-    selectedPeriod !== 'all' ||
-    search.trim() !== '';
+  const hasActiveFilters = selectedProduct !== 'all' || selectedCity !== 'all' || selectedSource !== 'all' || search !== '';
 
-  const resetFilters = () => {
+  const clearFilters = () => {
     setSearch('');
-    setSelectedStatus('all');
     setSelectedProduct('all');
     setSelectedCity('all');
     setSelectedSource('all');
-    setSelectedPeriod('all');
+    setSelectedStatus('all');
   };
 
   return (
     <div className="space-y-5 max-w-7xl mx-auto pb-24 md:pb-12">
-      {/* Top Action Bar */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-        {/* Search input */}
-        <div className="relative flex-1">
-          <Search className="w-4 h-4 text-[#94A3B8] absolute left-3.5 top-1/2 -translate-y-1/2" />
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Cari nama calon pelanggan, kota, atau nomor WhatsApp..."
-            className="w-full pl-10 pr-10 py-2.5 bg-[#0B1B2E] border border-[#17324D] rounded-xl text-sm text-[#F8FAFC] placeholder-[#94A3B8] focus:outline-none focus:border-[#168BFF] focus:ring-1 focus:ring-[#168BFF] transition-all"
-          />
-          {search && (
-            <button
-              type="button"
-              onClick={() => setSearch('')}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-[#94A3B8] hover:text-[#F8FAFC]"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          )}
+      {/* Top Header & Actions */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <h2 className="text-xl sm:text-2xl font-bold text-[#17221C] tracking-tight">
+            Semua Calon Pelanggan
+          </h2>
+          <p className="text-xs sm:text-sm text-[#66736B] mt-0.5">
+            Total {leads.length} lead terdaftar dalam sistem
+          </p>
         </div>
 
-        {/* Buttons: Filter Mobile Toggle + Tambah Lead */}
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => setShowFiltersMobile(!showFiltersMobile)}
-            className={`sm:hidden flex items-center gap-2 px-3.5 py-2.5 rounded-xl border text-sm font-medium transition-colors ${
-              hasActiveFilters
-                ? 'bg-[#168BFF]/20 border-[#168BFF] text-[#22D3EE]'
-                : 'bg-[#0B1B2E] border-[#17324D] text-[#94A3B8]'
-            }`}
-          >
-            <SlidersHorizontal className="w-4 h-4" />
-            <span>Filter</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={onOpenAddLead}
-            className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#168BFF] hover:bg-[#168BFF]/90 text-white font-semibold text-sm shadow-[0_0_15px_rgba(22,139,255,0.35)] active:scale-95 transition-all"
-          >
-            <Plus className="w-4 h-4 stroke-[2.5]" />
-            <span>Tambah Lead</span>
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={onOpenAddLead}
+          className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#00A651] hover:bg-[#006B3C] text-white text-sm font-bold shadow-sm active:scale-95 transition-all cursor-pointer"
+        >
+          <Plus className="w-4 h-4" />
+          <span>+ Tambah Lead Baru</span>
+        </button>
       </div>
 
-      {/* Filter Row: Quick Status Tabs */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar select-none">
+      {/* 1. Status Filter Pills */}
+      <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
         {[
-          { id: 'all', label: 'Semua', count: counts.all },
-          { id: 'Hot', label: 'Hot', count: counts.Hot },
-          { id: 'Warm', label: 'Warm', count: counts.Warm },
-          { id: 'Cold', label: 'Cold', count: counts.Cold },
-          { id: 'Closing', label: 'Closing', count: counts.Closing },
-          { id: 'Tidak Berhasil', label: 'Tidak Berhasil', count: counts['Tidak Berhasil'] },
-        ].map((tab) => (
-          <button
-            key={tab.id}
-            type="button"
-            onClick={() => setSelectedStatus(tab.id)}
-            className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap border transition-all ${
-              selectedStatus === tab.id
-                ? 'bg-[#168BFF] text-white border-[#168BFF] shadow-[0_0_12px_rgba(22,139,255,0.3)]'
-                : 'bg-[#0B1B2E] text-[#94A3B8] hover:text-[#F8FAFC] border-[#17324D] hover:border-[#168BFF]/40'
-            }`}
-          >
-            <span>{tab.label}</span>
-            <span
-              className={`text-[10px] px-1.5 py-0.2 rounded-full ${
-                selectedStatus === tab.id ? 'bg-white/25 text-white' : 'bg-[#06111F] text-[#94A3B8]'
+          { id: 'all', label: 'Semua Lead', count: counts.all, dot: 'bg-[#00A651]' },
+          { id: 'Cold', label: 'Cold', count: counts.Cold, dot: 'bg-[#64748B]' },
+          { id: 'Warm', label: 'Warm', count: counts.Warm, dot: 'bg-[#F59E0B]' },
+          { id: 'Hot', label: 'Hot', count: counts.Hot, dot: 'bg-[#EF4444]' },
+          { id: 'Closing', label: 'Closing', count: counts.Closing, dot: 'bg-[#10B981]' },
+          { id: 'Tidak Berhasil', label: 'Tidak Berhasil', count: counts['Tidak Berhasil'], dot: 'bg-[#6B7280]' },
+        ].map((tab) => {
+          const isSelected = selectedStatus === tab.id;
+          return (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => setSelectedStatus(tab.id)}
+              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
+                isSelected
+                  ? 'bg-[#00A651] text-white shadow-sm'
+                  : 'bg-white text-[#66736B] border border-[#E2E9E4] hover:border-[#00A651]/40 hover:text-[#17221C]'
               }`}
             >
-              {tab.count}
-            </span>
-          </button>
-        ))}
+              <span className={`w-2 h-2 rounded-full ${isSelected ? 'bg-white' : tab.dot}`} />
+              <span>{tab.label}</span>
+              <span
+                className={`text-[11px] px-1.5 py-0.2 rounded-full font-bold ${
+                  isSelected ? 'bg-white/20 text-white' : 'bg-[#F4FBF7] text-[#006B3C] border border-[#E2E9E4]'
+                }`}
+              >
+                {tab.count}
+              </span>
+            </button>
+          );
+        })}
       </div>
 
-      {/* Dropdown Filters (Desktop always visible, Mobile collapsible) */}
-      <div
-        className={`${
-          showFiltersMobile ? 'flex' : 'hidden'
-        } sm:flex flex-wrap items-center gap-2.5 p-3 rounded-xl bg-[#0B1B2E]/60 border border-[#17324D] text-xs`}
-      >
-        {/* Product filter */}
-        <select
-          value={selectedProduct}
-          onChange={(e) => setSelectedProduct(e.target.value)}
-          className="bg-[#0E233D] text-[#F8FAFC] border border-[#17324D] rounded-lg px-3 py-1.5 focus:outline-none focus:border-[#168BFF] cursor-pointer"
-        >
-          <option value="all">Semua Produk</option>
-          {PRODUCTS_LIST.map((prod) => (
-            <option key={prod} value={prod}>{prod}</option>
-          ))}
-        </select>
+      {/* 2. Search & Secondary Filters Bar */}
+      <div className="bg-white border border-[#E2E9E4] rounded-2xl p-4 shadow-sm space-y-3">
+        <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+          {/* Search Box */}
+          <div className="relative flex-1">
+            <Search className="w-4 h-4 text-[#66736B] absolute left-3.5 top-1/2 -translate-y-1/2" />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Cari nama, no WA, atau kota..."
+              className="w-full pl-10 pr-8 py-2 bg-[#F7F9F8] border border-[#E2E9E4] rounded-xl text-xs sm:text-sm text-[#17221C] placeholder-[#66736B] focus:outline-none focus:border-[#00A651] focus:bg-white"
+            />
+            {search && (
+              <button
+                type="button"
+                onClick={() => setSearch('')}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#66736B] hover:text-[#17221C]"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
 
-        {/* City filter */}
-        <select
-          value={selectedCity}
-          onChange={(e) => setSelectedCity(e.target.value)}
-          className="bg-[#0E233D] text-[#F8FAFC] border border-[#17324D] rounded-lg px-3 py-1.5 focus:outline-none focus:border-[#168BFF] cursor-pointer"
-        >
-          <option value="all">Semua Kota</option>
-          {CITIES_LIST.map((city) => (
-            <option key={city} value={city}>{city}</option>
-          ))}
-        </select>
+          {/* Desktop Filter Dropdowns */}
+          <div className="hidden md:flex items-center gap-2">
+            {/* Filter Produk */}
+            <select
+              value={selectedProduct}
+              onChange={(e) => setSelectedProduct(e.target.value)}
+              className="bg-[#F7F9F8] border border-[#E2E9E4] rounded-xl px-3 py-2 text-xs font-semibold text-[#17221C] focus:outline-none focus:border-[#00A651] cursor-pointer"
+            >
+              <option value="all">Semua Produk</option>
+              {PRODUCTS_LIST.map((p) => (
+                <option key={p} value={p}>
+                  {p.split('—')[0].trim()}
+                </option>
+              ))}
+            </select>
 
-        {/* Source filter */}
-        <select
-          value={selectedSource}
-          onChange={(e) => setSelectedSource(e.target.value)}
-          className="bg-[#0E233D] text-[#F8FAFC] border border-[#17324D] rounded-lg px-3 py-1.5 focus:outline-none focus:border-[#168BFF] cursor-pointer"
-        >
-          <option value="all">Semua Sumber</option>
-          <option value="WhatsApp">WhatsApp</option>
-          <option value="Facebook">Facebook</option>
-          <option value="Instagram">Instagram</option>
-          <option value="TikTok">TikTok</option>
-          <option value="Referral">Referral</option>
-          <option value="Website">Website</option>
-          <option value="Marketplace">Marketplace</option>
-          <option value="Lainnya">Lainnya</option>
-        </select>
+            {/* Filter Kota */}
+            <select
+              value={selectedCity}
+              onChange={(e) => setSelectedCity(e.target.value)}
+              className="bg-[#F7F9F8] border border-[#E2E9E4] rounded-xl px-3 py-2 text-xs font-semibold text-[#17221C] focus:outline-none focus:border-[#00A651] cursor-pointer"
+            >
+              <option value="all">Semua Kota</option>
+              {CITIES_LIST.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </select>
 
-        {/* Periode filter */}
-        <select
-          value={selectedPeriod}
-          onChange={(e) => setSelectedPeriod(e.target.value as any)}
-          className="bg-[#0E233D] text-[#F8FAFC] border border-[#17324D] rounded-lg px-3 py-1.5 focus:outline-none focus:border-[#168BFF] cursor-pointer"
-        >
-          <option value="all">Semua Periode</option>
-          <option value="today">Hari Ini</option>
-          <option value="this_week">Minggu Ini</option>
-          <option value="this_month">Bulan Ini</option>
-        </select>
+            {/* Sort by */}
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value as any)}
+              className="bg-[#F7F9F8] border border-[#E2E9E4] rounded-xl px-3 py-2 text-xs font-semibold text-[#17221C] focus:outline-none focus:border-[#00A651] cursor-pointer"
+            >
+              <option value="latest">Terbaru Ditambahkan</option>
+              <option value="next_followup">Jadwal Terdekat</option>
+              <option value="overdue">Terlambat Dahulu</option>
+              <option value="name">Nama (A-Z)</option>
+            </select>
 
-        {/* Sort by */}
-        <div className="ml-auto flex items-center gap-2">
-          <span className="text-[#94A3B8] hidden md:inline">Urutan:</span>
-          <select
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value as any)}
-            className="bg-[#0E233D] text-[#F8FAFC] border border-[#17324D] rounded-lg px-3 py-1.5 focus:outline-none focus:border-[#168BFF] cursor-pointer"
-          >
-            <option value="latest">Terbaru Ditambahkan</option>
-            <option value="oldest">Terlama Ditambahkan</option>
-            <option value="next_followup">Follow Up Terdekat</option>
-            <option value="overdue">Follow Up Terlambat</option>
-            <option value="name">Nama (A - Z)</option>
-          </select>
+            {hasActiveFilters && (
+              <button
+                type="button"
+                onClick={clearFilters}
+                className="p-2 rounded-xl text-xs font-bold text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+                title="Hapus Filter"
+              >
+                Reset
+              </button>
+            )}
+          </div>
+
+          {/* Mobile Filter Toggle */}
+          <div className="flex md:hidden items-center justify-between gap-2">
+            <button
+              type="button"
+              onClick={() => setShowFiltersMobile(!showFiltersMobile)}
+              className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-xl border text-xs font-semibold ${
+                hasActiveFilters
+                  ? 'bg-[#E8F7EF] text-[#006B3C] border-[#00A651]'
+                  : 'bg-[#F7F9F8] text-[#66736B] border-[#E2E9E4]'
+              }`}
+            >
+              <SlidersHorizontal className="w-3.5 h-3.5" />
+              <span>Filter & Urutkan</span>
+            </button>
+          </div>
         </div>
 
-        {hasActiveFilters && (
-          <button
-            type="button"
-            onClick={resetFilters}
-            className="text-xs text-red-400 hover:text-red-300 font-medium ml-2 underline"
-          >
-            Reset Filter
-          </button>
+        {/* Mobile Filter Options Expandable */}
+        {showFiltersMobile && (
+          <div className="pt-3 border-t border-[#E2E9E4] grid grid-cols-2 gap-2 text-xs md:hidden">
+            <select
+              value={selectedProduct}
+              onChange={(e) => setSelectedProduct(e.target.value)}
+              className="bg-[#F7F9F8] border border-[#E2E9E4] rounded-xl p-2 font-medium"
+            >
+              <option value="all">Semua Produk</option>
+              {PRODUCTS_LIST.map((p) => (
+                <option key={p} value={p}>
+                  {p.split('—')[0].trim()}
+                </option>
+              ))}
+            </select>
+
+            <select
+              value={selectedCity}
+              onChange={(e) => setSelectedCity(e.target.value)}
+              className="bg-[#F7F9F8] border border-[#E2E9E4] rounded-xl p-2 font-medium"
+            >
+              <option value="all">Semua Kota</option>
+              {CITIES_LIST.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </select>
+
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value as any)}
+              className="col-span-2 bg-[#F7F9F8] border border-[#E2E9E4] rounded-xl p-2 font-medium"
+            >
+              <option value="latest">Terbaru Ditambahkan</option>
+              <option value="next_followup">Jadwal Terdekat</option>
+              <option value="name">Nama (A-Z)</option>
+            </select>
+          </div>
         )}
       </div>
 
-      {/* Main Content: Table for Desktop, Cards for Mobile */}
+      {/* 3. Data Representation */}
       {filteredLeads.length === 0 ? (
-        <div className="bg-[#0B1B2E] border border-[#17324D] rounded-2xl">
+        <div className="bg-white border border-[#E2E9E4] rounded-2xl p-8 shadow-sm">
           <EmptyState
-            title="Lead tidak ditemukan"
-            description="Tidak ada calon pelanggan yang cocok dengan pencarian atau filter yang dipilih."
-            actionText="Reset Filter"
-            onAction={resetFilters}
+            title="Belum ada lead yang cocok"
+            description="Coba ubah kata kunci pencarian atau sesuaikan filter status."
+            actionText="+ Tambah Lead Baru"
+            onAction={onOpenAddLead}
           />
         </div>
       ) : (
         <>
           {/* Desktop Table View */}
-          <div className="hidden md:block bg-[#0B1B2E] border border-[#17324D] rounded-2xl overflow-hidden shadow-lg">
-            <table className="w-full text-left border-collapse text-xs">
+          <div className="hidden lg:block bg-white border border-[#E2E9E4] rounded-2xl shadow-sm overflow-hidden">
+            <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="border-b border-[#17324D] bg-[#0E233D]/70 text-[#94A3B8] font-semibold">
-                  <th className="py-3.5 px-4">Nama Calon Pelanggan</th>
-                  <th className="py-3.5 px-4">Kota</th>
-                  <th className="py-3.5 px-4">Produk</th>
-                  <th className="py-3.5 px-4">Sumber</th>
-                  <th className="py-3.5 px-4">Status</th>
-                  <th className="py-3.5 px-4">Follow Up Terakhir</th>
-                  <th className="py-3.5 px-4">Follow Up Berikutnya</th>
+                <tr className="bg-[#F7F9F8] border-b border-[#E2E9E4] text-[11px] font-bold text-[#66736B] uppercase tracking-wider">
+                  <th className="py-3.5 px-4">Calon Pelanggan</th>
+                  <th className="py-3.5 px-4">Kontak & Kota</th>
+                  <th className="py-3.5 px-4">Produk & Sumber</th>
+                  <th className="py-3.5 px-4">Status Prospek</th>
+                  <th className="py-3.5 px-4">Jadwal Follow Up</th>
                   <th className="py-3.5 px-4 text-right">Aksi</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#17324D]/60">
+              <tbody className="divide-y divide-[#E2E9E4] text-xs">
                 {filteredLeads.map((lead) => {
-                  const initials = lead.name.split(' ').map((n) => n[0]).join('').slice(0, 2);
-                  const isToday = isDateToday(lead.nextFollowUpDate);
-                  const isOverdue = isDateOverdue(lead.nextFollowUpDate);
                   const waUrl = generateWhatsAppUrl(lead.phone, lead.name, lead.product);
+                  const isToday = isDateToday(lead.nextFollowUpDate);
+                  const isOver = isDateOverdue(lead.nextFollowUpDate);
+                  const initials = lead.name.split(' ').map((n) => n[0]).join('').slice(0, 2);
 
                   return (
                     <tr
                       key={lead.id}
-                      className="hover:bg-[#0E233D]/50 transition-colors group cursor-pointer"
+                      className="hover:bg-[#F4FBF7] transition-colors group cursor-pointer"
+                      onClick={() => onSelectLead(lead)}
                     >
-                      {/* Name & Phone */}
-                      <td className="py-3.5 px-4" onClick={() => onSelectLead(lead)}>
+                      {/* Calon Pelanggan */}
+                      <td className="py-3.5 px-4">
                         <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-lg bg-[#0E233D] border border-[#17324D] flex items-center justify-center font-bold text-xs text-[#22D3EE] group-hover:border-[#168BFF]/50 transition-colors shrink-0">
+                          <div className="w-9 h-9 rounded-xl bg-[#E8F7EF] text-[#006B3C] border border-[#A7F3D0] flex items-center justify-center font-bold text-xs shrink-0">
                             {initials}
                           </div>
                           <div>
-                            <div className="font-semibold text-sm text-[#F8FAFC] group-hover:text-[#22D3EE] transition-colors">
+                            <span className="font-bold text-sm text-[#17221C] group-hover:text-[#006B3C] transition-colors block">
                               {lead.name}
-                            </div>
-                            <div className="text-[11px] text-[#94A3B8] font-mono mt-0.5">
-                              {formatDisplayPhone(lead.phone)}
-                            </div>
+                            </span>
+                            <span className="text-[11px] text-[#66736B]">
+                              Masuk: {formatIndonesianDate(lead.createdAt)}
+                            </span>
                           </div>
                         </div>
                       </td>
 
-                      {/* City */}
-                      <td className="py-3.5 px-4 text-[#F8FAFC]" onClick={() => onSelectLead(lead)}>
-                        <span className="inline-flex items-center gap-1.5 text-slate-300">
-                          <MapPin className="w-3.5 h-3.5 text-[#94A3B8]" />
-                          {lead.city}
-                        </span>
+                      {/* Kontak & Kota */}
+                      <td className="py-3.5 px-4">
+                        <div className="space-y-0.5">
+                          <span className="font-mono text-[#17221C] font-semibold block">
+                            {formatDisplayPhone(lead.phone)}
+                          </span>
+                          <span className="text-[#66736B] flex items-center gap-1">
+                            <MapPin className="w-3 h-3 text-[#00A651]" /> {lead.city}
+                          </span>
+                        </div>
                       </td>
 
-                      {/* Product */}
-                      <td className="py-3.5 px-4 text-[#F8FAFC]" onClick={() => onSelectLead(lead)}>
-                        <span className="text-slate-300 font-medium">
-                          {lead.product.split('—')[0].trim()}
-                        </span>
-                      </td>
-
-                      {/* Source */}
-                      <td className="py-3.5 px-4" onClick={() => onSelectLead(lead)}>
-                        <SourceBadge source={lead.source} size="sm" />
+                      {/* Produk & Sumber */}
+                      <td className="py-3.5 px-4">
+                        <div className="space-y-1">
+                          <span className="font-semibold text-[#17221C] block">
+                            {lead.product.split('—')[0].trim()}
+                          </span>
+                          <SourceBadge source={lead.source} size="sm" />
+                        </div>
                       </td>
 
                       {/* Status */}
-                      <td className="py-3.5 px-4" onClick={() => onSelectLead(lead)}>
-                        <StatusBadge status={lead.status} size="sm" />
+                      <td className="py-3.5 px-4" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex items-center gap-1.5">
+                          <StatusBadge status={lead.status} size="sm" />
+                        </div>
                       </td>
 
-                      {/* Follow Up Terakhir */}
-                      <td className="py-3.5 px-4" onClick={() => onSelectLead(lead)}>
-                        {lead.lastFollowUpDate ? (
-                          <div className="flex items-center gap-1 text-slate-300">
-                            <History className="w-3.5 h-3.5 text-[#94A3B8]" />
-                            <span>{formatIndonesianDate(lead.lastFollowUpDate)}</span>
-                          </div>
+                      {/* Jadwal Follow Up */}
+                      <td className="py-3.5 px-4">
+                        {lead.status === 'Closing' ? (
+                          <span className="text-[11px] font-bold text-[#006B3C] flex items-center gap-1">
+                            <CheckCircle2 className="w-3.5 h-3.5" /> Closing Deal
+                          </span>
+                        ) : lead.status === 'Tidak Berhasil' ? (
+                          <span className="text-[11px] text-slate-500 font-medium">
+                            Selesai (Tidak Lanjut)
+                          </span>
                         ) : (
-                          <span className="text-slate-500">Belum ada</span>
-                        )}
-                      </td>
-
-                      {/* Next Follow Up */}
-                      <td className="py-3.5 px-4" onClick={() => onSelectLead(lead)}>
-                        {lead.nextFollowUpDate && lead.status !== 'Closing' && lead.status !== 'Tidak Berhasil' ? (
-                          <div className="flex items-center gap-1.5">
-                            <CalendarClock
-                              className={`w-3.5 h-3.5 ${
-                                isOverdue ? 'text-red-400' : isToday ? 'text-amber-400' : 'text-[#94A3B8]'
-                              }`}
-                            />
+                          <div className="space-y-0.5">
                             <span
-                              className={`font-medium ${
-                                isOverdue
-                                  ? 'text-red-400'
+                              className={`font-bold flex items-center gap-1 ${
+                                isOver
+                                  ? 'text-rose-600'
                                   : isToday
-                                  ? 'text-amber-400 font-bold'
-                                  : 'text-slate-300'
+                                  ? 'text-amber-800'
+                                  : 'text-[#17221C]'
                               }`}
                             >
+                              <CalendarClock className="w-3.5 h-3.5" />
                               {formatIndonesianDate(lead.nextFollowUpDate)}
-                              {lead.nextFollowUpTime && ` · ${lead.nextFollowUpTime}`}
+                            </span>
+                            <span className="text-[11px] text-[#66736B]">
+                              Pukul {lead.nextFollowUpTime || '10:00'}
                             </span>
                           </div>
-                        ) : (
-                          <span className="text-slate-500">-</span>
                         )}
                       </td>
 
                       {/* Actions */}
-                      <td className="py-3.5 px-4 text-right">
+                      <td className="py-3.5 px-4 text-right" onClick={(e) => e.stopPropagation()}>
                         <div className="flex items-center justify-end gap-2">
                           <a
                             href={waUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            onClick={(e) => e.stopPropagation()}
-                            className="p-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 transition-all hover:scale-105"
-                            title="Chat WhatsApp"
+                            className="p-2 rounded-xl bg-[#E8F7EF] hover:bg-[#00A651] text-[#006B3C] hover:text-white border border-[#A7F3D0] transition-all"
+                            title="WhatsApp"
                           >
                             <MessageCircle className="w-4 h-4" />
                           </a>
-
                           <button
                             type="button"
                             onClick={() => onSelectLead(lead)}
-                            className="p-1.5 rounded-lg bg-[#0E233D] hover:bg-[#168BFF] text-[#94A3B8] hover:text-white border border-[#17324D] transition-colors"
+                            className="p-2 rounded-xl bg-[#F7F9F8] hover:bg-[#E8F7EF] text-[#66736B] hover:text-[#006B3C] border border-[#E2E9E4] transition-all cursor-pointer"
                             title="Detail"
                           >
                             <ChevronRight className="w-4 h-4" />
@@ -478,81 +471,79 @@ export const LeadListView: React.FC<LeadListViewProps> = ({
             </table>
           </div>
 
-          {/* Mobile Card List View */}
-          <div className="md:hidden space-y-3">
+          {/* Mobile Card List View (Responsive) */}
+          <div className="lg:hidden space-y-3">
             {filteredLeads.map((lead) => {
-              const initials = lead.name.split(' ').map((n) => n[0]).join('').slice(0, 2);
               const waUrl = generateWhatsAppUrl(lead.phone, lead.name, lead.product);
               const isToday = isDateToday(lead.nextFollowUpDate);
-              const isOverdue = isDateOverdue(lead.nextFollowUpDate);
+              const isOver = isDateOverdue(lead.nextFollowUpDate);
+              const initials = lead.name.split(' ').map((n) => n[0]).join('').slice(0, 2);
 
               return (
                 <div
                   key={lead.id}
-                  onClick={() => onSelectLead(lead)}
-                  className="bg-[#0B1B2E] border border-[#17324D] rounded-2xl p-4 shadow-md space-y-3 cursor-pointer active:scale-[0.99] transition-all"
+                  className="bg-white border border-[#E2E9E4] rounded-2xl p-4 shadow-sm hover:border-[#00A651]/40 transition-all space-y-3"
                 >
-                  {/* Top: Name + Status */}
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#168BFF]/20 to-[#0E233D] border border-[#168BFF]/30 flex items-center justify-center font-bold text-sm text-[#22D3EE]">
+                  {/* Card Header: Lead Name & Status */}
+                  <div
+                    onClick={() => onSelectLead(lead)}
+                    className="flex items-start justify-between gap-3 cursor-pointer"
+                  >
+                    <div className="flex items-start gap-3 min-w-0">
+                      <div className="w-10 h-10 rounded-xl bg-[#E8F7EF] text-[#006B3C] border border-[#A7F3D0] flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">
                         {initials}
                       </div>
-                      <div>
-                        <h4 className="font-bold text-base text-[#F8FAFC]">{lead.name}</h4>
-                        <p className="text-xs text-[#94A3B8]">
-                          {lead.product.split('—')[0].trim()} · {lead.city}
+                      <div className="min-w-0">
+                        <h4 className="text-sm font-bold text-[#17221C] truncate">
+                          {lead.name}
+                        </h4>
+                        <p className="text-xs text-[#66736B] truncate mt-0.5">
+                          {lead.product.split('—')[0].trim()} • {lead.city}
                         </p>
                       </div>
                     </div>
                     <StatusBadge status={lead.status} size="sm" />
                   </div>
 
-                  {/* Middle: Phone + Source */}
-                  <div className="flex items-center justify-between text-xs pt-1 border-t border-[#17324D]/50 text-[#94A3B8]">
-                    <span className="font-mono">{formatDisplayPhone(lead.phone)}</span>
-                    <SourceBadge source={lead.source} size="sm" />
-                  </div>
-
-                  {/* Bottom: Next Follow Up & Action */}
-                  <div className="flex items-center justify-between pt-1 border-t border-[#17324D]/50">
-                    <div className="text-xs">
-                      {lead.nextFollowUpDate && lead.status !== 'Closing' && lead.status !== 'Tidak Berhasil' ? (
-                        <div className="flex items-center gap-1.5">
-                          <CalendarClock
-                            className={`w-3.5 h-3.5 ${
-                              isOverdue ? 'text-red-400' : isToday ? 'text-amber-400' : 'text-[#168BFF]'
-                            }`}
-                          />
-                          <span className={isOverdue ? 'text-red-400 font-bold' : isToday ? 'text-amber-400 font-bold' : 'text-slate-300'}>
-                            {formatIndonesianDate(lead.nextFollowUpDate)}
-                          </span>
-                        </div>
-                      ) : (
-                        <span className="text-slate-500 text-[11px]">Tidak ada jadwal aktif</span>
+                  {/* Info badges */}
+                  <div className="flex flex-wrap items-center justify-between gap-2 text-xs pt-2 border-t border-[#E2E9E4] text-[#66736B]">
+                    <div className="flex items-center gap-1.5">
+                      <SourceBadge source={lead.source} size="sm" />
+                      <span>{formatDisplayPhone(lead.phone)}</span>
+                    </div>
+                    <div>
+                      {lead.status !== 'Closing' && lead.status !== 'Tidak Berhasil' && (
+                        <span
+                          className={`font-bold flex items-center gap-1 ${
+                            isOver ? 'text-rose-600' : isToday ? 'text-amber-800' : 'text-[#17221C]'
+                          }`}
+                        >
+                          <CalendarClock className="w-3.5 h-3.5" />
+                          {formatIndonesianDate(lead.nextFollowUpDate)}
+                        </span>
                       )}
                     </div>
+                  </div>
 
-                    <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
-                      <a
-                        href={waUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="p-2 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs font-semibold flex items-center gap-1"
-                      >
-                        <MessageCircle className="w-3.5 h-3.5" />
-                        <span>Chat</span>
-                      </a>
-
-                      <button
-                        type="button"
-                        onClick={() => onSelectLead(lead)}
-                        className="p-2 rounded-xl bg-[#0E233D] hover:bg-[#168BFF] text-[#F8FAFC] border border-[#17324D] text-xs font-semibold flex items-center gap-1"
-                      >
-                        <span>Detail</span>
-                        <ChevronRight className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
+                  {/* Actions Buttons */}
+                  <div className="flex items-center gap-2 pt-1">
+                    <a
+                      href={waUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex-1 inline-flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-[#00A651] hover:bg-[#006B3C] text-white text-xs font-bold transition-all shadow-xs min-h-[44px]"
+                    >
+                      <MessageCircle className="w-4 h-4" />
+                      <span>WhatsApp</span>
+                    </a>
+                    <button
+                      type="button"
+                      onClick={() => onSelectLead(lead)}
+                      className="flex-1 inline-flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-[#F7F9F8] hover:bg-[#E8F7EF] text-[#006B3C] border border-[#A7F3D0] text-xs font-bold transition-all cursor-pointer min-h-[44px]"
+                    >
+                      <ChevronRight className="w-4 h-4" />
+                      <span>Lihat Detail</span>
+                    </button>
                   </div>
                 </div>
               );

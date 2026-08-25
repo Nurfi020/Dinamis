@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React from 'react';
 import { LucideIcon } from 'lucide-react';
@@ -8,8 +8,8 @@ interface StatCardProps {
   value: number | string;
   subtitle: string;
   icon: LucideIcon;
-  iconColor: string; // e.g. 'text-[#168BFF]'
-  iconBg: string; // e.g. 'bg-[#168BFF]/10'
+  iconColor: string; // e.g. 'text-[#00A651]'
+  iconBg: string; // e.g. 'bg-[#E8F7EF]'
   glowColor?: string;
   onClick?: () => void;
   isActive?: boolean;
@@ -22,7 +22,7 @@ export const StatCard: React.FC<StatCardProps> = ({
   icon: Icon,
   iconColor,
   iconBg,
-  glowColor = 'hover:border-[#168BFF]/60 hover:shadow-[0_0_20px_rgba(22,139,255,0.15)]',
+  glowColor = 'hover:border-[#00A651]/50 hover:shadow-sm',
   onClick,
   isActive = false,
 }) => {
@@ -30,28 +30,28 @@ export const StatCard: React.FC<StatCardProps> = ({
     <button
       type="button"
       onClick={onClick}
-      className={`w-full text-left bg-[#0B1B2E] border rounded-xl p-4 transition-all duration-200 group relative overflow-hidden ${
+      className={`w-full text-left bg-white border rounded-2xl p-4 sm:p-5 transition-all duration-200 group relative overflow-hidden ${
         isActive
-          ? 'border-[#168BFF] shadow-[0_0_20px_rgba(22,139,255,0.25)] ring-1 ring-[#168BFF]'
-          : 'border-[#17324D] ' + glowColor
+          ? 'border-[#00A651] shadow-md ring-2 ring-[#00A651]/20 bg-[#F4FBF7]'
+          : 'border-[#E2E9E4] shadow-sm ' + glowColor
       }`}
     >
-      <div className="flex items-start justify-between mb-2">
-        <span className="text-xs font-medium text-[#94A3B8] group-hover:text-[#F8FAFC] transition-colors">
+      <div className="flex items-start justify-between mb-3">
+        <span className="text-xs font-semibold text-[#66736B] group-hover:text-[#17221C] transition-colors">
           {title}
         </span>
-        <div className={`p-2 rounded-lg ${iconBg} ${iconColor} transition-transform group-hover:scale-110`}>
+        <div className={`p-2 rounded-xl ${iconBg} ${iconColor} transition-transform duration-200 group-hover:scale-105`}>
           <Icon className="w-4 h-4" />
         </div>
       </div>
 
       <div className="flex items-baseline gap-2">
-        <span className="text-2xl sm:text-3xl font-bold text-[#F8FAFC] tracking-tight">
+        <span className="text-2xl sm:text-3xl font-extrabold text-[#17221C] tracking-tight">
           {value}
         </span>
       </div>
 
-      <div className="mt-1 flex items-center justify-between text-xs text-[#94A3B8]">
+      <div className="mt-1 flex items-center justify-between text-xs text-[#66736B]">
         <span>{subtitle}</span>
       </div>
     </button>

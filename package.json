@@ -9,11 +9,8 @@
     "start": "next start --port 3000",
     "lint": "next lint",
     "db:push": "prisma db push",
-    "db:seed": "prisma db seed",
+    "db:seed": "tsx prisma/seed.ts",
     "db:studio": "prisma studio"
-  },
-  "prisma": {
-    "seed": "npx tsx prisma/seed.ts"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",

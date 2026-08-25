@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useEffect } from 'react';
 import { 
@@ -133,97 +133,80 @@ export default function HomePage() {
     (l) => l.nextFollowUpDate && l.status !== 'Closing' && l.status !== 'Tidak Berhasil'
   ).length;
 
-  // Handler: Add new lead
-  const handleSaveNewLead = async (leadData: Partial<Lead>) => {
-    const tempLead: Lead = {
-      id: `lead-${Date.now()}`,
-      name: leadData.name || 'Calon Pelanggan',
-      phone: leadData.phone || '081200000000',
-      city: leadData.city || 'Jakarta',
-      source: leadData.source || 'WhatsApp',
-      product: leadData.product || 'Produk A',
-      status: leadData.status || 'Cold',
-      initialNotes: leadData.initialNotes,
-      createdAt: new Date().toISOString().split('T')[0],
-      updatedAt: new Date().toISOString().split('T')[0],
-      nextFollowUpDate: leadData.nextFollowUpDate || new Date().toISOString().split('T')[0],
-      nextFollowUpTime: leadData.nextFollowUpTime || '10:00',
+  // Handler: Add Lead
+  const handleSaveNewLead = async (newLeadData: Omit<Lead, 'id' | 'createdAt' | 'updatedAt' | 'followUps'>) => {
+    const tempId = `lead-${Date.now()}`;
+    const newLead: Lead = {
+      ...newLeadData,
+      id: tempId,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
       followUps: [],
     };
 
-    // Optimistic UI update
-    const updated = [tempLead, ...leads];
-    setLeads(updated);
-    saveStoredLeads(updated);
-    setIsAddModalOpen(false);
-    setSelectedLeadId(tempLead.id);
-    setActiveTab('leads');
+    // Optimistic UI
+    setLeads((prev) => [newLead, ...prev]);
+    saveStoredLeads([newLead, ...leads]);
+    addToast('success', 'Lead berhasil ditambahkan ✓', `${newLead.name} telah masuk ke daftar calon pelanggan.`);
 
     try {
-      const created = await leadService.createLead({
-        name: leadData.name || 'Calon Pelanggan',
-        phone: leadData.phone || '081200000000',
-        city: leadData.city || 'Jakarta',
-        source: leadData.source || 'WhatsApp',
-        productId: leadData.product || 'Produk A — Starter Plan',
-        status: leadData.status || 'Cold',
-        initialNotes: leadData.initialNotes,
-        nextFollowUpDate: leadData.nextFollowUpDate,
-        nextFollowUpTime: leadData.nextFollowUpTime,
+      const savedLead = await leadService.createLead({
+        name: newLeadData.name,
+        phone: newLeadData.phone,
+        city: newLeadData.city,
+        source: newLeadData.source,
+        productId: newLeadData.product,
+        status: newLeadData.status,
+        initialNotes: newLeadData.initialNotes,
+        nextFollowUpDate: newLeadData.nextFollowUpDate,
+        nextFollowUpTime: newLeadData.nextFollowUpTime,
       });
-
-      // Replace temp lead with server response
-      setLeads((prev) => prev.map((l) => (l.id === tempLead.id ? created : l)));
-      setSelectedLeadId(created.id);
-      addToast('success', 'Lead berhasil ditambahkan!', `${created.name} telah masuk ke database.`);
-    } catch {
-      addToast('success', 'Lead disimpan lokal', `${tempLead.name} telah masuk ke daftar lead.`);
+      setLeads((prev) => prev.map((l) => (l.id === tempId ? savedLead : l)));
+    } catch (e) {
+      console.warn('Saved locally (API fallback):', e);
     }
   };
 
-  // Handler: Save follow-up log
-  const handleSaveFollowUp = async (
-    leadId: string,
-    logData: Omit<FollowUpLog, 'id' | 'createdAt'>
-  ) => {
-    const isClosingNow = logData.newStatus === 'Closing';
+  // Handler: Save Follow Up Log
+  const handleSaveFollowUp = async (leadId: string, logData: Omit<FollowUpLog, 'id' | 'createdAt'>) => {
+    const newLog: FollowUpLog = {
+      ...logData,
+      id: `fu-${Date.now()}`,
+      createdAt: new Date().toISOString(),
+    };
 
-    // Optimistic update
-    const updatedLeads = leads.map((lead) => {
-      if (lead.id !== leadId) return lead;
+    setLeads((prev) =>
+      prev.map((l) => {
+        if (l.id === leadId) {
+          const isClosing = logData.newStatus === 'Closing';
+          const isFailed = logData.newStatus === 'Tidak Berhasil';
+          
+          return {
+            ...l,
+            status: logData.newStatus,
+            updatedAt: new Date().toISOString(),
+            lastFollowUpDate: logData.date,
+            nextFollowUpDate: logData.nextFollowUpDate || (isClosing || isFailed ? undefined : l.nextFollowUpDate),
+            nextFollowUpTime: logData.nextFollowUpTime || (isClosing || isFailed ? undefined : l.nextFollowUpTime),
+            closedAt: isClosing ? new Date().toISOString() : l.closedAt,
+            lostAt: isFailed ? new Date().toISOString() : l.lostAt,
+            lostReason: isFailed ? logData.lostReason : l.lostReason,
+            followUps: [newLog, ...l.followUps],
+          };
+        }
+        return l;
+      })
+    );
 
-      const newLog: FollowUpLog = {
-        ...logData,
-        id: `fu-${Date.now()}`,
-        createdAt: new Date().toISOString().split('T')[0],
-      };
-
-      return {
-        ...lead,
-        status: logData.newStatus,
-        updatedAt: new Date().toISOString().split('T')[0],
-        lastFollowUpDate: logData.date,
-        nextFollowUpDate: logData.nextFollowUpDate,
-        nextFollowUpTime: logData.nextFollowUpTime,
-        lostReason: logData.newStatus === 'Tidak Berhasil' ? logData.lostReason : undefined,
-        closedAt: logData.newStatus === 'Closing' ? logData.date : lead.closedAt,
-        lostAt: logData.newStatus === 'Tidak Berhasil' ? logData.date : (isClosingNow ? undefined : lead.lostAt),
-        followUps: [...lead.followUps, newLog],
-      };
-    });
-
-    setLeads(updatedLeads);
-    saveStoredLeads(updatedLeads);
-
-    if (isClosingNow) {
+    if (logData.newStatus === 'Closing') {
       setProfile((prev) => {
         const updated = { ...prev, closingCount: prev.closingCount + 1 };
         saveStoredProfile(updated);
         return updated;
       });
-      addToast('success', '🎉 Selamat! Lead Berhasil Closing', 'Status diperbarui dan progress target bertambah.');
+      addToast('success', 'Selamat! Lead Berhasil Closing ✓', 'Status diperbarui dan progress target bertambah.');
     } else {
-      addToast('success', 'Follow up berhasil dicatat', `Status lead sekarang: ${logData.newStatus}`);
+      addToast('success', 'Follow Up berhasil dicatat ✓', `Status lead sekarang: ${logData.newStatus}`);
     }
 
     try {
@@ -249,6 +232,7 @@ export default function HomePage() {
       oldStatus: leads.find((l) => l.id === leadId)?.status,
       newStatus,
     });
+    addToast('success', `Status lead diubah menjadi ${newStatus} ✓`);
   };
 
   // Handler: Reset data
@@ -258,13 +242,13 @@ export default function HomePage() {
       await loadData();
       setSelectedLeadId(null);
       setActiveTab('dashboard');
-      addToast('success', 'Data Berhasil Di-reset', 'Database telah dikembalikan ke kondisi awal.');
+      addToast('success', 'Data Berhasil Di-reset ✓', 'Database telah dikembalikan ke kondisi awal.');
     } catch {
       const fresh = resetStoredLeads();
       setLeads(fresh);
       setSelectedLeadId(null);
       setActiveTab('dashboard');
-      addToast('success', 'Data Di-reset Lokal', 'Seluruh data lead kembali ke kondisi awal.');
+      addToast('success', 'Data Di-reset Lokal ✓', 'Seluruh data lead kembali ke kondisi awal.');
     }
   };
 
@@ -276,9 +260,9 @@ export default function HomePage() {
     try {
       const saved = await profileService.updateProfile(updated);
       setProfile(saved);
-      addToast('success', 'Profil Diperbarui', 'Data profil sales berhasil disimpan ke database.');
+      addToast('success', 'Profil Diperbarui ✓', 'Data profil sales berhasil disimpan ke database.');
     } catch {
-      addToast('success', 'Profil Diperbarui', 'Data profil sales berhasil disimpan lokal.');
+      addToast('success', 'Profil Diperbarui ✓', 'Data profil sales berhasil disimpan lokal.');
     }
   };
 
@@ -287,14 +271,14 @@ export default function HomePage() {
     if (selectedLead && activeTab === 'leads') {
       return {
         title: selectedLead.name,
-        subtitle: `${selectedLead.product.split('—')[0].trim()} · ${selectedLead.city}`,
+        subtitle: `${selectedLead.product.split('—')[0].trim()} • ${selectedLead.city}`,
       };
     }
     switch (activeTab) {
       case 'dashboard':
         return {
           title: 'Dashboard',
-          subtitle: 'Ringkasan aktivitas lead Anda',
+          subtitle: 'Ringkasan aktivitas lead Anda hari ini',
         };
       case 'leads':
         return {
@@ -313,7 +297,7 @@ export default function HomePage() {
         };
       case 'profile':
         return {
-          title: 'Profil Sales',
+          title: 'Pengaturan & Profil Sales',
           subtitle: 'Informasi akun dan target closing bulanan',
         };
       default:
@@ -357,7 +341,7 @@ export default function HomePage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#06111F] text-[#F8FAFC] flex font-sans antialiased">
+    <div className="min-h-screen bg-[#F7F9F8] text-[#17221C] flex font-sans antialiased">
       {/* 1. Desktop Left Sidebar */}
       <Sidebar
         activeTab={activeTab}

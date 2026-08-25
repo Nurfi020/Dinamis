@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState } from 'react';
 import { 
@@ -9,11 +9,10 @@ import {
   Check, 
   Calendar, 
   Clock, 
-  Sparkles,
-  ArrowRight,
-  HelpCircle,
-  AlertTriangle,
-  RotateCcw
+  Sparkles, 
+  ArrowRight, 
+  AlertCircle, 
+  RotateCcw 
 } from 'lucide-react';
 import { Modal } from '../common/Modal';
 import { 
@@ -52,7 +51,7 @@ export const LogFollowUpModal: React.FC<LogFollowUpModalProps> = ({
     return d.toISOString().split('T')[0];
   };
 
-  const [nextDate, setNextDate] = useState<string>(getFormattedDate(1)); // Besok by default
+  const [nextDate, setNextDate] = useState<string>(getFormattedDate(1));
   const [nextTime, setNextTime] = useState<string>('10:00');
   const [noNextFollowUp, setNoNextFollowUp] = useState(lead.status === 'Closing' || lead.status === 'Tidak Berhasil');
 
@@ -84,17 +83,16 @@ export const LogFollowUpModal: React.FC<LogFollowUpModalProps> = ({
     'Lainnya',
   ];
 
-  const statusesList: { id: LeadStatus; label: string }[] = [
-    { id: 'Cold', label: 'Cold' },
-    { id: 'Warm', label: 'Warm' },
-    { id: 'Hot', label: 'Hot' },
-    { id: 'Closing', label: 'Closing' },
-    { id: 'Tidak Berhasil', label: 'Tidak Berhasil' },
+  const statusesList: { id: LeadStatus; label: string; dot: string }[] = [
+    { id: 'Cold', label: 'Cold', dot: 'bg-[#64748B]' },
+    { id: 'Warm', label: 'Warm', dot: 'bg-[#F59E0B]' },
+    { id: 'Hot', label: 'Hot', dot: 'bg-[#EF4444]' },
+    { id: 'Closing', label: 'Closing', dot: 'bg-[#10B981]' },
+    { id: 'Tidak Berhasil', label: 'Tidak Berhasil', dot: 'bg-[#6B7280]' },
   ];
 
   const handleQuickResultClick = (res: FollowUpResult) => {
     setResult(res);
-    // Auto suggest smart status based on result choice
     if (res === 'Siap Membeli') {
       setNewStatus('Hot');
     } else if (res === 'Tidak Tertarik') {
@@ -124,13 +122,13 @@ export const LogFollowUpModal: React.FC<LogFollowUpModalProps> = ({
       date: now.toISOString().split('T')[0],
       time: currentTimeStr,
       method,
-      result: isReopening ? 'Buka Kembali' : result,
+      result,
       notes: notes.trim() || undefined,
       oldStatus: lead.status,
       newStatus,
       lostReason: newStatus === 'Tidak Berhasil' ? lostReason : undefined,
-      nextFollowUpDate: (noNextFollowUp || newStatus === 'Closing' || newStatus === 'Tidak Berhasil') ? undefined : nextDate,
-      nextFollowUpTime: (noNextFollowUp || newStatus === 'Closing' || newStatus === 'Tidak Berhasil') ? undefined : nextTime,
+      nextFollowUpDate: noNextFollowUp || newStatus === 'Closing' || newStatus === 'Tidak Berhasil' ? undefined : nextDate,
+      nextFollowUpTime: noNextFollowUp || newStatus === 'Closing' || newStatus === 'Tidak Berhasil' ? undefined : nextTime,
     });
 
     onClose();
@@ -140,25 +138,23 @@ export const LogFollowUpModal: React.FC<LogFollowUpModalProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Catat Hasil Follow Up"
-      subtitle={`Untuk ${lead.name} (${lead.product.split('—')[0].trim()})`}
+      title={`Catat Follow Up — ${lead.name}`}
+      subtitle={`Produk: ${lead.product.split('—')[0].trim()} • Status saat ini: ${lead.status}`}
       maxWidth="lg"
     >
-      <form onSubmit={handleSubmit} className="space-y-4 text-xs">
-        {/* Reopen Notice if applicable */}
+      <form onSubmit={handleSubmit} className="space-y-4 text-xs sm:text-sm">
+        {/* If reopening notice */}
         {isReopening && (
-          <div className="p-3 bg-amber-500/15 border border-amber-500/30 rounded-xl text-amber-300 flex items-center gap-2">
-            <RotateCcw className="w-4 h-4 text-amber-400 shrink-0" />
-            <span>
-              <b>Buka Kembali Prospek:</b> Lead dari status <i>Tidak Berhasil</i> akan diaktifkan kembali menjadi <b>{newStatus}</b> dan dicatat di riwayat.
-            </span>
+          <div className="p-3 bg-amber-50 rounded-2xl border border-amber-200 flex items-center gap-2.5 text-xs text-amber-800 font-semibold">
+            <RotateCcw className="w-4 h-4 text-amber-600 shrink-0" />
+            <span>Membuka kembali prospek yang sebelumnya Tidak Berhasil.</span>
           </div>
         )}
 
-        {/* 1. Metode Follow Up (Pilihan Cepat) */}
+        {/* 1. Metode Komunikasi (Clickable Chips) */}
         <div>
-          <label className="block font-semibold text-[#F8FAFC] mb-1.5">
-            Metode Follow Up <span className="text-red-400">*</span>
+          <label className="block font-bold text-[#17221C] mb-1.5">
+            Metode Hubungi <span className="text-rose-500">*</span>
           </label>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
             {methodsList.map((m) => {
@@ -169,13 +165,13 @@ export const LogFollowUpModal: React.FC<LogFollowUpModalProps> = ({
                   key={m.id}
                   type="button"
                   onClick={() => setMethod(m.id)}
-                  className={`p-2.5 rounded-xl border flex items-center justify-center gap-2 font-semibold transition-all ${
+                  className={`p-2.5 rounded-xl text-xs font-bold border flex items-center justify-center gap-2 transition-all cursor-pointer ${
                     isSelected
-                      ? 'bg-[#168BFF] text-white border-[#168BFF] shadow-[0_0_15px_rgba(22,139,255,0.3)]'
-                      : 'bg-[#0E233D] text-[#94A3B8] border-[#17324D] hover:text-white'
+                      ? 'bg-[#E8F7EF] text-[#006B3C] border-[#00A651] shadow-xs ring-1 ring-[#00A651]'
+                      : 'bg-white text-[#66736B] border-[#E2E9E4] hover:border-[#00A651]/40 hover:text-[#17221C]'
                   }`}
                 >
-                  <Icon className="w-4 h-4" />
+                  <Icon className="w-4 h-4 text-[#00A651]" />
                   <span>{m.label}</span>
                 </button>
               );
@@ -183,12 +179,12 @@ export const LogFollowUpModal: React.FC<LogFollowUpModalProps> = ({
           </div>
         </div>
 
-        {/* 2. Hasil Follow Up (Quick Chips) */}
+        {/* 2. Respon / Hasil Follow Up (Clickable Chips) */}
         <div>
-          <label className="block font-semibold text-[#F8FAFC] mb-1.5">
-            Hasil Interaksi <span className="text-red-400">*</span>
+          <label className="block font-bold text-[#17221C] mb-1.5">
+            Hasil / Respon Calon Pelanggan <span className="text-rose-500">*</span>
           </label>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
+          <div className="flex flex-wrap gap-1.5">
             {resultsList.map((res) => {
               const isSelected = result === res;
               return (
@@ -196,10 +192,10 @@ export const LogFollowUpModal: React.FC<LogFollowUpModalProps> = ({
                   key={res}
                   type="button"
                   onClick={() => handleQuickResultClick(res)}
-                  className={`p-2 rounded-xl text-xs font-medium border text-center transition-all ${
+                  className={`px-3 py-2 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
                     isSelected
-                      ? 'bg-[#168BFF]/20 text-[#22D3EE] border-[#168BFF] font-bold shadow-[0_0_12px_rgba(22,139,255,0.2)]'
-                      : 'bg-[#0E233D] text-[#94A3B8] border-[#17324D] hover:text-white'
+                      ? 'bg-[#00A651] text-white border-[#00A651] shadow-xs'
+                      : 'bg-white text-[#66736B] border-[#E2E9E4] hover:border-[#00A651]/40 hover:text-[#17221C]'
                   }`}
                 >
                   {res}
@@ -209,21 +205,21 @@ export const LogFollowUpModal: React.FC<LogFollowUpModalProps> = ({
           </div>
         </div>
 
-        {/* 3. Update Status Lead */}
+        {/* 3. Perbarui Status Prospek (Large Selectable Segmented Buttons) */}
         <div>
-          <label className="block font-semibold text-[#F8FAFC] mb-1.5 flex items-center justify-between">
-            <span>Update Status Lead</span>
-            <span className="text-[11px] text-[#94A3B8] flex items-center gap-1">
-              Saat ini: <b className="text-white">{lead.status}</b>
-              {lead.status !== newStatus && (
-                <>
-                  <ArrowRight className="w-3 h-3 text-[#22D3EE]" />
-                  <b className="text-[#22D3EE]">{newStatus}</b>
-                </>
+          <label className="block font-bold text-[#17221C] mb-1.5 flex items-center justify-between">
+            <span>Perbarui Status Lead</span>
+            <span className="text-xs text-[#66736B] font-normal">
+              {lead.status !== newStatus ? (
+                <span className="text-[#006B3C] font-bold">
+                  {lead.status} → {newStatus}
+                </span>
+              ) : (
+                `Tetap: ${lead.status}`
               )}
             </span>
           </label>
-          <div className="grid grid-cols-5 gap-1.5">
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-1.5">
             {statusesList.map((s) => {
               const isSelected = newStatus === s.id;
               return (
@@ -238,32 +234,35 @@ export const LogFollowUpModal: React.FC<LogFollowUpModalProps> = ({
                       setNoNextFollowUp(false);
                     }
                   }}
-                  className={`py-2 px-1 rounded-xl text-[11px] font-bold border transition-all text-center ${
+                  className={`py-2.5 px-1.5 rounded-xl text-xs font-bold border transition-all text-center cursor-pointer ${
                     isSelected
                       ? s.id === 'Hot'
-                        ? 'bg-red-500/20 text-red-400 border-red-500 shadow-[0_0_10px_rgba(239,68,68,0.3)]'
+                        ? 'bg-rose-50 text-rose-700 border-rose-400 ring-2 ring-rose-500/20'
                         : s.id === 'Closing'
-                        ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.3)]'
+                        ? 'bg-[#E8F7EF] text-[#006B3C] border-[#A7F3D0] ring-2 ring-[#00A651]/20'
                         : s.id === 'Warm'
-                        ? 'bg-amber-500/20 text-amber-400 border-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.3)]'
+                        ? 'bg-amber-50 text-amber-800 border-amber-400 ring-2 ring-amber-500/20'
                         : s.id === 'Cold'
-                        ? 'bg-blue-500/20 text-blue-400 border-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.3)]'
-                        : 'bg-slate-500/20 text-slate-400 border-slate-500'
-                      : 'bg-[#0E233D] text-[#94A3B8] border-[#17324D] hover:text-white'
+                        ? 'bg-slate-100 text-slate-800 border-slate-400 ring-2 ring-slate-400/20'
+                        : 'bg-gray-100 text-gray-700 border-gray-300 ring-2 ring-gray-400/20'
+                      : 'bg-white text-[#66736B] border-[#E2E9E4] hover:bg-slate-50'
                   }`}
                 >
-                  {s.label}
+                  <div className="flex items-center justify-center gap-1.5">
+                    <span className={`w-2 h-2 rounded-full ${s.dot}`} />
+                    <span>{s.label}</span>
+                  </div>
                 </button>
               );
             })}
           </div>
         </div>
 
-        {/* 3.1 Alasan Tidak Berhasil jika status Tidak Berhasil (Sesuai 06-business-rule.md) */}
+        {/* 3.1 Alasan Tidak Berhasil jika status Tidak Berhasil */}
         {newStatus === 'Tidak Berhasil' && (
-          <div className="p-3 bg-red-950/20 rounded-xl border border-red-500/30 space-y-2">
-            <label className="block font-semibold text-red-400">
-              Alasan Tidak Berhasil <span className="text-red-400">*</span>
+          <div className="p-4 bg-rose-50 rounded-2xl border border-rose-200 space-y-2">
+            <label className="block font-bold text-rose-800">
+              Alasan Tidak Berhasil <span className="text-rose-600">*</span>
             </label>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
               {lostReasonsList.map((reason) => (
@@ -271,10 +270,10 @@ export const LogFollowUpModal: React.FC<LogFollowUpModalProps> = ({
                   key={reason}
                   type="button"
                   onClick={() => setLostReason(reason)}
-                  className={`p-2 rounded-lg text-xs font-medium border text-center transition-all ${
+                  className={`p-2 rounded-xl text-xs font-bold border text-center transition-all cursor-pointer ${
                     lostReason === reason
-                      ? 'bg-red-500/30 text-red-300 border-red-400 font-bold'
-                      : 'bg-[#0E233D] text-[#94A3B8] border-[#17324D] hover:text-white'
+                      ? 'bg-rose-600 text-white border-rose-600 shadow-xs'
+                      : 'bg-white text-rose-900 border-rose-200 hover:bg-rose-100'
                   }`}
                 >
                   {reason}
@@ -286,17 +285,17 @@ export const LogFollowUpModal: React.FC<LogFollowUpModalProps> = ({
 
         {/* 4. Jadwal Follow Up Berikutnya */}
         {newStatus !== 'Closing' && newStatus !== 'Tidak Berhasil' && (
-          <div className="p-3 bg-[#06111F] rounded-xl border border-[#17324D] space-y-2.5">
+          <div className="p-4 bg-[#F7F9F8] rounded-2xl border border-[#E2E9E4] space-y-3">
             <div className="flex items-center justify-between">
-              <span className="font-semibold text-[#F8FAFC]">Jadwal Follow Up Berikutnya</span>
-              <label className="flex items-center gap-1.5 text-xs text-[#94A3B8] cursor-pointer">
+              <span className="font-bold text-[#17221C]">Jadwalkan Follow Up Selanjutnya</span>
+              <label className="flex items-center gap-1.5 text-xs text-[#66736B] cursor-pointer">
                 <input
                   type="checkbox"
                   checked={noNextFollowUp}
                   onChange={(e) => setNoNextFollowUp(e.target.checked)}
-                  className="rounded border-[#17324D] bg-[#0E233D] text-[#168BFF]"
+                  className="rounded border-[#E2E9E4] text-[#00A651] focus:ring-[#00A651]"
                 />
-                <span>Tidak perlu follow up lagi</span>
+                <span>Tidak perlu jadwal lagi</span>
               </label>
             </div>
 
@@ -314,10 +313,10 @@ export const LogFollowUpModal: React.FC<LogFollowUpModalProps> = ({
                       key={item.label}
                       type="button"
                       onClick={() => setNextDate(getFormattedDate(item.offset))}
-                      className={`px-2.5 py-1 rounded-lg text-xs font-medium border transition-all ${
+                      className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
                         nextDate === getFormattedDate(item.offset)
-                          ? 'bg-[#168BFF] text-white border-[#168BFF]'
-                          : 'bg-[#0E233D] text-[#94A3B8] border-[#17324D] hover:text-white'
+                          ? 'bg-[#00A651] text-white border-[#00A651] shadow-xs'
+                          : 'bg-white text-[#66736B] border-[#E2E9E4] hover:border-[#00A651]/40 hover:text-[#17221C]'
                       }`}
                     >
                       {item.label}
@@ -328,20 +327,20 @@ export const LogFollowUpModal: React.FC<LogFollowUpModalProps> = ({
                 {/* Date & Time Selectors */}
                 <div className="grid grid-cols-2 gap-2 pt-1">
                   <div>
-                    <label className="block text-[11px] text-[#94A3B8] mb-1">Tanggal</label>
+                    <label className="block text-xs font-semibold text-[#66736B] mb-1">Tanggal</label>
                     <input
                       type="date"
                       value={nextDate}
                       onChange={(e) => setNextDate(e.target.value)}
-                      className="w-full px-3 py-2 bg-[#0B1B2E] border border-[#17324D] rounded-xl text-xs text-white focus:outline-none focus:border-[#168BFF]"
+                      className="w-full px-3 py-2 bg-white border border-[#E2E9E4] rounded-xl text-xs font-medium text-[#17221C] focus:outline-none focus:border-[#00A651]"
                     />
                   </div>
                   <div>
-                    <label className="block text-[11px] text-[#94A3B8] mb-1">Waktu</label>
+                    <label className="block text-xs font-semibold text-[#66736B] mb-1">Waktu</label>
                     <select
                       value={nextTime}
                       onChange={(e) => setNextTime(e.target.value)}
-                      className="w-full px-3 py-2 bg-[#0B1B2E] border border-[#17324D] rounded-xl text-xs text-white focus:outline-none focus:border-[#168BFF]"
+                      className="w-full px-3 py-2 bg-white border border-[#E2E9E4] rounded-xl text-xs font-medium text-[#17221C] focus:outline-none focus:border-[#00A651] cursor-pointer"
                     >
                       <option value="09:00">09:00 Pagi</option>
                       <option value="10:30">10:30 Pagi</option>
@@ -359,31 +358,31 @@ export const LogFollowUpModal: React.FC<LogFollowUpModalProps> = ({
 
         {/* 5. Catatan Tambahan (Opsional) */}
         <div>
-          <label className="block font-semibold text-[#F8FAFC] mb-1 flex items-center justify-between">
+          <label className="block font-bold text-[#17221C] mb-1 flex items-center justify-between">
             <span>Catatan Hasil Obrolan</span>
-            <span className="text-[11px] text-[#94A3B8] font-normal">Opsional</span>
+            <span className="text-xs text-[#66736B] font-normal">Opsional</span>
           </label>
           <textarea
             rows={2}
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
-            placeholder="Contoh: Customer minta penawaran harga khusus paket starter..."
-            className="w-full p-3 bg-[#06111F] border border-[#17324D] rounded-xl text-xs text-[#F8FAFC] placeholder-[#94A3B8] focus:outline-none focus:border-[#168BFF]"
+            placeholder="Contoh: Customer tertarik dengan Produk A, meminta info diskon..."
+            className="w-full p-3 bg-white border border-[#E2E9E4] rounded-xl text-xs text-[#17221C] placeholder-[#66736B] focus:outline-none focus:border-[#00A651] focus:ring-2 focus:ring-[#00A651]/20"
           />
         </div>
 
         {/* Action Buttons */}
-        <div className="pt-2 flex items-center justify-end gap-3 border-t border-[#17324D]">
+        <div className="pt-3 flex items-center justify-end gap-3 border-t border-[#E2E9E4]">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2.5 rounded-xl text-sm font-medium text-[#94A3B8] hover:text-white hover:bg-[#0E233D] transition-colors"
+            className="px-4 py-2.5 rounded-xl text-sm font-semibold text-[#66736B] hover:text-[#17221C] hover:bg-slate-100 transition-colors cursor-pointer"
           >
             Batal
           </button>
           <button
             type="submit"
-            className="px-6 py-2.5 rounded-xl bg-[#168BFF] hover:bg-[#168BFF]/90 text-white text-sm font-bold shadow-[0_0_20px_rgba(22,139,255,0.4)] active:scale-95 transition-all flex items-center gap-2"
+            className="px-6 py-2.5 rounded-xl bg-[#00A651] hover:bg-[#006B3C] text-white text-sm font-bold shadow-sm active:scale-95 transition-all flex items-center gap-2 cursor-pointer"
           >
             <Sparkles className="w-4 h-4" />
             <span>Simpan Follow Up</span>

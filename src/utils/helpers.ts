@@ -1,4 +1,4 @@
-import confetti from 'canvas-confetti';
+﻿import confetti from 'canvas-confetti';
 import { LeadStatus, LeadSource, FollowUpMethod, FollowUpResult } from '../types';
 
 export function formatIndonesianDate(dateStr?: string): string {
@@ -84,53 +84,58 @@ export function getStatusTheme(status: LeadStatus) {
   switch (status) {
     case 'Cold':
       return {
-        bg: 'bg-[#1E3A8A]/30',
-        text: 'text-[#60A5FA]',
-        border: 'border-[#1D4ED8]/50',
-        dot: 'bg-[#3B82F6]',
-        glow: 'shadow-[0_0_12px_rgba(59,130,246,0.25)]',
+        bg: 'bg-slate-100',
+        text: 'text-slate-700',
+        border: 'border-slate-200',
+        dot: 'bg-[#64748B]',
+        glow: 'shadow-none',
         label: 'Cold',
-        desc: 'Belum tertarik cukup',
+        desc: 'Belum cukup tertarik',
+        badgeBg: 'bg-slate-200/70',
       };
     case 'Warm':
       return {
-        bg: 'bg-[#78350F]/30',
-        text: 'text-[#FBBF24]',
-        border: 'border-[#B45309]/50',
-        dot: 'bg-[#EAB308]',
-        glow: 'shadow-[0_0_12px_rgba(234,179,8,0.25)]',
+        bg: 'bg-amber-50',
+        text: 'text-amber-800',
+        border: 'border-amber-200',
+        dot: 'bg-[#F59E0B]',
+        glow: 'shadow-none',
         label: 'Warm',
-        desc: 'Sudah tertarik',
+        desc: 'Tertarik & mempertimbangkan',
+        badgeBg: 'bg-amber-100/70',
       };
     case 'Hot':
       return {
-        bg: 'bg-[#7F1D1D]/30',
-        text: 'text-[#F87171]',
-        border: 'border-[#B91C1C]/50',
+        bg: 'bg-rose-50',
+        text: 'text-rose-700',
+        border: 'border-rose-200',
         dot: 'bg-[#EF4444]',
-        glow: 'shadow-[0_0_12px_rgba(239,68,68,0.25)]',
+        glow: 'shadow-none',
         label: 'Hot',
         desc: 'Peluang beli tinggi',
+        badgeBg: 'bg-rose-100/70',
       };
     case 'Closing':
       return {
-        bg: 'bg-[#064E3B]/30',
-        text: 'text-[#34D399]',
-        border: 'border-[#047857]/50',
+        bg: 'bg-[#E8F7EF]',
+        text: 'text-[#006B3C]',
+        border: 'border-[#A7F3D0]',
         dot: 'bg-[#10B981]',
-        glow: 'shadow-[0_0_12px_rgba(16,185,129,0.25)]',
+        glow: 'shadow-none',
         label: 'Closing',
-        desc: 'Berhasil beli',
+        desc: 'Berhasil transaksi',
+        badgeBg: 'bg-[#E8F7EF]',
       };
     case 'Tidak Berhasil':
       return {
-        bg: 'bg-[#334155]/40',
-        text: 'text-[#94A3B8]',
-        border: 'border-[#475569]/50',
-        dot: 'bg-[#64748B]',
+        bg: 'bg-gray-100',
+        text: 'text-gray-600',
+        border: 'border-gray-300',
+        dot: 'bg-[#6B7280]',
         glow: 'shadow-none',
         label: 'Tidak Berhasil',
-        desc: 'Tidak lanjut',
+        desc: 'Tidak berlanjut',
+        badgeBg: 'bg-gray-200/70',
       };
   }
 }
@@ -166,10 +171,10 @@ export function triggerClosingConfetti() {
   if (typeof window === 'undefined') return;
   try {
     confetti({
-      particleCount: 80,
-      spread: 70,
+      particleCount: 70,
+      spread: 60,
       origin: { y: 0.6 },
-      colors: ['#168BFF', '#22D3EE', '#10B981', '#F59E0B'],
+      colors: ['#00A651', '#10B981', '#006B3C', '#F59E0B', '#F4FBF7'],
     });
   } catch (e) {
     console.error('Confetti error:', e);
