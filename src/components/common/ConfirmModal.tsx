@@ -33,20 +33,20 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
       maxWidth="md"
     >
       <div className="space-y-4 text-xs sm:text-sm">
-        <div className="flex items-start gap-3.5 p-3.5 bg-rose-50 rounded-2xl border border-rose-200">
-          <div className="p-2 rounded-xl bg-rose-100 text-rose-700 shrink-0">
-            <AlertTriangle className="w-5 h-5" />
+        <div className="flex items-start gap-3 p-3 bg-rose-50/70 rounded-lg border border-rose-200">
+          <div className="p-1.5 rounded-md bg-rose-100 text-rose-700 shrink-0">
+            <AlertTriangle className="w-4 h-4" />
           </div>
           <p className="text-xs text-rose-800 leading-relaxed font-medium">
             {message}
           </p>
         </div>
 
-        <div className="flex items-center justify-end gap-3 pt-2">
+        <div className="flex items-center justify-end gap-2.5 pt-1">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2.5 rounded-xl border border-[#E2E9E4] text-xs font-bold text-[#66736B] hover:text-[#17221C] hover:bg-slate-100 transition-colors cursor-pointer"
+            className="px-3.5 py-1.5 rounded-lg border border-slate-300 text-xs font-semibold text-slate-700 hover:text-slate-900 hover:bg-slate-50 transition-colors cursor-pointer"
           >
             {cancelText}
           </button>
@@ -56,11 +56,11 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
               onConfirm();
               onClose();
             }}
-            className={`px-5 py-2.5 rounded-xl text-white text-xs font-bold shadow-sm active:scale-95 transition-all flex items-center gap-1.5 cursor-pointer ${
-              isDestructive ? 'bg-rose-600 hover:bg-rose-700' : 'bg-[#00A651] hover:bg-[#006B3C]'
+            className={`px-4 py-1.5 rounded-lg text-white text-xs font-semibold shadow-xs active:scale-95 transition-colors flex items-center gap-1.5 cursor-pointer ${
+              isDestructive ? 'bg-rose-600 hover:bg-rose-700' : 'bg-emerald-600 hover:bg-emerald-700'
             }`}
           >
-            <Trash2 className="w-4 h-4" />
+            <Trash2 className="w-3.5 h-3.5" />
             <span>{confirmText}</span>
           </button>
         </div>

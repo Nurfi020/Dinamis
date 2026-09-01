@@ -27,55 +27,55 @@ export const LockedFeatureModal: React.FC<LockedFeatureModalProps> = ({
   const targetPkg = DEMO_PACKAGES[requiredPackage];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-150">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs animate-in fade-in duration-150">
       <div 
-        className="bg-white rounded-3xl border border-[#E2E9E4] shadow-2xl max-w-md w-full overflow-hidden animate-in zoom-in-95 duration-150"
+        className="bg-white rounded-xl border border-slate-200 shadow-xl max-w-md w-full overflow-hidden animate-in zoom-in-95 duration-150"
         role="dialog"
         aria-modal="true"
       >
         {/* Header Ribbon */}
-        <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 p-6 text-white relative">
+        <div className="bg-slate-900 p-5 text-white relative">
           <button
             type="button"
             onClick={onClose}
-            className="absolute top-4 right-4 text-slate-400 hover:text-white p-1 rounded-full hover:bg-white/10 transition-colors"
+            className="absolute top-4 right-4 text-slate-400 hover:text-white p-1 rounded-md hover:bg-slate-800 transition-colors cursor-pointer"
             aria-label="Tutup"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" />
           </button>
 
-          <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400 mb-3">
-            <Lock className="w-6 h-6" />
+          <div className="w-10 h-10 rounded-lg bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400 mb-2.5">
+            <Lock className="w-5 h-5" />
           </div>
 
           <div className="flex items-center gap-2">
-            <span className="text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-400/20 text-emerald-300 border border-emerald-400/30">
+            <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
               Demo Feature Gate
             </span>
             <span className="text-xs text-slate-400">• Paket {targetPkg.name}</span>
           </div>
 
-          <h3 className="text-lg font-extrabold text-white mt-1">
+          <h3 className="text-base font-bold text-white mt-1">
             {featureTitle}
           </h3>
         </div>
 
         {/* Modal Body */}
-        <div className="p-6 space-y-4">
-          <p className="text-sm text-[#66736B] leading-relaxed">
+        <div className="p-5 space-y-3.5">
+          <p className="text-xs text-slate-600 leading-relaxed">
             {featureDescription}
           </p>
 
           {/* Highlights Box */}
-          <div className="p-4 rounded-2xl bg-[#F7F9F8] border border-[#E2E9E4] space-y-2">
-            <div className="text-xs font-bold text-[#17221C] flex items-center gap-1.5">
-              <Sparkles className="w-4 h-4 text-[#00A651]" />
-              <span>Keunggulan pada Paket {targetPkg.name}:</span>
+          <div className="p-3.5 rounded-lg bg-slate-50 border border-slate-200 space-y-2">
+            <div className="text-xs font-semibold text-slate-900 flex items-center gap-1.5">
+              <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
+              <span>Fitur pada Paket {targetPkg.name}:</span>
             </div>
-            <ul className="space-y-1.5 text-xs text-[#66736B]">
+            <ul className="space-y-1 text-xs text-slate-600">
               {targetPkg.features.slice(0, 3).map((f, i) => (
-                <li key={i} className="flex items-start gap-2">
-                  <Check className="w-3.5 h-3.5 text-[#00A651] shrink-0 mt-0.5" />
+                <li key={i} className="flex items-start gap-1.5">
+                  <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" />
                   <span>{f}</span>
                 </li>
               ))}
@@ -83,22 +83,22 @@ export const LockedFeatureModal: React.FC<LockedFeatureModalProps> = ({
           </div>
 
           {/* Action Buttons */}
-          <div className="flex flex-col sm:flex-row items-center gap-2.5 pt-2">
+          <div className="flex flex-col sm:flex-row items-center gap-2 pt-1">
             <button
               type="button"
               onClick={() => {
                 onUpgradeToPackage(requiredPackage);
                 onClose();
               }}
-              className="w-full sm:flex-1 py-3 px-4 rounded-xl text-sm font-bold text-white bg-[#00A651] hover:bg-[#006B3C] shadow-sm flex items-center justify-center gap-2 transition-all active:scale-[0.98] cursor-pointer"
+              className="w-full sm:flex-1 py-2 px-3.5 rounded-lg text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 shadow-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
             >
               <span>Beralih ke Demo {targetPkg.name}</span>
-              <ArrowRight className="w-4 h-4" />
+              <ArrowRight className="w-3.5 h-3.5" />
             </button>
             <button
               type="button"
               onClick={onClose}
-              className="w-full sm:w-auto py-3 px-4 rounded-xl text-sm font-semibold text-[#66736B] hover:text-[#17221C] hover:bg-[#F4FBF7] transition-colors cursor-pointer"
+              className="w-full sm:w-auto py-2 px-3.5 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors cursor-pointer"
             >
               Tutup
             </button>

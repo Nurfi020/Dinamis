@@ -12,7 +12,6 @@ import {
   ShieldCheck, 
   Briefcase, 
   Check, 
-  Layers, 
   MapPin, 
   Lock,
   Hammer,
@@ -87,13 +86,13 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
   const getRoleBadgeStyle = (role: DemoRole) => {
     switch (role) {
       case 'sales':
-        return 'bg-[#E8F7EF] text-[#006B3C] border-[#A7F3D0]';
+        return 'bg-emerald-50 text-emerald-700 border-emerald-200';
       case 'supervisor':
         return 'bg-amber-50 text-amber-800 border-amber-200';
       case 'manager':
         return 'bg-indigo-50 text-indigo-800 border-indigo-200';
       case 'admin':
-        return 'bg-slate-100 text-slate-800 border-slate-300';
+        return 'bg-slate-100 text-slate-700 border-slate-300';
     }
   };
 
@@ -171,14 +170,14 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
           return {
             org: 'CV Karya Bersama — Kontraktor Renovasi',
             branch: 'Jakarta Barat',
-            badge: 'CONTRACTOR • Small Business',
+            badge: 'CONTRACTOR • Basic',
             badgeClass: 'bg-amber-50 text-amber-800 border-amber-200',
           };
         case 'business':
           return {
             org: 'PT Konstruksi Prima Mandiri — General Contractor',
             branch: 'Jakarta Pusat',
-            badge: 'CONTRACTOR • Project Sales Team',
+            badge: 'CONTRACTOR • Business Team',
             badgeClass: 'bg-emerald-50 text-emerald-800 border-emerald-200',
           };
         case 'enterprise':
@@ -186,7 +185,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
             org: 'PT Nusantara Megakonstruksi Tbk — Enterprise EPC',
             branch: 'Divisi Commercial & Infra',
             badge: 'CONTRACTOR • Enterprise EPC',
-            badgeClass: 'bg-slate-900 text-amber-400 border-slate-700',
+            badgeClass: 'bg-slate-900 text-amber-300 border-slate-700',
           };
       }
     }
@@ -212,7 +211,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
             org: 'PT Sentra Niaga Nusantara — Multi-Store Network',
             branch: 'KC Sudirman',
             badge: 'UMKM • Multi-Outlet',
-            badgeClass: 'bg-slate-900 text-emerald-400 border-slate-700',
+            badgeClass: 'bg-slate-900 text-emerald-300 border-slate-700',
           };
       }
     }
@@ -237,8 +236,8 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
         return {
           org: 'Bank Nusantara — Enterprise Demo',
           branch: 'KC Jakarta Sudirman',
-          badge: 'ENTERPRISE • Data Simulasi',
-          badgeClass: 'bg-[#E8F7EF] text-[#006B3C] border-[#A7F3D0]',
+          badge: 'ENTERPRISE • Corporate Demo',
+          badgeClass: 'bg-slate-900 text-emerald-300 border-slate-700',
         };
     }
   };
@@ -246,50 +245,46 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
   const orgContext = getOrgContext();
 
   return (
-    <header className="bg-white/95 backdrop-blur-md sticky top-0 z-20 px-4 sm:px-8 py-3 border-b border-[#E2E9E4] flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+    <header className="bg-white sticky top-0 z-20 px-4 sm:px-6 lg:px-8 py-3 border-b border-slate-200 flex flex-col lg:flex-row lg:items-center justify-between gap-3 shadow-2xs">
       {/* 1. Left: Page Title, Subtitle & Organization Context */}
-      <div>
+      <div className="min-w-0">
         <div className="flex flex-wrap items-center gap-2">
-          <h1 className="text-xl sm:text-2xl font-extrabold text-[#17221C] tracking-tight">
+          <h1 className="text-lg sm:text-xl font-bold text-slate-900 tracking-tight">
             {title}
           </h1>
 
           {/* Organization & Branch Context Pill */}
-          <div className="hidden xl:flex items-center gap-2 px-2.5 py-1 rounded-full bg-[#F7F9F8] border border-[#E2E9E4] text-[11px] text-[#66736B]">
+          <div className="hidden xl:flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg bg-slate-50 border border-slate-200 text-xs text-slate-600">
             {currentIndustry === 'contractor' ? (
-              <Hammer className="w-3.5 h-3.5 text-amber-600" />
+              <Hammer className="w-3.5 h-3.5 text-amber-600 shrink-0" />
             ) : currentIndustry === 'umkm' ? (
-              <Store className="w-3.5 h-3.5 text-[#00A651]" />
+              <Store className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
             ) : (
-              <Building2 className="w-3.5 h-3.5 text-[#00A651]" />
+              <Building2 className="w-3.5 h-3.5 text-slate-600 shrink-0" />
             )}
-            <span className="font-bold text-[#17221C]">{orgContext.org}</span>
-            <span>•</span>
-            <span className="flex items-center gap-1">
-              <MapPin className="w-3 h-3 text-[#00A651]" />
+            <span className="font-semibold text-slate-800 truncate max-w-[200px]">{orgContext.org}</span>
+            <span className="text-slate-300">•</span>
+            <span className="flex items-center gap-1 text-slate-500">
+              <MapPin className="w-3 h-3 text-slate-400" />
               <span>{orgContext.branch}</span>
             </span>
           </div>
 
-          {/* Package / Industry Label */}
-          <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border text-[10px] font-bold tracking-tight ${orgContext.badgeClass}`}>
-            <span className="w-1.5 h-1.5 rounded-full bg-current animate-pulse" />
+          {/* Package / Industry Status Tag */}
+          <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md border text-[11px] font-semibold tracking-tight ${orgContext.badgeClass}`}>
             <span>{orgContext.badge}</span>
           </span>
         </div>
 
         {subtitle && (
-          <p className="text-xs sm:text-sm text-[#66736B] mt-0.5">{subtitle}</p>
+          <p className="text-xs text-slate-500 mt-0.5 truncate">{subtitle}</p>
         )}
       </div>
 
       {/* 2. Right Controls: INDUSTRY + PACKAGE + ROLE + Actions */}
-      <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
-        {/* A. INDUSTRY SWITCHER CONTROL */}
-        <div className="flex items-center bg-[#F1F5F3] p-0.5 sm:p-1 rounded-xl border border-[#E2E9E4] shadow-2xs">
-          <span className="text-[10px] uppercase font-extrabold text-[#66736B] px-1.5 hidden 2xl:inline">
-            Industri:
-          </span>
+      <div className="flex flex-wrap items-center gap-2">
+        {/* A. INDUSTRY SWITCHER CONTROL (Clean Segmented) */}
+        <div className="flex items-center bg-slate-100 p-0.5 rounded-lg border border-slate-200 shadow-2xs">
           {(['general', 'umkm', 'contractor'] as DemoIndustry[]).map((indKey) => {
             const indConfig = DEMO_INDUSTRIES[indKey];
             const isActive = currentIndustry === indKey;
@@ -298,23 +293,19 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
                 key={indKey}
                 type="button"
                 onClick={() => onSwitchIndustry(indKey)}
-                className={`px-2 sm:px-2.5 py-1 rounded-lg text-xs font-bold transition-all duration-150 flex items-center gap-1 cursor-pointer ${
+                className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-all duration-150 flex items-center gap-1.5 cursor-pointer ${
                   isActive
-                    ? indKey === 'contractor'
-                      ? 'bg-amber-600 text-white shadow-xs'
-                      : indKey === 'umkm'
-                      ? 'bg-[#00A651] text-white shadow-xs'
-                      : 'bg-slate-800 text-white shadow-xs'
-                    : 'text-[#66736B] hover:text-[#17221C] hover:bg-white/60'
+                    ? 'bg-white text-slate-900 shadow-xs border border-slate-200/80 font-bold'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
                 }`}
                 title={`Ganti mode industri: ${indConfig.name}`}
               >
                 {indKey === 'contractor' ? (
-                  <Hammer className="w-3 h-3" />
+                  <Hammer className={`w-3 h-3 ${isActive ? 'text-amber-600' : 'text-slate-400'}`} />
                 ) : indKey === 'umkm' ? (
-                  <Store className="w-3 h-3" />
+                  <Store className={`w-3 h-3 ${isActive ? 'text-emerald-600' : 'text-slate-400'}`} />
                 ) : (
-                  <LayoutGrid className="w-3 h-3" />
+                  <LayoutGrid className={`w-3 h-3 ${isActive ? 'text-slate-800' : 'text-slate-400'}`} />
                 )}
                 <span>
                   {indKey === 'general' ? 'General' : indKey === 'umkm' ? 'UMKM' : 'Kontraktor'}
@@ -325,10 +316,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
         </div>
 
         {/* B. PACKAGE SWITCHER SEGMENTED CONTROL */}
-        <div className="flex items-center bg-[#F1F5F3] p-0.5 sm:p-1 rounded-xl border border-[#E2E9E4] shadow-2xs">
-          <span className="text-[10px] uppercase font-extrabold text-[#66736B] px-1.5 hidden 2xl:inline">
-            Paket:
-          </span>
+        <div className="flex items-center bg-slate-100 p-0.5 rounded-lg border border-slate-200 shadow-2xs">
           {(['basic', 'business', 'enterprise'] as DemoPackage[]).map((pkgKey) => {
             const pkgConfig = DEMO_PACKAGES[pkgKey];
             const isActive = currentPackage === pkgKey;
@@ -337,26 +325,22 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
                 key={pkgKey}
                 type="button"
                 onClick={() => onSwitchPackage(pkgKey)}
-                className={`relative px-2 sm:px-2.5 py-1 rounded-lg text-xs font-bold transition-all duration-150 flex items-center gap-1 cursor-pointer ${
+                className={`relative px-2.5 py-1 rounded-md text-xs font-semibold transition-all duration-150 flex items-center gap-1 cursor-pointer ${
                   isActive
-                    ? pkgKey === 'basic'
-                      ? 'bg-blue-600 text-white shadow-xs'
-                      : pkgKey === 'business'
-                      ? 'bg-[#00A651] text-white shadow-xs'
-                      : 'bg-slate-900 text-emerald-400 border border-slate-700 shadow-xs'
-                    : 'text-[#66736B] hover:text-[#17221C] hover:bg-white/60'
+                    ? 'bg-white text-slate-900 shadow-xs border border-slate-200/80 font-bold'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
                 }`}
                 title={`Beralih ke demo paket ${pkgConfig.name}`}
               >
                 <span className="capitalize">{pkgKey}</span>
                 {pkgConfig.badge && (
                   <span
-                    className={`text-[8px] px-1 py-0.2 rounded-full font-extrabold tracking-tighter ${
+                    className={`text-[9px] px-1 py-0.2 rounded font-bold tracking-tight ${
                       isActive
-                        ? 'bg-white/20 text-white'
-                        : pkgKey === 'business'
-                        ? 'bg-emerald-100 text-emerald-800'
-                        : 'bg-slate-200 text-slate-800'
+                        ? pkgKey === 'business'
+                          ? 'bg-emerald-100 text-emerald-800'
+                          : 'bg-slate-200 text-slate-800'
+                        : 'bg-slate-200/60 text-slate-600'
                     }`}
                   >
                     {pkgConfig.badge}
@@ -372,34 +356,36 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
           <button
             type="button"
             onClick={() => setIsRoleDropdownOpen(!isRoleDropdownOpen)}
-            className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 rounded-xl border text-xs font-bold transition-all cursor-pointer shadow-xs ${
-              isRoleDropdownOpen ? 'ring-2 ring-[#00A651]/30 border-[#00A651]' : 'border-[#E2E9E4] bg-[#F7F9F8] hover:bg-white'
+            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-xs font-semibold transition-all cursor-pointer shadow-2xs ${
+              isRoleDropdownOpen 
+                ? 'ring-2 ring-emerald-600/15 border-emerald-600 bg-white' 
+                : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-800'
             }`}
             title="Ganti Peran Demo"
           >
-            <span className={`px-1.5 py-0.5 rounded-md text-[9px] font-extrabold uppercase border ${getRoleBadgeStyle(currentRole)}`}>
+            <span className={`px-1.5 py-0.2 rounded text-[10px] font-bold uppercase border ${getRoleBadgeStyle(currentRole)}`}>
               {currentRole}
             </span>
-            <span className="font-bold text-[#17221C] truncate max-w-[85px] sm:max-w-[120px]">
+            <span className="truncate max-w-[85px] sm:max-w-[110px]">
               {roleOptions.find((r) => r.role === currentRole)?.label.split(' ')[0] || currentPersona.name.split(' ')[0]}
             </span>
-            <ChevronDown className={`w-3.5 h-3.5 text-[#66736B] transition-transform duration-200 ${isRoleDropdownOpen ? 'rotate-180' : ''}`} />
+            <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-150 ${isRoleDropdownOpen ? 'rotate-180' : ''}`} />
           </button>
 
           {/* Dropdown Menu */}
           {isRoleDropdownOpen && (
-            <div className="absolute right-0 mt-2 w-72 bg-white rounded-2xl shadow-xl border border-[#E2E9E4] py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
-              <div className="px-3.5 py-2 border-b border-[#E2E9E4]">
-                <div className="text-[10px] font-extrabold uppercase text-[#66736B] tracking-wider flex items-center justify-between">
-                  <span>PILIH DEMO ROLE</span>
-                  <span className="text-[#00A651] font-bold">Simulasi Instan</span>
+            <div className="absolute right-0 mt-1.5 w-72 bg-white rounded-xl shadow-lg border border-slate-200 py-1.5 z-50 animate-in fade-in slide-in-from-top-1 duration-100">
+              <div className="px-3.5 py-2 border-b border-slate-100">
+                <div className="text-[10px] font-bold uppercase text-slate-500 tracking-wider flex items-center justify-between">
+                  <span>PILIH ROLE DEMO</span>
+                  <span className="text-emerald-700 font-semibold">Simulasi Instan</span>
                 </div>
-                <div className="text-xs text-[#17221C] font-semibold mt-0.5">
+                <div className="text-xs text-slate-700 font-medium mt-0.5">
                   Ubah sudut pandang portal tanpa login ulang
                 </div>
               </div>
 
-              <div className="p-1.5 space-y-1">
+              <div className="p-1 space-y-0.5">
                 {roleOptions.map((opt) => {
                   const Icon = opt.icon;
                   const isSelected = currentRole === opt.role;
@@ -423,33 +409,33 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
                           setIsRoleDropdownOpen(false);
                         }
                       }}
-                      className={`w-full flex items-center justify-between p-2.5 rounded-xl text-left transition-all cursor-pointer ${
+                      className={`w-full flex items-center justify-between p-2 rounded-lg text-left transition-colors cursor-pointer ${
                         isSelected
-                          ? 'bg-[#E8F7EF] text-[#006B3C]'
+                          ? 'bg-emerald-50 text-emerald-900 font-semibold'
                           : isLocked
-                          ? 'text-[#94A3B8] hover:bg-[#F8FAFC]'
-                          : 'text-[#17221C] hover:bg-[#F4FBF7]'
+                          ? 'text-slate-400 hover:bg-slate-50'
+                          : 'text-slate-700 hover:bg-slate-50'
                       }`}
                     >
                       <div className="flex items-center gap-2.5 min-w-0">
-                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
-                          isSelected ? 'bg-[#00A651] text-white' : isLocked ? 'bg-slate-100 text-slate-400' : 'bg-[#F7F9F8] text-[#66736B]'
+                        <div className={`w-7 h-7 rounded-md flex items-center justify-center shrink-0 ${
+                          isSelected ? 'bg-emerald-600 text-white' : isLocked ? 'bg-slate-100 text-slate-400' : 'bg-slate-100 text-slate-600'
                         }`}>
-                          <Icon className="w-4 h-4" />
+                          <Icon className="w-3.5 h-3.5" />
                         </div>
                         <div className="min-w-0">
-                          <div className="font-bold text-xs flex items-center gap-1.5">
+                          <div className="font-semibold text-xs flex items-center gap-1.5">
                             <span className="truncate">{opt.label}</span>
-                            <span className={`text-[9px] px-1.5 py-0.2 rounded-sm uppercase font-extrabold border ${getRoleBadgeStyle(opt.role)}`}>
+                            <span className={`text-[9px] px-1 py-0.2 rounded uppercase font-bold border ${getRoleBadgeStyle(opt.role)}`}>
                               {opt.role}
                             </span>
                           </div>
-                          <div className="text-[11px] text-[#66736B] truncate">{opt.desc}</div>
+                          <div className="text-[11px] text-slate-500 truncate">{opt.desc}</div>
                         </div>
                       </div>
 
                       {isSelected ? (
-                        <Check className="w-4 h-4 text-[#00A651] shrink-0" />
+                        <Check className="w-4 h-4 text-emerald-600 shrink-0" />
                       ) : isLocked ? (
                         <Lock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                       ) : null}
@@ -459,9 +445,9 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
               </div>
 
               {currentPackage !== 'enterprise' && (
-                <div className="p-2 border-t border-[#E2E9E4] bg-[#F7F9F8] mx-1.5 rounded-xl mt-1">
-                  <div className="text-[11px] text-[#66736B] flex items-center gap-1.5">
-                    <Sparkles className="w-3.5 h-3.5 text-[#00A651] shrink-0" />
+                <div className="p-2 border-t border-slate-100 bg-slate-50 mx-1 rounded-lg mt-1">
+                  <div className="text-[11px] text-slate-600 flex items-center gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
                     <span>Pilih <b>Enterprise</b> untuk membuka seluruh portal (Manager & Admin).</span>
                   </div>
                 </div>
@@ -471,12 +457,12 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
         </div>
 
         {/* D. Filter Date Range */}
-        <div className="hidden xl:flex items-center bg-[#F7F9F8] border border-[#E2E9E4] rounded-xl px-2.5 py-1.5 text-xs text-[#17221C]">
-          <Calendar className="w-3.5 h-3.5 text-[#00A651] mr-1.5 shrink-0" />
+        <div className="hidden xl:flex items-center bg-white border border-slate-200 rounded-lg px-2.5 py-1 text-xs text-slate-700 shadow-2xs">
+          <Calendar className="w-3.5 h-3.5 text-slate-400 mr-1.5 shrink-0" />
           <select
             value={selectedDateRange}
             onChange={(e) => onChangeDateRange(e.target.value)}
-            className="bg-transparent font-semibold focus:outline-none cursor-pointer text-xs"
+            className="bg-transparent font-medium focus:outline-none cursor-pointer text-xs"
             aria-label="Filter Rentang Waktu"
           >
             <option value="today">Hari Ini</option>
@@ -490,13 +476,13 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
         <button
           type="button"
           onClick={onOpenFollowUps}
-          className="relative p-2 rounded-xl border border-[#E2E9E4] bg-[#F7F9F8] hover:bg-white text-[#66736B] hover:text-[#17221C] transition-colors cursor-pointer"
-          title={`${followUpCount} ${currentIndustry === 'contractor' ? 'prospek proyek' : currentIndustry === 'umkm' ? 'calon pelanggan' : 'lead'} perlu di-follow up`}
+          className="relative p-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 hover:text-slate-900 transition-colors cursor-pointer shadow-2xs"
+          title={`${followUpCount} prospek perlu di-follow up`}
           aria-label="Notifikasi Follow Up"
         >
           <Bell className="w-4 h-4" />
           {followUpCount > 0 && (
-            <span className="absolute -top-1 -right-1 bg-rose-500 text-white text-[10px] font-extrabold w-4 h-4 rounded-full flex items-center justify-center shadow-xs">
+            <span className="absolute -top-1 -right-1 bg-rose-500 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center shadow-xs">
               {followUpCount > 9 ? '9+' : followUpCount}
             </span>
           )}
@@ -506,18 +492,15 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
         <button
           type="button"
           onClick={onOpenProfile}
-          className="flex items-center gap-2 p-1 sm:px-2.5 sm:py-1 rounded-xl border border-[#E2E9E4] bg-[#F7F9F8] hover:bg-white transition-all cursor-pointer"
+          className="flex items-center gap-2 p-1 sm:px-2 sm:py-1 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 transition-colors cursor-pointer shadow-2xs"
           title="Buka Pengaturan & Profil"
         >
-          <div className="w-7 h-7 rounded-lg bg-[#00A651] text-white flex items-center justify-center font-bold text-xs shadow-xs">
+          <div className="w-6 h-6 rounded-md bg-emerald-600 text-white flex items-center justify-center font-bold text-[11px] shadow-2xs">
             {currentPersona.name.split(' ').map((n) => n[0]).join('').slice(0, 2)}
           </div>
           <div className="hidden 2xl:block text-left">
-            <span className="block text-xs font-bold text-[#17221C] truncate max-w-[90px]">
+            <span className="block text-xs font-semibold text-slate-900 truncate max-w-[90px]">
               {currentPersona.name.split(' ')[0]}
-            </span>
-            <span className="block text-[10px] text-[#66736B] truncate max-w-[90px]">
-              {currentRole}
             </span>
           </div>
         </button>

@@ -344,40 +344,40 @@ export const Sidebar: React.FC<SidebarProps> = ({
       case 'sales':
         return { 
           text: isContractor ? 'Estimator' : isUmkm ? 'Sales UMKM' : 'Sales', 
-          color: 'text-[#00A651] bg-[#E8F7EF]' 
+          color: 'text-emerald-700 bg-emerald-50 border-emerald-200' 
         };
       case 'supervisor':
         return { 
           text: isContractor ? 'SPV Proyek' : isUmkm ? 'SPV Toko' : 'Supervisor', 
-          color: 'text-amber-800 bg-amber-50' 
+          color: 'text-amber-800 bg-amber-50 border-amber-200' 
         };
       case 'manager':
         return { 
           text: isContractor ? 'Director' : isUmkm ? 'Owner' : 'Manager', 
-          color: 'text-indigo-800 bg-indigo-50' 
+          color: 'text-indigo-800 bg-indigo-50 border-indigo-200' 
         };
       case 'admin':
-        return { text: 'Admin', color: 'text-slate-800 bg-slate-100' };
+        return { text: 'Admin', color: 'text-slate-700 bg-slate-100 border-slate-300' };
     }
   };
 
   const roleBadge = getRoleHeaderBadge();
 
   return (
-    <aside className="hidden md:flex flex-col w-64 bg-white border-r border-[#E2E9E4] h-screen sticky top-0 shrink-0 z-30 select-none">
+    <aside className="hidden md:flex flex-col w-64 bg-white border-r border-slate-200 h-screen sticky top-0 shrink-0 z-30 select-none">
       {/* Brand Header */}
-      <div className="p-4 border-b border-[#E2E9E4] flex items-center justify-between gap-2">
+      <div className="p-4 border-b border-slate-200 flex items-center justify-between gap-2">
         <div className="flex items-center gap-2.5">
-          <div className={`w-9 h-9 rounded-xl flex items-center justify-center text-white shadow-xs ${
+          <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-white shadow-2xs ${
             isContractor 
               ? 'bg-amber-600' 
               : isUmkm
-              ? 'bg-[#00A651]'
+              ? 'bg-emerald-600'
               : currentPackage === 'basic' 
               ? 'bg-blue-600' 
               : currentPackage === 'business' 
-              ? 'bg-[#00A651]' 
-              : 'bg-slate-900 text-emerald-400'
+              ? 'bg-emerald-600' 
+              : 'bg-slate-900 text-emerald-300'
           }`}>
             {isContractor ? (
               <Hammer className="w-4 h-4" />
@@ -388,20 +388,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
             )}
           </div>
           <div>
-            <h1 className="text-sm font-extrabold text-[#17221C] tracking-tight leading-tight">
+            <h1 className="text-sm font-bold text-slate-900 tracking-tight leading-tight">
               {isContractor ? 'Kelola Proyek' : isUmkm ? 'Kelola Usaha' : 'Kelola Lead'}
             </h1>
-            <span className={`text-[10px] font-bold tracking-wider uppercase ${
-              isContractor 
-                ? 'text-amber-600' 
-                : isUmkm
-                ? 'text-[#00A651]'
-                : currentPackage === 'basic' 
-                ? 'text-blue-600' 
-                : currentPackage === 'business' 
-                ? 'text-[#00A651]' 
-                : 'text-slate-900'
-            }`}>
+            <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wide">
               {isContractor 
                 ? `Contractor ${pkgConfig.name.split(' ')[0]}` 
                 : isUmkm
@@ -411,13 +401,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </div>
         </div>
 
-        <span className={`px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase border border-current ${roleBadge.color}`}>
+        <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase border ${roleBadge.color}`}>
           {roleBadge.text}
         </span>
       </div>
 
       {/* Navigation Links */}
-      <div className="flex-1 px-3 py-3 space-y-1 overflow-y-auto">
+      <div className="flex-1 px-3 py-3 space-y-0.5 overflow-y-auto">
         {navItems.map((item) => {
           const Icon = item.icon;
           
@@ -427,17 +417,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 key={item.id}
                 type="button"
                 onClick={onOpenAddLead}
-                className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-white transition-all my-2 shadow-xs active:scale-[0.98] cursor-pointer ${
-                  isContractor 
-                    ? 'bg-amber-600 hover:bg-amber-700' 
-                    : isUmkm
-                    ? 'bg-[#00A651] hover:bg-[#006B3C]'
-                    : currentPackage === 'basic' 
-                    ? 'bg-blue-600 hover:bg-blue-700' 
-                    : 'bg-[#00A651] hover:bg-[#006B3C]'
-                }`}
+                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 transition-colors my-2 shadow-2xs active:scale-[0.98] cursor-pointer"
               >
-                <Icon className="w-4 h-4" />
+                <Icon className="w-4 h-4 shrink-0" />
                 <span>{item.label}</span>
               </button>
             );
@@ -450,29 +432,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
               key={item.id}
               type="button"
               onClick={() => setActiveTab(item.id as ActiveTab)}
-              className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition-all duration-150 cursor-pointer ${
+              className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
                 isActive
-                  ? isContractor
-                    ? 'bg-amber-50 text-amber-900 font-bold border-l-2 border-amber-600'
-                    : isUmkm
-                    ? 'bg-[#E8F7EF] text-[#006B3C] font-bold border-l-2 border-[#00A651]'
-                    : currentPackage === 'basic'
-                    ? 'bg-blue-50 text-blue-800 font-bold border-l-2 border-blue-600'
-                    : 'bg-[#E8F7EF] text-[#006B3C] font-bold border-l-2 border-[#00A651]'
-                  : 'text-[#66736B] hover:text-[#17221C] hover:bg-[#F4FBF7]'
+                  ? 'bg-emerald-50 text-emerald-900 font-semibold border-l-2 border-emerald-600'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
               }`}
             >
               <div className="flex items-center gap-2.5">
-                <Icon className={`w-4 h-4 ${
+                <Icon className={`w-4 h-4 shrink-0 ${
                   isActive 
-                    ? isContractor 
-                      ? 'text-amber-600' 
-                      : isUmkm
-                      ? 'text-[#00A651]'
-                      : currentPackage === 'basic' 
-                      ? 'text-blue-600' 
-                      : 'text-[#00A651]'
-                    : 'text-[#66736B]'
+                    ? 'text-emerald-700' 
+                    : 'text-slate-400'
                 }`} />
                 <span>{item.label}</span>
               </div>
@@ -480,7 +450,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 <span
                   className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
                     isActive
-                      ? 'bg-[#00A651] text-white'
+                      ? 'bg-emerald-600 text-white'
                       : 'bg-rose-500 text-white'
                   }`}
                 >
@@ -493,8 +463,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
         {/* LOCKED FEATURE TEASERS IN BASIC / BUSINESS */}
         {currentPackage === 'basic' && (
-          <div className="pt-3 border-t border-[#E2E9E4] mt-2 space-y-1">
-            <div className="px-3 text-[9px] font-extrabold uppercase text-[#94A3B8] tracking-wider">
+          <div className="pt-3 border-t border-slate-100 mt-2 space-y-0.5">
+            <div className="px-3 text-[9px] font-bold uppercase text-slate-400 tracking-wider">
               Tersedia di Paket Atas
             </div>
             <button
@@ -512,13 +482,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   : 'Pantau capaian target seluruh anggota tim sales dan SLA tindak lanjut pada Paket Business & Enterprise.',
                 'business'
               )}
-              className="w-full flex items-center justify-between px-3 py-1.5 rounded-xl text-xs font-medium text-slate-400 hover:bg-slate-50 transition-colors text-left cursor-pointer"
+              className="w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:bg-slate-50 transition-colors text-left cursor-pointer"
             >
               <div className="flex items-center gap-2.5">
                 <Award className="w-4 h-4 text-slate-400" />
                 <span>{isContractor ? 'Kinerja Estimator' : isUmkm ? 'Kinerja Tim Sales' : 'Kinerja Tim'}</span>
               </div>
-              <span className="text-[9px] px-1.5 py-0.2 rounded-md bg-emerald-50 text-emerald-700 font-bold border border-emerald-200 flex items-center gap-1">
+              <span className="text-[9px] px-1.5 py-0.2 rounded bg-slate-100 text-slate-600 font-semibold border border-slate-200 flex items-center gap-1">
                 <Lock className="w-2.5 h-2.5" /> Business
               </span>
             </button>
@@ -538,13 +508,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   : 'Konsolidasi analitik seluruh kantor cabang dan dashboard eksekutif pada Paket Enterprise.',
                 'enterprise'
               )}
-              className="w-full flex items-center justify-between px-3 py-1.5 rounded-xl text-xs font-medium text-slate-400 hover:bg-slate-50 transition-colors text-left cursor-pointer"
+              className="w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:bg-slate-50 transition-colors text-left cursor-pointer"
             >
               <div className="flex items-center gap-2.5">
                 <Building2 className="w-4 h-4 text-slate-400" />
                 <span>{isContractor ? 'Proyek Cabang' : isUmkm ? 'Multi-Outlet' : 'Kinerja Cabang'}</span>
               </div>
-              <span className="text-[9px] px-1.5 py-0.2 rounded-md bg-slate-100 text-slate-700 font-bold border border-slate-300 flex items-center gap-1">
+              <span className="text-[9px] px-1.5 py-0.2 rounded bg-slate-100 text-slate-600 font-semibold border border-slate-200 flex items-center gap-1">
                 <Lock className="w-2.5 h-2.5" /> Enterprise
               </span>
             </button>
@@ -552,8 +522,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
         )}
 
         {currentPackage === 'business' && (
-          <div className="pt-3 border-t border-[#E2E9E4] mt-2 space-y-1">
-            <div className="px-3 text-[9px] font-extrabold uppercase text-[#94A3B8] tracking-wider">
+          <div className="pt-3 border-t border-slate-100 mt-2 space-y-0.5">
+            <div className="px-3 text-[9px] font-bold uppercase text-slate-400 tracking-wider">
               Tersedia di Enterprise
             </div>
             <button
@@ -571,13 +541,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   : 'Konsolidasi analitik performa cabang regional dan dashboard direksi pada Paket Enterprise.',
                 'enterprise'
               )}
-              className="w-full flex items-center justify-between px-3 py-1.5 rounded-xl text-xs font-medium text-slate-400 hover:bg-slate-50 transition-colors text-left cursor-pointer"
+              className="w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:bg-slate-50 transition-colors text-left cursor-pointer"
             >
               <div className="flex items-center gap-2.5">
                 <Building2 className="w-4 h-4 text-slate-400" />
                 <span>{isContractor ? 'Proyek Cabang' : isUmkm ? 'Multi-Outlet' : 'Kinerja Cabang'}</span>
               </div>
-              <span className="text-[9px] px-1.5 py-0.2 rounded-md bg-slate-100 text-slate-700 font-bold border border-slate-300 flex items-center gap-1">
+              <span className="text-[9px] px-1.5 py-0.2 rounded bg-slate-100 text-slate-600 font-semibold border border-slate-200 flex items-center gap-1">
                 <Lock className="w-2.5 h-2.5" /> Enterprise
               </span>
             </button>
@@ -589,13 +559,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 'Rekam jejak keamanan dan log perubahan data seluruh organisasi pada Paket Enterprise.',
                 'enterprise'
               )}
-              className="w-full flex items-center justify-between px-3 py-1.5 rounded-xl text-xs font-medium text-slate-400 hover:bg-slate-50 transition-colors text-left cursor-pointer"
+              className="w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:bg-slate-50 transition-colors text-left cursor-pointer"
             >
               <div className="flex items-center gap-2.5">
                 <Activity className="w-4 h-4 text-slate-400" />
                 <span>Audit & Log</span>
               </div>
-              <span className="text-[9px] px-1.5 py-0.2 rounded-md bg-slate-100 text-slate-700 font-bold border border-slate-300 flex items-center gap-1">
+              <span className="text-[9px] px-1.5 py-0.2 rounded bg-slate-100 text-slate-600 font-semibold border border-slate-200 flex items-center gap-1">
                 <Lock className="w-2.5 h-2.5" /> Enterprise
               </span>
             </button>
@@ -604,15 +574,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
       </div>
 
       {/* Footer / Package & Persona Context */}
-      <div className="p-3 border-t border-[#E2E9E4] space-y-2">
-        <div className="p-2.5 rounded-xl bg-[#F7F9F8] border border-[#E2E9E4] text-xs">
+      <div className="p-3 border-t border-slate-200 space-y-1.5">
+        <div className="p-2 rounded-lg bg-slate-50 border border-slate-200 text-xs">
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-[#00A651] text-white font-bold text-xs flex items-center justify-center shrink-0">
+            <div className="w-6 h-6 rounded-md bg-emerald-600 text-white font-bold text-[11px] flex items-center justify-center shrink-0">
               {currentPersona.name.split(' ').map((n) => n[0]).join('').slice(0, 2)}
             </div>
             <div className="min-w-0 flex-1">
-              <div className="font-bold text-[#17221C] truncate text-xs">{currentPersona.name}</div>
-              <div className="text-[10px] text-[#66736B] truncate">{currentPersona.title}</div>
+              <div className="font-semibold text-slate-900 truncate text-xs">{currentPersona.name}</div>
+              <div className="text-[10px] text-slate-500 truncate">{currentPersona.title}</div>
             </div>
           </div>
         </div>
@@ -620,9 +590,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
         <button
           type="button"
           onClick={onOpenHelp}
-          className="w-full flex items-center gap-2.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-[#66736B] hover:text-[#17221C] hover:bg-[#F4FBF7] transition-colors cursor-pointer"
+          className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-colors cursor-pointer"
         >
-          <HelpCircle className="w-4 h-4 text-[#00A651]" />
+          <HelpCircle className="w-3.5 h-3.5 text-slate-400" />
           <span>Panduan Demo</span>
         </button>
       </div>

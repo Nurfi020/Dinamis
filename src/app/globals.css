@@ -1,46 +1,59 @@
-﻿@import "tailwindcss";
+@import "tailwindcss";
 
 @theme {
-  --color-primary: #00A651;
-  --color-primary-dark: #006B3C;
-  --color-primary-deep: #004D2A;
-  --color-primary-light: #E8F7EF;
-  --color-primary-soft: #F4FBF7;
+  --color-primary: #059669;
+  --color-primary-dark: #047857;
+  --color-primary-deep: #064E3B;
+  --color-primary-light: #ECFDF5;
+  --color-primary-soft: #F0FDF4;
   --color-accent: #10B981;
-  --color-background: #F7F9F8;
+  --color-navy: #0F172A;
+  --color-navy-dark: #020617;
+  --color-slate-dark: #1E293B;
+  --color-slate-medium: #334155;
+  --color-slate-muted: #64748B;
+  --color-background: #F8FAFC;
   --color-surface: #FFFFFF;
-  --color-text-primary: #17221C;
-  --color-text-secondary: #66736B;
-  --color-border: #E2E9E4;
+  --color-text-primary: #0F172A;
+  --color-text-secondary: #475569;
+  --color-border: #E2E8F0;
 }
 
 :root {
-  --primary: #00A651;
-  --primary-color: #00A651;
-  --primary-dark: #006B3C;
-  --primary-deep: #004D2A;
-  --primary-light: #E8F7EF;
-  --primary-soft: #F4FBF7;
-  --brand: #00A651;
-  --accent: #10B981;
-  --ring: #00A651;
-  --sidebar-primary: #00A651;
-  --sidebar-accent: #E8F7EF;
-  --chart-1: #00A651;
-  --color-primary: #00A651;
-
-  --background: #F7F9F8;
+  --background: #F8FAFC;
   --surface: #FFFFFF;
-  --text-primary: #17221C;
-  --text-secondary: #66736B;
-  --border: #E2E9E4;
+  --surface-muted: #F1F5F9;
+  --foreground: #0F172A;
+  --foreground-muted: #64748B;
+  --border: #E2E8F0;
+  --border-strong: #CBD5E1;
 
-  /* Status Colors */
-  --status-cold: #64748B;
-  --status-warm: #F59E0B;
-  --status-hot: #EF4444;
-  --status-closing: #10B981;
-  --status-lost: #6B7280;
+  --primary: #059669;
+  --primary-hover: #047857;
+  --primary-soft: #ECFDF5;
+  --accent: #10B981;
+  --ring: #059669;
+
+  /* Semantic Status Tokens */
+  --status-cold-bg: #F1F5F9;
+  --status-cold-text: #475569;
+  --status-cold-border: #E2E8F0;
+
+  --status-warm-bg: #FFFBEB;
+  --status-warm-text: #B45309;
+  --status-warm-border: #FDE68A;
+
+  --status-hot-bg: #FFF1F2;
+  --status-hot-text: #BE123C;
+  --status-hot-border: #FECDD3;
+
+  --status-closing-bg: #ECFDF5;
+  --status-closing-text: #047857;
+  --status-closing-border: #A7F3D0;
+
+  --status-lost-bg: #F3F4F6;
+  --status-lost-text: #6B7280;
+  --status-lost-border: #E5E7EB;
 }
 
 * {
@@ -48,8 +61,8 @@
 }
 
 body {
-  background-color: #F7F9F8;
-  color: #17221C;
+  background-color: #F8FAFC;
+  color: #0F172A;
   font-family: 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
   min-height: 100vh;
   overflow-x: hidden;
@@ -57,47 +70,48 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Modern Green Scrollbar */
+/* Subtle Modern SaaS Scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #F1F5F3;
+  background: #F8FAFC;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #CBD8D0;
+  background: #CBD5E1;
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #00A651;
+  background: #94A3B8;
 }
 
 /* Global utility classes for inputs, buttons, and cards */
 .input-focus {
-  border-color: #00A651 !important;
-  box-shadow: 0 0 0 3px rgba(0, 166, 81, 0.10) !important;
+  border-color: #059669 !important;
+  box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.12) !important;
 }
 
 input:focus, select:focus, textarea:focus {
-  border-color: #00A651 !important;
+  border-color: #059669 !important;
   outline: none !important;
-  box-shadow: 0 0 0 3px rgba(0, 166, 81, 0.10) !important;
+  box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.12) !important;
 }
 
 .btn-primary {
-  background-color: #00A651 !important;
+  background-color: #059669 !important;
   color: #FFFFFF !important;
-  border-radius: 12px;
-  font-weight: 700;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 0.875rem;
   transition: all 0.15s ease-in-out;
 }
 
 .btn-primary:hover {
-  background-color: #006B3C !important;
+  background-color: #047857 !important;
 }
 
 .btn-primary:active {
@@ -106,26 +120,29 @@ input:focus, select:focus, textarea:focus {
 
 .btn-secondary {
   background-color: #FFFFFF !important;
-  color: #006B3C !important;
-  border: 1px solid #A7F3D0 !important;
-  border-radius: 12px;
-  font-weight: 700;
+  color: #334155 !important;
+  border: 1px solid #E2E8F0 !important;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 0.875rem;
   transition: all 0.15s ease-in-out;
 }
 
 .btn-secondary:hover {
-  background-color: #E8F7EF !important;
+  background-color: #F8FAFC !important;
+  border-color: #CBD5E1 !important;
+  color: #0F172A !important;
 }
 
 .card-white {
   background-color: #FFFFFF !important;
-  border: 1px solid #E2E9E4 !important;
-  border-radius: 16px;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04);
+  border: 1px solid #E2E8F0 !important;
+  border-radius: 12px;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
 }
 
 .card-selected {
-  background-color: #E8F7EF !important;
-  border: 1px solid #00A651 !important;
-  color: #006B3C !important;
+  background-color: #ECFDF5 !important;
+  border: 1px solid #059669 !important;
+  color: #064E3B !important;
 }

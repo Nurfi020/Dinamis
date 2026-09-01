@@ -10,10 +10,9 @@ import {
   MapPin, 
   SlidersHorizontal,
   X,
-  CheckCircle2,
-  TrendingUp
+  CheckCircle2
 } from 'lucide-react';
-import { Lead, LeadStatus, LeadSource } from '../../types';
+import { Lead, LeadStatus } from '../../types';
 import { StatusBadge } from '../common/StatusBadge';
 import { SourceBadge } from '../common/SourceBadge';
 import { EmptyState } from '../common/EmptyState';
@@ -40,7 +39,6 @@ export const LeadListView: React.FC<LeadListViewProps> = ({
   leads,
   onSelectLead,
   onOpenAddLead,
-  onQuickStatusChange,
   initialFilterStatus = 'all',
   initialSearch = '',
 }) => {
@@ -144,33 +142,33 @@ export const LeadListView: React.FC<LeadListViewProps> = ({
       {/* Top Header & Actions */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h2 className="text-xl sm:text-2xl font-bold text-[#17221C] tracking-tight">
+          <h2 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
             Semua Calon Pelanggan
           </h2>
-          <p className="text-xs sm:text-sm text-[#66736B] mt-0.5">
-            Total {leads.length} prospek terdaftar • Nilai Pipeline Aktif: <strong className="text-[#006B3C] font-bold">{formatRupiah(leads.filter(l => l.status !== 'Closing' && l.status !== 'Tidak Berhasil').reduce((sum, l) => sum + (l.value || 0), 0))}</strong>
+          <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
+            Total {leads.length} prospek • Nilai Pipeline: <strong className="text-slate-900 font-mono font-bold">{formatRupiah(leads.filter(l => l.status !== 'Closing' && l.status !== 'Tidak Berhasil').reduce((sum, l) => sum + (l.value || 0), 0))}</strong>
           </p>
         </div>
 
         <button
           type="button"
           onClick={onOpenAddLead}
-          className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#00A651] hover:bg-[#006B3C] text-white text-sm font-bold shadow-sm active:scale-95 transition-all cursor-pointer"
+          className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-xs active:scale-95 transition-all cursor-pointer"
         >
           <Plus className="w-4 h-4" />
           <span>+ Tambah Lead Baru</span>
         </button>
       </div>
 
-      {/* 1. Status Filter Pills */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+      {/* 1. Status Filter Pills (Clean segmented) */}
+      <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
         {[
-          { id: 'all', label: 'Semua Lead', count: counts.all, dot: 'bg-[#00A651]' },
-          { id: 'Cold', label: 'Cold', count: counts.Cold, dot: 'bg-[#64748B]' },
-          { id: 'Warm', label: 'Warm', count: counts.Warm, dot: 'bg-[#F59E0B]' },
-          { id: 'Hot', label: 'Hot', count: counts.Hot, dot: 'bg-[#EF4444]' },
-          { id: 'Closing', label: 'Closing', count: counts.Closing, dot: 'bg-[#10B981]' },
-          { id: 'Tidak Berhasil', label: 'Tidak Berhasil', count: counts['Tidak Berhasil'], dot: 'bg-[#6B7280]' },
+          { id: 'all', label: 'Semua Lead', count: counts.all, dot: 'bg-slate-400' },
+          { id: 'Cold', label: 'Cold', count: counts.Cold, dot: 'bg-slate-400' },
+          { id: 'Warm', label: 'Warm', count: counts.Warm, dot: 'bg-amber-500' },
+          { id: 'Hot', label: 'Hot', count: counts.Hot, dot: 'bg-rose-500' },
+          { id: 'Closing', label: 'Closing', count: counts.Closing, dot: 'bg-emerald-600' },
+          { id: 'Tidak Berhasil', label: 'Tidak Berhasil', count: counts['Tidak Berhasil'], dot: 'bg-slate-400' },
         ].map((tab) => {
           const isSelected = selectedStatus === tab.id;
           return (
@@ -178,17 +176,17 @@ export const LeadListView: React.FC<LeadListViewProps> = ({
               key={tab.id}
               type="button"
               onClick={() => setSelectedStatus(tab.id)}
-              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer ${
                 isSelected
-                  ? 'bg-[#00A651] text-white shadow-sm'
-                  : 'bg-white text-[#66736B] border border-[#E2E9E4] hover:border-[#00A651]/40 hover:text-[#17221C]'
+                  ? 'bg-emerald-600 text-white shadow-xs'
+                  : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
               }`}
             >
-              <span className={`w-2 h-2 rounded-full ${isSelected ? 'bg-white' : tab.dot}`} />
+              <span className={`w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-white' : tab.dot}`} />
               <span>{tab.label}</span>
               <span
-                className={`text-[11px] px-1.5 py-0.2 rounded-full font-bold ${
-                  isSelected ? 'bg-white/20 text-white' : 'bg-[#F4FBF7] text-[#006B3C] border border-[#E2E9E4]'
+                className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
+                  isSelected ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700'
                 }`}
               >
                 {tab.count}
@@ -199,23 +197,23 @@ export const LeadListView: React.FC<LeadListViewProps> = ({
       </div>
 
       {/* 2. Search & Secondary Filters Bar */}
-      <div className="bg-white border border-[#E2E9E4] rounded-2xl p-4 shadow-sm space-y-3">
-        <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+      <div className="bg-white border border-slate-200 rounded-xl p-3 sm:p-4 shadow-xs space-y-3">
+        <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-2.5">
           {/* Search Box */}
           <div className="relative flex-1">
-            <Search className="w-4 h-4 text-[#66736B] absolute left-3.5 top-1/2 -translate-y-1/2" />
+            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Cari nama, no WA, atau kota..."
-              className="w-full pl-10 pr-8 py-2 bg-[#F7F9F8] border border-[#E2E9E4] rounded-xl text-xs sm:text-sm text-[#17221C] placeholder-[#66736B] focus:outline-none focus:border-[#00A651] focus:bg-white"
+              placeholder="Cari nama, no WhatsApp, atau kota..."
+              className="w-full pl-9 pr-8 py-1.5 bg-white border border-slate-300 rounded-lg text-xs sm:text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/10"
             />
             {search && (
               <button
                 type="button"
                 onClick={() => setSearch('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#66736B] hover:text-[#17221C]"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
@@ -228,7 +226,7 @@ export const LeadListView: React.FC<LeadListViewProps> = ({
             <select
               value={selectedProduct}
               onChange={(e) => setSelectedProduct(e.target.value)}
-              className="bg-[#F7F9F8] border border-[#E2E9E4] rounded-xl px-3 py-2 text-xs font-semibold text-[#17221C] focus:outline-none focus:border-[#00A651] cursor-pointer"
+              className="bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs font-medium text-slate-700 focus:outline-none focus:border-emerald-600 cursor-pointer"
             >
               <option value="all">Semua Produk</option>
               {PRODUCTS_LIST.map((p) => (
@@ -242,7 +240,7 @@ export const LeadListView: React.FC<LeadListViewProps> = ({
             <select
               value={selectedCity}
               onChange={(e) => setSelectedCity(e.target.value)}
-              className="bg-[#F7F9F8] border border-[#E2E9E4] rounded-xl px-3 py-2 text-xs font-semibold text-[#17221C] focus:outline-none focus:border-[#00A651] cursor-pointer"
+              className="bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs font-medium text-slate-700 focus:outline-none focus:border-emerald-600 cursor-pointer"
             >
               <option value="all">Semua Kota</option>
               {CITIES_LIST.map((c) => (
@@ -256,7 +254,7 @@ export const LeadListView: React.FC<LeadListViewProps> = ({
             <select
               value={selectedSource}
               onChange={(e) => setSelectedSource(e.target.value)}
-              className="bg-[#F7F9F8] border border-[#E2E9E4] rounded-xl px-3 py-2 text-xs font-semibold text-[#17221C] focus:outline-none focus:border-[#00A651] cursor-pointer"
+              className="bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs font-medium text-slate-700 focus:outline-none focus:border-emerald-600 cursor-pointer"
             >
               <option value="all">Semua Sumber</option>
               {['WhatsApp', 'Instagram', 'Facebook', 'Website', 'Referral', 'TikTok', 'Marketplace', 'Lainnya'].map((s) => (
@@ -270,11 +268,11 @@ export const LeadListView: React.FC<LeadListViewProps> = ({
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as any)}
-              className="bg-[#F7F9F8] border border-[#E2E9E4] rounded-xl px-3 py-2 text-xs font-semibold text-[#17221C] focus:outline-none focus:border-[#00A651] cursor-pointer"
+              className="bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs font-medium text-slate-700 focus:outline-none focus:border-emerald-600 cursor-pointer"
             >
-              <option value="latest">Terbaru Ditambahkan</option>
-              <option value="value_high">Nilai Deal Tertinggi</option>
-              <option value="value_low">Nilai Deal Terendah</option>
+              <option value="latest">Terbaru</option>
+              <option value="value_high">Nilai Tertinggi</option>
+              <option value="value_low">Nilai Terendah</option>
               <option value="next_followup">Jadwal Terdekat</option>
               <option value="overdue">Terlambat Dahulu</option>
               <option value="name">Nama (A-Z)</option>
@@ -284,7 +282,7 @@ export const LeadListView: React.FC<LeadListViewProps> = ({
               <button
                 type="button"
                 onClick={clearFilters}
-                className="p-2 rounded-xl text-xs font-bold text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+                className="px-2 py-1.5 rounded-lg text-xs font-semibold text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
                 title="Hapus Filter"
               >
                 Reset
@@ -297,10 +295,10 @@ export const LeadListView: React.FC<LeadListViewProps> = ({
             <button
               type="button"
               onClick={() => setShowFiltersMobile(!showFiltersMobile)}
-              className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-xl border text-xs font-semibold ${
+              className={`flex-1 flex items-center justify-center gap-2 py-1.5 px-3 rounded-lg border text-xs font-semibold ${
                 hasActiveFilters
-                  ? 'bg-[#E8F7EF] text-[#006B3C] border-[#00A651]'
-                  : 'bg-[#F7F9F8] text-[#66736B] border-[#E2E9E4]'
+                  ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
+                  : 'bg-slate-50 text-slate-700 border-slate-200'
               }`}
             >
               <SlidersHorizontal className="w-3.5 h-3.5" />
@@ -311,11 +309,11 @@ export const LeadListView: React.FC<LeadListViewProps> = ({
 
         {/* Mobile Filter Options Expandable */}
         {showFiltersMobile && (
-          <div className="pt-3 border-t border-[#E2E9E4] grid grid-cols-2 gap-2 text-xs md:hidden">
+          <div className="pt-2.5 border-t border-slate-100 grid grid-cols-2 gap-2 text-xs md:hidden">
             <select
               value={selectedProduct}
               onChange={(e) => setSelectedProduct(e.target.value)}
-              className="bg-[#F7F9F8] border border-[#E2E9E4] rounded-xl p-2 font-medium"
+              className="bg-white border border-slate-300 rounded-lg p-2 font-medium"
             >
               <option value="all">Semua Produk</option>
               {PRODUCTS_LIST.map((p) => (
@@ -328,7 +326,7 @@ export const LeadListView: React.FC<LeadListViewProps> = ({
             <select
               value={selectedCity}
               onChange={(e) => setSelectedCity(e.target.value)}
-              className="bg-[#F7F9F8] border border-[#E2E9E4] rounded-xl p-2 font-medium"
+              className="bg-white border border-slate-300 rounded-lg p-2 font-medium"
             >
               <option value="all">Semua Kota</option>
               {CITIES_LIST.map((c) => (
@@ -341,11 +339,11 @@ export const LeadListView: React.FC<LeadListViewProps> = ({
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as any)}
-              className="col-span-2 bg-[#F7F9F8] border border-[#E2E9E4] rounded-xl p-2 font-medium"
+              className="col-span-2 bg-white border border-slate-300 rounded-lg p-2 font-medium"
             >
               <option value="latest">Terbaru Ditambahkan</option>
-              <option value="value_high">Nilai Deal Tertinggi</option>
-              <option value="value_low">Nilai Deal Terendah</option>
+              <option value="value_high">Nilai Tertinggi</option>
+              <option value="value_low">Nilai Terendah</option>
               <option value="next_followup">Jadwal Terdekat</option>
               <option value="name">Nama (A-Z)</option>
             </select>
@@ -355,7 +353,7 @@ export const LeadListView: React.FC<LeadListViewProps> = ({
 
       {/* 3. Data Representation */}
       {filteredLeads.length === 0 ? (
-        <div className="bg-white border border-[#E2E9E4] rounded-2xl p-8 shadow-sm">
+        <div className="bg-white border border-slate-200 rounded-xl p-8 shadow-xs">
           <EmptyState
             title="Belum ada lead yang cocok"
             description="Coba ubah kata kunci pencarian atau sesuaikan filter status."
@@ -366,20 +364,20 @@ export const LeadListView: React.FC<LeadListViewProps> = ({
       ) : (
         <>
           {/* Desktop Table View */}
-          <div className="hidden lg:block bg-white border border-[#E2E9E4] rounded-2xl shadow-sm overflow-hidden">
+          <div className="hidden lg:block bg-white border border-slate-200 rounded-xl shadow-xs overflow-hidden">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-[#F7F9F8] border-b border-[#E2E9E4] text-[11px] font-bold text-[#66736B] uppercase tracking-wider">
-                  <th className="py-3.5 px-4">Calon Pelanggan</th>
-                  <th className="py-3.5 px-4">Nilai Deal</th>
-                  <th className="py-3.5 px-4">Kontak & Kota</th>
-                  <th className="py-3.5 px-4">Produk & Sumber</th>
-                  <th className="py-3.5 px-4">Status Prospek</th>
-                  <th className="py-3.5 px-4">Jadwal Follow Up</th>
-                  <th className="py-3.5 px-4 text-right">Aksi</th>
+                <tr className="bg-slate-50 border-b border-slate-200 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+                  <th className="py-3 px-4">Calon Pelanggan</th>
+                  <th className="py-3 px-4">Nilai Potensi</th>
+                  <th className="py-3 px-4">Kontak & Kota</th>
+                  <th className="py-3 px-4">Produk & Sumber</th>
+                  <th className="py-3 px-4">Status</th>
+                  <th className="py-3 px-4">Jadwal Follow Up</th>
+                  <th className="py-3 px-4 text-right">Aksi</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#E2E9E4] text-xs">
+              <tbody className="divide-y divide-slate-100 text-xs">
                 {filteredLeads.map((lead) => {
                   const waUrl = generateWhatsAppUrl(lead.phone, lead.name, lead.product);
                   const isToday = isDateToday(lead.nextFollowUpDate);
@@ -389,29 +387,29 @@ export const LeadListView: React.FC<LeadListViewProps> = ({
                   return (
                     <tr
                       key={lead.id}
-                      className="hover:bg-[#F4FBF7] transition-colors group cursor-pointer"
+                      className="hover:bg-slate-50/70 transition-colors group cursor-pointer"
                       onClick={() => onSelectLead(lead)}
                     >
                       {/* Calon Pelanggan */}
                       <td className="py-3.5 px-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 rounded-xl bg-[#E8F7EF] text-[#006B3C] border border-[#A7F3D0] flex items-center justify-center font-bold text-xs shrink-0">
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-8 h-8 rounded-lg bg-slate-100 text-slate-700 border border-slate-200 flex items-center justify-center font-bold text-xs shrink-0">
                             {initials}
                           </div>
                           <div>
-                            <span className="font-bold text-sm text-[#17221C] group-hover:text-[#006B3C] transition-colors block">
+                            <span className="font-semibold text-sm text-slate-900 group-hover:text-emerald-700 transition-colors block">
                               {lead.name}
                             </span>
-                            <span className="text-[11px] text-[#66736B]">
+                            <span className="text-[11px] text-slate-500">
                               Masuk: {formatIndonesianDate(lead.createdAt)}
                             </span>
                           </div>
                         </div>
                       </td>
 
-                      {/* Nilai Deal */}
+                      {/* Nilai Potensi */}
                       <td className="py-3.5 px-4">
-                        <span className="font-extrabold text-sm text-[#006B3C] bg-[#E8F7EF] px-2.5 py-1 rounded-lg border border-[#A7F3D0]/60 inline-block font-mono">
+                        <span className="font-bold text-sm text-slate-900 font-mono">
                           {formatRupiah(lead.value)}
                         </span>
                       </td>
@@ -419,11 +417,11 @@ export const LeadListView: React.FC<LeadListViewProps> = ({
                       {/* Kontak & Kota */}
                       <td className="py-3.5 px-4">
                         <div className="space-y-0.5">
-                          <span className="font-mono text-[#17221C] font-semibold block">
+                          <span className="font-mono text-slate-900 font-medium block">
                             {formatDisplayPhone(lead.phone)}
                           </span>
-                          <span className="text-[#66736B] flex items-center gap-1">
-                            <MapPin className="w-3 h-3 text-[#00A651]" /> {lead.city}
+                          <span className="text-slate-500 flex items-center gap-1 text-[11px]">
+                            <MapPin className="w-3 h-3 text-slate-400" /> {lead.city}
                           </span>
                         </div>
                       </td>
@@ -431,7 +429,7 @@ export const LeadListView: React.FC<LeadListViewProps> = ({
                       {/* Produk & Sumber */}
                       <td className="py-3.5 px-4">
                         <div className="space-y-1">
-                          <span className="font-semibold text-[#17221C] block">
+                          <span className="font-medium text-slate-800 block truncate max-w-[180px]">
                             {lead.product.split('—')[0].trim()}
                           </span>
                           <SourceBadge source={lead.source} size="sm" />
@@ -440,37 +438,35 @@ export const LeadListView: React.FC<LeadListViewProps> = ({
 
                       {/* Status */}
                       <td className="py-3.5 px-4" onClick={(e) => e.stopPropagation()}>
-                        <div className="flex items-center gap-1.5">
-                          <StatusBadge status={lead.status} size="sm" />
-                        </div>
+                        <StatusBadge status={lead.status} size="sm" />
                       </td>
 
                       {/* Jadwal Follow Up */}
                       <td className="py-3.5 px-4">
                         {lead.status === 'Closing' ? (
-                          <span className="text-[11px] font-bold text-[#006B3C] flex items-center gap-1">
+                          <span className="text-[11px] font-semibold text-emerald-700 flex items-center gap-1">
                             <CheckCircle2 className="w-3.5 h-3.5" /> Closing Deal
                           </span>
                         ) : lead.status === 'Tidak Berhasil' ? (
-                          <span className="text-[11px] text-slate-500 font-medium">
-                            Selesai (Tidak Lanjut)
+                          <span className="text-[11px] text-slate-400 font-medium">
+                            Selesai
                           </span>
                         ) : (
                           <div className="space-y-0.5">
                             <span
-                              className={`font-bold flex items-center gap-1 ${
+                              className={`font-semibold flex items-center gap-1 ${
                                 isOver
-                                   ? 'text-rose-600'
+                                  ? 'text-rose-600'
                                   : isToday
                                   ? 'text-amber-800'
-                                  : 'text-[#17221C]'
+                                  : 'text-slate-800'
                               }`}
                             >
                               <CalendarClock className="w-3.5 h-3.5" />
                               {formatIndonesianDate(lead.nextFollowUpDate)}
                             </span>
-                            <span className="text-[11px] text-[#66736B]">
-                              Pukul {lead.nextFollowUpTime || '10:00'}
+                            <span className="text-[11px] text-slate-500">
+                              {lead.nextFollowUpTime || '10:00'}
                             </span>
                           </div>
                         )}
@@ -478,12 +474,12 @@ export const LeadListView: React.FC<LeadListViewProps> = ({
 
                       {/* Actions */}
                       <td className="py-3.5 px-4 text-right" onClick={(e) => e.stopPropagation()}>
-                        <div className="flex items-center justify-end gap-2">
+                        <div className="flex items-center justify-end gap-1.5">
                           <a
                             href={waUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1.5 py-1.5 px-3 rounded-xl bg-[#00A651] hover:bg-[#006B3C] text-white font-bold transition-all shadow-xs active:scale-95"
+                            className="inline-flex items-center gap-1 py-1 px-2.5 rounded-md bg-emerald-600 hover:bg-emerald-700 text-white font-semibold transition-colors shadow-2xs active:scale-95 text-xs"
                           >
                             <MessageCircle className="w-3.5 h-3.5" />
                             <span>WA</span>
@@ -491,7 +487,7 @@ export const LeadListView: React.FC<LeadListViewProps> = ({
                           <button
                             type="button"
                             onClick={() => onSelectLead(lead)}
-                            className="inline-flex items-center gap-1 p-1.5 rounded-xl text-[#66736B] hover:text-[#006B3C] hover:bg-[#E8F7EF] transition-colors cursor-pointer"
+                            className="inline-flex items-center p-1 rounded-md text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
                           >
                             <ChevronRight className="w-4 h-4" />
                           </button>
@@ -514,19 +510,19 @@ export const LeadListView: React.FC<LeadListViewProps> = ({
                 <div
                   key={lead.id}
                   onClick={() => onSelectLead(lead)}
-                  className="p-4 rounded-2xl bg-white border border-[#E2E9E4] hover:border-[#00A651]/50 shadow-sm space-y-3 cursor-pointer transition-all active:scale-[0.99]"
+                  className="p-4 rounded-xl bg-white border border-slate-200 hover:border-slate-300 shadow-xs space-y-3 cursor-pointer transition-all active:scale-[0.99]"
                 >
                   {/* Card Header */}
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex items-center gap-2.5 min-w-0">
-                      <div className="w-10 h-10 rounded-xl bg-[#E8F7EF] text-[#006B3C] border border-[#A7F3D0] flex items-center justify-center font-bold text-xs shrink-0">
+                      <div className="w-9 h-9 rounded-lg bg-slate-100 text-slate-700 border border-slate-200 flex items-center justify-center font-bold text-xs shrink-0">
                         {initials}
                       </div>
                       <div className="min-w-0">
-                        <h4 className="font-bold text-sm text-[#17221C] truncate">
+                        <h4 className="font-bold text-sm text-slate-900 truncate">
                           {lead.name}
                         </h4>
-                        <span className="text-xs font-mono text-[#66736B]">
+                        <span className="text-xs font-mono text-slate-500">
                           {formatDisplayPhone(lead.phone)}
                         </span>
                       </div>
@@ -535,28 +531,28 @@ export const LeadListView: React.FC<LeadListViewProps> = ({
                   </div>
 
                   {/* Card Body Info */}
-                  <div className="grid grid-cols-2 gap-2 text-xs py-2 border-y border-[#E2E9E4]/60">
+                  <div className="grid grid-cols-2 gap-2 text-xs py-2 border-y border-slate-100">
                     <div>
-                      <span className="text-[10px] text-[#66736B] block">Nilai Deal</span>
-                      <span className="font-bold text-[#006B3C] font-mono">
+                      <span className="text-[10px] text-slate-500 block">Nilai Potensi</span>
+                      <span className="font-bold text-slate-900 font-mono">
                         {formatRupiah(lead.value)}
                       </span>
                     </div>
                     <div>
-                      <span className="text-[10px] text-[#66736B] block">Produk / Kota</span>
-                      <span className="font-semibold text-[#17221C] truncate block">
+                      <span className="text-[10px] text-slate-500 block">Produk / Kota</span>
+                      <span className="font-medium text-slate-800 truncate block">
                         {lead.product.split('—')[0].trim()} • {lead.city}
                       </span>
                     </div>
                   </div>
 
                   {/* Card Actions */}
-                  <div className="flex items-center gap-2 pt-1" onClick={(e) => e.stopPropagation()}>
+                  <div className="flex items-center gap-2 pt-0.5" onClick={(e) => e.stopPropagation()}>
                     <a
                       href={waUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex-1 inline-flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-[#00A651] hover:bg-[#006B3C] text-white text-xs font-bold transition-all shadow-xs"
+                      className="flex-1 inline-flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold transition-colors shadow-2xs"
                     >
                       <MessageCircle className="w-3.5 h-3.5" />
                       <span>Chat WhatsApp</span>
@@ -564,7 +560,7 @@ export const LeadListView: React.FC<LeadListViewProps> = ({
                     <button
                       type="button"
                       onClick={() => onSelectLead(lead)}
-                      className="inline-flex items-center justify-center p-2 rounded-xl bg-[#F7F9F8] border border-[#E2E9E4] text-[#17221C] text-xs font-bold hover:bg-[#E8F7EF] hover:text-[#006B3C] cursor-pointer"
+                      className="inline-flex items-center justify-center p-1.5 rounded-lg bg-slate-100 border border-slate-200 text-slate-700 text-xs font-semibold hover:bg-slate-200 cursor-pointer"
                     >
                       <ChevronRight className="w-4 h-4" />
                     </button>

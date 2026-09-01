@@ -6,10 +6,10 @@ import {
   Users, 
   Plus, 
   CalendarClock, 
-  BarChart3,
-  Building2,
-  ShieldCheck,
-  Award
+  BarChart3, 
+  Building2, 
+  ShieldCheck, 
+  Award 
 } from 'lucide-react';
 import { ActiveTab, DemoRole } from '../../types';
 
@@ -29,18 +29,18 @@ export const BottomNav: React.FC<BottomNavProps> = ({
   currentRole = 'sales',
 }) => {
   return (
-    <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-lg border-t border-[#E2E9E4] px-2 py-1.5 pb-safe shadow-lg">
+    <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 px-2 py-1.5 pb-safe shadow-md">
       <div className="flex items-center justify-around relative">
         {/* Tab 1: Dashboard */}
         <button
           type="button"
           onClick={() => setActiveTab('dashboard')}
-          className={`flex flex-col items-center justify-center w-14 min-h-[44px] py-1 rounded-xl transition-colors ${
-            activeTab === 'dashboard' ? 'text-[#00A651] font-bold' : 'text-[#66736B] hover:text-[#17221C]'
+          className={`flex flex-col items-center justify-center w-14 min-h-[44px] py-1 rounded-lg transition-colors cursor-pointer ${
+            activeTab === 'dashboard' ? 'text-emerald-700 font-bold' : 'text-slate-500 hover:text-slate-900'
           }`}
         >
           <LayoutDashboard className="w-5 h-5" />
-          <span className="text-[10px] font-semibold mt-1">Dashboard</span>
+          <span className="text-[10px] font-semibold mt-0.5">Dashboard</span>
         </button>
 
         {/* Tab 2: Leads / Branches / Users */}
@@ -51,10 +51,10 @@ export const BottomNav: React.FC<BottomNavProps> = ({
             else if (currentRole === 'manager') setActiveTab('branches');
             else setActiveTab('leads');
           }}
-          className={`flex flex-col items-center justify-center w-14 min-h-[44px] py-1 rounded-xl transition-colors ${
+          className={`flex flex-col items-center justify-center w-14 min-h-[44px] py-1 rounded-lg transition-colors cursor-pointer ${
             activeTab === 'leads' || activeTab === 'branches' || activeTab === 'users' 
-              ? 'text-[#00A651] font-bold' 
-              : 'text-[#66736B] hover:text-[#17221C]'
+              ? 'text-emerald-700 font-bold' 
+              : 'text-slate-500 hover:text-slate-900'
           }`}
         >
           {currentRole === 'admin' ? (
@@ -64,18 +64,18 @@ export const BottomNav: React.FC<BottomNavProps> = ({
           ) : (
             <Users className="w-5 h-5" />
           )}
-          <span className="text-[10px] font-semibold mt-1 truncate max-w-[50px]">
+          <span className="text-[10px] font-semibold mt-0.5 truncate max-w-[50px]">
             {currentRole === 'admin' ? 'Users' : currentRole === 'manager' ? 'Cabang' : 'Leads'}
           </span>
         </button>
 
-        {/* Center Big Action / Portal Button */}
-        <div className="relative -top-5">
+        {/* Center Big Action Button */}
+        <div className="relative -top-4">
           {currentRole === 'sales' || currentRole === 'supervisor' ? (
             <button
               type="button"
               onClick={onOpenAddLead}
-              className="w-13 h-13 min-h-[48px] min-w-[48px] rounded-full bg-[#00A651] hover:bg-[#006B3C] flex items-center justify-center text-white shadow-md active:scale-95 transition-all border-4 border-[#F7F9F8] cursor-pointer"
+              className="w-12 h-12 min-h-[48px] min-w-[48px] rounded-full bg-emerald-600 hover:bg-emerald-700 flex items-center justify-center text-white shadow-md active:scale-95 transition-all border-4 border-slate-50 cursor-pointer"
               aria-label="Tambah Lead Baru"
             >
               <Plus className="w-6 h-6 stroke-[2.5]" />
@@ -84,10 +84,10 @@ export const BottomNav: React.FC<BottomNavProps> = ({
             <button
               type="button"
               onClick={() => setActiveTab('dashboard')}
-              className="w-13 h-13 min-h-[48px] min-w-[48px] rounded-full bg-[#006B3C] flex items-center justify-center text-white shadow-md active:scale-95 transition-all border-4 border-[#F7F9F8] cursor-pointer"
+              className="w-12 h-12 min-h-[48px] min-w-[48px] rounded-full bg-slate-900 flex items-center justify-center text-white shadow-md active:scale-95 transition-all border-4 border-slate-50 cursor-pointer"
               aria-label="Overview"
             >
-              <Building2 className="w-6 h-6" />
+              <Building2 className="w-5 h-5 text-emerald-300" />
             </button>
           )}
         </div>
@@ -101,30 +101,28 @@ export const BottomNav: React.FC<BottomNavProps> = ({
             else if (currentRole === 'supervisor') setActiveTab('team_performance');
             else setActiveTab('followup');
           }}
-          className={`flex flex-col items-center justify-center w-14 min-h-[44px] py-1 rounded-xl transition-colors relative ${
+          className={`relative flex flex-col items-center justify-center w-14 min-h-[44px] py-1 rounded-lg transition-colors cursor-pointer ${
             activeTab === 'followup' || activeTab === 'team_performance' || activeTab === 'teams' || activeTab === 'audit_log'
-              ? 'text-[#00A651] font-bold' 
-              : 'text-[#66736B] hover:text-[#17221C]'
+              ? 'text-emerald-700 font-bold' 
+              : 'text-slate-500 hover:text-slate-900'
           }`}
         >
-          <div className="relative">
-            {currentRole === 'supervisor' ? (
-              <Award className="w-5 h-5" />
-            ) : currentRole === 'manager' ? (
-              <Users className="w-5 h-5" />
-            ) : currentRole === 'admin' ? (
-              <ShieldCheck className="w-5 h-5" />
-            ) : (
-              <CalendarClock className="w-5 h-5" />
-            )}
-            {followUpCount > 0 && currentRole === 'sales' && (
-              <span className="absolute -top-1.5 -right-2.5 bg-rose-500 text-white text-[9px] font-bold px-1.5 py-0.2 rounded-full min-w-[16px] text-center shadow-xs">
-                {followUpCount}
-              </span>
-            )}
-          </div>
-          <span className="text-[10px] font-semibold mt-1 truncate max-w-[50px]">
-            {currentRole === 'supervisor' ? 'Kinerja' : currentRole === 'manager' ? 'Teams' : currentRole === 'admin' ? 'Audit' : 'Follow Up'}
+          {currentRole === 'admin' ? (
+            <ShieldCheck className="w-5 h-5" />
+          ) : currentRole === 'supervisor' || currentRole === 'manager' ? (
+            <Award className="w-5 h-5" />
+          ) : (
+            <CalendarClock className="w-5 h-5" />
+          )}
+
+          {followUpCount > 0 && currentRole === 'sales' && (
+            <span className="absolute top-0 right-2 w-4 h-4 bg-rose-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center">
+              {followUpCount > 9 ? '9+' : followUpCount}
+            </span>
+          )}
+
+          <span className="text-[10px] font-semibold mt-0.5 truncate max-w-[50px]">
+            {currentRole === 'admin' ? 'Audit' : currentRole === 'supervisor' ? 'Kinerja' : currentRole === 'manager' ? 'Tim' : 'Follow Up'}
           </span>
         </button>
 
@@ -135,12 +133,14 @@ export const BottomNav: React.FC<BottomNavProps> = ({
             if (currentRole === 'admin') setActiveTab('settings');
             else setActiveTab('reports');
           }}
-          className={`flex flex-col items-center justify-center w-14 min-h-[44px] py-1 rounded-xl transition-colors ${
-            activeTab === 'reports' || activeTab === 'settings' ? 'text-[#00A651] font-bold' : 'text-[#66736B] hover:text-[#17221C]'
+          className={`flex flex-col items-center justify-center w-14 min-h-[44px] py-1 rounded-lg transition-colors cursor-pointer ${
+            activeTab === 'reports' || activeTab === 'settings' 
+              ? 'text-emerald-700 font-bold' 
+              : 'text-slate-500 hover:text-slate-900'
           }`}
         >
           <BarChart3 className="w-5 h-5" />
-          <span className="text-[10px] font-semibold mt-1">
+          <span className="text-[10px] font-semibold mt-0.5">
             {currentRole === 'admin' ? 'Setting' : 'Laporan'}
           </span>
         </button>

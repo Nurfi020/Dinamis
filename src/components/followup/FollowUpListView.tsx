@@ -9,13 +9,11 @@ import {
   MessageCircle, 
   ChevronRight, 
   CheckCircle2, 
-  Phone,
   Plus,
   Check
 } from 'lucide-react';
-import { Lead, LeadStatus } from '../../types';
+import { Lead } from '../../types';
 import { StatusBadge } from '../common/StatusBadge';
-import { SourceBadge } from '../common/SourceBadge';
 import { 
   formatIndonesianDate, 
   formatDisplayPhone, 
@@ -63,35 +61,35 @@ export const FollowUpListView: React.FC<FollowUpListViewProps> = ({
     return (
       <div
         key={lead.id}
-        className={`bg-white border rounded-2xl p-4 sm:p-5 transition-all duration-200 shadow-sm hover:shadow-md ${
+        className={`bg-white border rounded-xl p-4 transition-all duration-150 shadow-xs ${
           isOverdue
-            ? 'border-rose-300 bg-rose-50/30'
+            ? 'border-rose-200 bg-rose-50/20'
             : isToday
-            ? 'border-amber-300 bg-amber-50/30'
-            : 'border-[#E2E9E4] hover:border-[#00A651]/40'
+            ? 'border-amber-200 bg-amber-50/20'
+            : 'border-slate-200 hover:border-slate-300'
         }`}
       >
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           {/* Lead identity & info */}
           <div
             onClick={() => onSelectLead(lead)}
-            className="flex items-start gap-3.5 cursor-pointer flex-1 min-w-0"
+            className="flex items-start gap-3 cursor-pointer flex-1 min-w-0"
           >
-            <div className="w-11 h-11 rounded-xl bg-[#E8F7EF] text-[#006B3C] border border-[#A7F3D0] flex items-center justify-center font-bold text-sm shrink-0 mt-0.5">
+            <div className="w-10 h-10 rounded-lg bg-slate-100 text-slate-700 border border-slate-200 flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">
               {initials}
             </div>
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2">
-                <h4 className="font-bold text-base text-[#17221C] hover:text-[#006B3C] transition-colors truncate">
+                <h4 className="font-semibold text-sm text-slate-900 hover:text-emerald-700 transition-colors truncate">
                   {lead.name}
                 </h4>
                 <StatusBadge status={lead.status} size="sm" />
               </div>
-              <p className="text-xs text-[#66736B] mt-0.5">
+              <p className="text-xs text-slate-500 mt-0.5">
                 {lead.product.split('—')[0].trim()} • {lead.city} • <span className="font-mono">{formatDisplayPhone(lead.phone)}</span>
               </p>
               {lead.initialNotes && (
-                <p className="text-xs text-[#66736B] italic mt-1 line-clamp-1 bg-[#F7F9F8] px-2 py-0.5 rounded-lg inline-block border border-[#E2E9E4]">
+                <p className="text-xs text-slate-600 italic mt-1 line-clamp-1 bg-slate-50 px-2 py-0.5 rounded border border-slate-200 inline-block">
                   &quot;{lead.initialNotes}&quot;
                 </p>
               )}
@@ -99,45 +97,45 @@ export const FollowUpListView: React.FC<FollowUpListViewProps> = ({
           </div>
 
           {/* Next follow-up info & action buttons */}
-          <div className="flex flex-wrap items-center justify-between sm:justify-end gap-2.5 pt-3 sm:pt-0 border-t sm:border-t-0 border-[#E2E9E4] shrink-0">
+          <div className="flex flex-wrap items-center justify-between sm:justify-end gap-2 pt-2.5 sm:pt-0 border-t sm:border-t-0 border-slate-100 shrink-0">
             <div className="text-left sm:text-right">
               <div
                 className={`text-xs font-bold ${
-                  isOverdue ? 'text-rose-600' : isToday ? 'text-amber-800' : 'text-[#17221C]'
+                  isOverdue ? 'text-rose-600' : isToday ? 'text-amber-800' : 'text-slate-800'
                 }`}
               >
                 {formatIndonesianDate(lead.nextFollowUpDate)}
               </div>
-              <div className="text-[11px] font-mono text-[#66736B]">
+              <div className="text-[11px] font-mono text-slate-500">
                 {lead.nextFollowUpTime || '10:00'} WIB
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5">
               <a
                 href={waUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[#E8F7EF] hover:bg-[#00A651] text-[#006B3C] hover:text-white border border-[#A7F3D0] text-xs font-bold transition-all shadow-xs"
+                className="inline-flex items-center gap-1 py-1.5 px-3 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs transition-colors shadow-2xs"
                 title="Chat WhatsApp"
               >
-                <MessageCircle className="w-4 h-4" />
+                <MessageCircle className="w-3.5 h-3.5" />
                 <span>WhatsApp</span>
               </a>
 
               <button
                 type="button"
                 onClick={() => onOpenLogFollowUp(lead)}
-                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#00A651] hover:bg-[#006B3C] text-white font-bold text-xs transition-all shadow-xs cursor-pointer active:scale-95"
+                className="inline-flex items-center gap-1 py-1.5 px-3 rounded-lg bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 font-semibold text-xs transition-colors cursor-pointer active:scale-95 shadow-2xs"
               >
-                <Check className="w-3.5 h-3.5" />
-                <span>Sudah Follow Up</span>
+                <Check className="w-3.5 h-3.5 text-emerald-600" />
+                <span>Selesai</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => onSelectLead(lead)}
-                className="p-2 rounded-xl bg-white hover:bg-slate-100 text-[#66736B] hover:text-[#17221C] border border-[#E2E9E4] transition-colors cursor-pointer"
+                className="p-1.5 rounded-lg bg-slate-50 hover:bg-slate-100 text-slate-500 hover:text-slate-900 border border-slate-200 transition-colors cursor-pointer"
                 title="Lihat Detail"
               >
                 <ChevronRight className="w-4 h-4" />
@@ -150,21 +148,21 @@ export const FollowUpListView: React.FC<FollowUpListViewProps> = ({
   };
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto pb-24 md:pb-12">
+    <div className="space-y-5 max-w-7xl mx-auto pb-24 md:pb-12">
       {/* Header section */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h2 className="text-xl sm:text-2xl font-bold text-[#17221C] tracking-tight">
+          <h2 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
             Jadwal Follow Up Calon Pelanggan
           </h2>
-          <p className="text-xs sm:text-sm text-[#66736B] mt-0.5">
-            Siapa yang harus Anda hubungi hari ini? Pantau prioritas prospek Anda.
+          <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
+            Pantau prioritas follow up prospek Anda hari ini.
           </p>
         </div>
         <button
           type="button"
           onClick={onOpenAddLead}
-          className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#00A651] hover:bg-[#006B3C] text-white text-sm font-bold shadow-sm active:scale-95 transition-all cursor-pointer"
+          className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-xs active:scale-95 transition-all cursor-pointer"
         >
           <Plus className="w-4 h-4" />
           <span>+ Tambah Lead Baru</span>
@@ -172,96 +170,96 @@ export const FollowUpListView: React.FC<FollowUpListViewProps> = ({
       </div>
 
       {/* Top Filter summary tabs */}
-      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5">
         <button
           type="button"
           onClick={() => setActiveGroup('all')}
-          className={`p-3.5 rounded-2xl border text-left transition-all cursor-pointer ${
+          className={`p-3 rounded-xl border text-left transition-colors cursor-pointer ${
             activeGroup === 'all'
-              ? 'bg-[#E8F7EF] border-[#00A651] shadow-xs'
-              : 'bg-white border-[#E2E9E4] hover:border-[#00A651]/40'
+              ? 'bg-emerald-50 border-emerald-300 shadow-2xs'
+              : 'bg-white border-slate-200 hover:bg-slate-50'
           }`}
         >
-          <div className="text-xs font-semibold text-[#66736B]">Semua Jadwal</div>
-          <div className="text-2xl font-bold text-[#17221C] mt-1">{activeFollowUps.length}</div>
+          <div className="text-xs font-semibold text-slate-500">Semua Jadwal</div>
+          <div className="text-xl font-bold text-slate-900 mt-0.5">{activeFollowUps.length}</div>
         </button>
 
         <button
           type="button"
           onClick={() => setActiveGroup('today')}
-          className={`p-3.5 rounded-2xl border text-left transition-all cursor-pointer ${
+          className={`p-3 rounded-xl border text-left transition-colors cursor-pointer ${
             activeGroup === 'today'
-              ? 'bg-amber-50 border-amber-400 shadow-xs'
-              : 'bg-white border-[#E2E9E4] hover:border-amber-400'
+              ? 'bg-amber-50 border-amber-300 shadow-2xs'
+              : 'bg-white border-slate-200 hover:bg-slate-50'
           }`}
         >
-          <div className="text-xs font-bold text-amber-800 flex items-center gap-1.5">
+          <div className="text-xs font-semibold text-amber-800 flex items-center gap-1.5">
             <Clock className="w-3.5 h-3.5 text-amber-600" />
             <span>Hari Ini</span>
           </div>
-          <div className="text-2xl font-bold text-amber-800 mt-1">{todayLeads.length}</div>
+          <div className="text-xl font-bold text-amber-900 mt-0.5">{todayLeads.length}</div>
         </button>
 
         <button
           type="button"
           onClick={() => setActiveGroup('overdue')}
-          className={`p-3.5 rounded-2xl border text-left transition-all cursor-pointer ${
+          className={`p-3 rounded-xl border text-left transition-colors cursor-pointer ${
             activeGroup === 'overdue'
-              ? 'bg-rose-50 border-rose-400 shadow-xs'
-              : 'bg-white border-[#E2E9E4] hover:border-rose-400'
+              ? 'bg-rose-50 border-rose-300 shadow-2xs'
+              : 'bg-white border-slate-200 hover:bg-slate-50'
           }`}
         >
-          <div className="text-xs font-bold text-rose-700 flex items-center gap-1.5">
+          <div className="text-xs font-semibold text-rose-700 flex items-center gap-1.5">
             <AlertCircle className="w-3.5 h-3.5 text-rose-500" />
             <span>Terlambat</span>
           </div>
-          <div className="text-2xl font-bold text-rose-700 mt-1">{overdueLeads.length}</div>
+          <div className="text-xl font-bold text-rose-800 mt-0.5">{overdueLeads.length}</div>
         </button>
 
         <button
           type="button"
           onClick={() => setActiveGroup('tomorrow')}
-          className={`p-3.5 rounded-2xl border text-left transition-all cursor-pointer ${
+          className={`p-3 rounded-xl border text-left transition-colors cursor-pointer ${
             activeGroup === 'tomorrow'
-              ? 'bg-[#E8F7EF] border-[#00A651] shadow-xs'
-              : 'bg-white border-[#E2E9E4] hover:border-[#00A651]/40'
+              ? 'bg-emerald-50 border-emerald-300 shadow-2xs'
+              : 'bg-white border-slate-200 hover:bg-slate-50'
           }`}
         >
-          <div className="text-xs font-bold text-[#006B3C] flex items-center gap-1.5">
-            <Calendar className="w-3.5 h-3.5 text-[#00A651]" />
+          <div className="text-xs font-semibold text-emerald-800 flex items-center gap-1.5">
+            <Calendar className="w-3.5 h-3.5 text-emerald-600" />
             <span>Besok</span>
           </div>
-          <div className="text-2xl font-bold text-[#006B3C] mt-1">{tomorrowLeads.length}</div>
+          <div className="text-xl font-bold text-emerald-900 mt-0.5">{tomorrowLeads.length}</div>
         </button>
 
         <button
           type="button"
           onClick={() => setActiveGroup('upcoming')}
-          className={`col-span-2 sm:col-span-1 p-3.5 rounded-2xl border text-left transition-all cursor-pointer ${
+          className={`col-span-2 sm:col-span-1 p-3 rounded-xl border text-left transition-colors cursor-pointer ${
             activeGroup === 'upcoming'
-              ? 'bg-emerald-50 border-emerald-400 shadow-xs'
-              : 'bg-white border-[#E2E9E4] hover:border-emerald-400'
+              ? 'bg-emerald-50 border-emerald-300 shadow-2xs'
+              : 'bg-white border-slate-200 hover:bg-slate-50'
           }`}
         >
-          <div className="text-xs font-bold text-emerald-800 flex items-center gap-1.5">
-            <CalendarClock className="w-3.5 h-3.5 text-emerald-600" />
+          <div className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
+            <CalendarClock className="w-3.5 h-3.5 text-slate-500" />
             <span>Minggu Ini</span>
           </div>
-          <div className="text-2xl font-bold text-emerald-800 mt-1">{upcomingLeads.length}</div>
+          <div className="text-xl font-bold text-slate-900 mt-0.5">{upcomingLeads.length}</div>
         </button>
       </div>
 
       {/* 1. Hari Ini Section (Utama) */}
       {(activeGroup === 'all' || activeGroup === 'today') && todayLeads.length > 0 && (
-        <div className="space-y-3">
+        <div className="space-y-2.5">
           <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-ping" />
-            <h3 className="text-base font-bold text-amber-800">
+            <span className="w-2 h-2 rounded-full bg-amber-500" />
+            <h3 className="text-sm font-bold text-slate-900">
               Hari Ini ({todayLeads.length})
             </h3>
-            <span className="text-xs text-[#66736B]">— Wajib dihubungi hari ini</span>
+            <span className="text-xs text-slate-500">— Prioritas follow up hari ini</span>
           </div>
-          <div className="space-y-3">
+          <div className="space-y-2.5">
             {todayLeads.map((lead) => renderLeadCard(lead, false, true))}
           </div>
         </div>
@@ -269,15 +267,15 @@ export const FollowUpListView: React.FC<FollowUpListViewProps> = ({
 
       {/* 2. Terlambat Section */}
       {(activeGroup === 'all' || activeGroup === 'overdue') && overdueLeads.length > 0 && (
-        <div className="space-y-3">
+        <div className="space-y-2.5">
           <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-rose-500" />
-            <h3 className="text-base font-bold text-rose-700">
+            <span className="w-2 h-2 rounded-full bg-rose-500" />
+            <h3 className="text-sm font-bold text-rose-800">
               Terlambat ({overdueLeads.length})
             </h3>
-            <span className="text-xs text-[#66736B]">— Melewati tanggal jadwal yang ditentukan</span>
+            <span className="text-xs text-slate-500">— Melewati tanggal jadwal yang ditentukan</span>
           </div>
-          <div className="space-y-3">
+          <div className="space-y-2.5">
             {overdueLeads.map((lead) => renderLeadCard(lead, true, false))}
           </div>
         </div>
@@ -285,15 +283,15 @@ export const FollowUpListView: React.FC<FollowUpListViewProps> = ({
 
       {/* 3. Besok Section */}
       {(activeGroup === 'all' || activeGroup === 'tomorrow') && tomorrowLeads.length > 0 && (
-        <div className="space-y-3">
+        <div className="space-y-2.5">
           <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-[#00A651]" />
-            <h3 className="text-base font-bold text-[#006B3C]">
+            <span className="w-2 h-2 rounded-full bg-emerald-500" />
+            <h3 className="text-sm font-bold text-slate-900">
               Besok ({tomorrowLeads.length})
             </h3>
-            <span className="text-xs text-[#66736B]">— Jadwal follow up untuk esok hari</span>
+            <span className="text-xs text-slate-500">— Jadwal follow up untuk esok hari</span>
           </div>
-          <div className="space-y-3">
+          <div className="space-y-2.5">
             {tomorrowLeads.map((lead) => renderLeadCard(lead, false, false))}
           </div>
         </div>
@@ -301,15 +299,15 @@ export const FollowUpListView: React.FC<FollowUpListViewProps> = ({
 
       {/* 4. Minggu Ini / Mendatang Section */}
       {(activeGroup === 'all' || activeGroup === 'upcoming') && upcomingLeads.length > 0 && (
-        <div className="space-y-3">
+        <div className="space-y-2.5">
           <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
-            <h3 className="text-base font-bold text-emerald-800">
+            <span className="w-2 h-2 rounded-full bg-slate-400" />
+            <h3 className="text-sm font-bold text-slate-900">
               Mendatang / Minggu Ini ({upcomingLeads.length})
             </h3>
-            <span className="text-xs text-[#66736B]">— Jadwal beberapa hari ke depan</span>
+            <span className="text-xs text-slate-500">— Jadwal beberapa hari ke depan</span>
           </div>
-          <div className="space-y-3">
+          <div className="space-y-2.5">
             {upcomingLeads.map((lead) => renderLeadCard(lead, false, false))}
           </div>
         </div>
@@ -317,49 +315,49 @@ export const FollowUpListView: React.FC<FollowUpListViewProps> = ({
 
       {/* Empty States for specific tabs */}
       {activeGroup === 'today' && todayLeads.length === 0 && (
-        <div className="bg-white border border-[#E2E9E4] rounded-2xl p-8 text-center shadow-sm">
-          <Clock className="w-8 h-8 text-amber-500 mx-auto mb-2" />
-          <h4 className="text-sm font-bold text-[#17221C] mb-1">Tidak ada follow up untuk hari ini</h4>
-          <p className="text-xs text-[#66736B]">Semua jadwal follow up hari ini sudah selesai atau dijadwalkan di hari lain.</p>
+        <div className="bg-white border border-slate-200 rounded-xl p-8 text-center shadow-xs">
+          <Clock className="w-7 h-7 text-amber-500 mx-auto mb-1.5 opacity-80" />
+          <h4 className="text-xs font-bold text-slate-800 mb-0.5">Tidak ada follow up untuk hari ini</h4>
+          <p className="text-xs text-slate-500">Semua jadwal follow up hari ini sudah selesai atau dijadwalkan di hari lain.</p>
         </div>
       )}
 
       {activeGroup === 'overdue' && overdueLeads.length === 0 && (
-        <div className="bg-white border border-[#E2E9E4] rounded-2xl p-8 text-center shadow-sm">
-          <CheckCircle2 className="w-8 h-8 text-[#00A651] mx-auto mb-2" />
-          <h4 className="text-sm font-bold text-[#17221C] mb-1">Tidak ada follow up yang terlambat</h4>
-          <p className="text-xs text-[#66736B]">Luar biasa! Tidak ada lead yang melewati batas jadwal follow up.</p>
+        <div className="bg-white border border-slate-200 rounded-xl p-8 text-center shadow-xs">
+          <CheckCircle2 className="w-7 h-7 text-emerald-600 mx-auto mb-1.5 opacity-80" />
+          <h4 className="text-xs font-bold text-slate-800 mb-0.5">Tidak ada follow up yang terlambat</h4>
+          <p className="text-xs text-slate-500">Luar biasa! Tidak ada lead yang melewati batas jadwal follow up.</p>
         </div>
       )}
 
       {activeGroup === 'tomorrow' && tomorrowLeads.length === 0 && (
-        <div className="bg-white border border-[#E2E9E4] rounded-2xl p-8 text-center shadow-sm">
-          <Calendar className="w-8 h-8 text-[#006B3C] mx-auto mb-2" />
-          <h4 className="text-sm font-bold text-[#17221C] mb-1">Tidak ada follow up untuk besok</h4>
-          <p className="text-xs text-[#66736B]">Belum ada calon pelanggan yang dijadwalkan untuk esok hari.</p>
+        <div className="bg-white border border-slate-200 rounded-xl p-8 text-center shadow-xs">
+          <Calendar className="w-7 h-7 text-emerald-600 mx-auto mb-1.5 opacity-80" />
+          <h4 className="text-xs font-bold text-slate-800 mb-0.5">Tidak ada follow up untuk besok</h4>
+          <p className="text-xs text-slate-500">Belum ada calon pelanggan yang dijadwalkan untuk esok hari.</p>
         </div>
       )}
 
       {activeGroup === 'upcoming' && upcomingLeads.length === 0 && (
-        <div className="bg-white border border-[#E2E9E4] rounded-2xl p-8 text-center shadow-sm">
-          <CalendarClock className="w-8 h-8 text-emerald-600 mx-auto mb-2" />
-          <h4 className="text-sm font-bold text-[#17221C] mb-1">Tidak ada follow up mendatang</h4>
-          <p className="text-xs text-[#66736B]">Belum ada jadwal follow up untuk beberapa hari ke depan.</p>
+        <div className="bg-white border border-slate-200 rounded-xl p-8 text-center shadow-xs">
+          <CalendarClock className="w-7 h-7 text-slate-400 mx-auto mb-1.5 opacity-80" />
+          <h4 className="text-xs font-bold text-slate-800 mb-0.5">Tidak ada follow up mendatang</h4>
+          <p className="text-xs text-slate-500">Belum ada jadwal follow up untuk beberapa hari ke depan.</p>
         </div>
       )}
 
       {/* Empty State when no active follow-ups at all */}
       {activeFollowUps.length === 0 && activeGroup === 'all' && (
-        <div className="bg-white border border-[#E2E9E4] rounded-2xl p-10 text-center shadow-sm">
-          <div className="w-14 h-14 rounded-2xl bg-[#E8F7EF] text-[#00A651] border border-[#A7F3D0] flex items-center justify-center mx-auto mb-3 shadow-xs text-2xl">
+        <div className="bg-white border border-slate-200 rounded-xl p-10 text-center shadow-xs">
+          <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center justify-center mx-auto mb-3 text-xl">
             🎉
           </div>
-          <h4 className="text-base font-bold text-[#17221C] mb-1">Tidak ada jadwal follow up aktif 🎉</h4>
-          <p className="text-sm text-[#66736B] mb-5">Semua follow up Anda sudah selesai. Kerja luar biasa!</p>
+          <h4 className="text-base font-bold text-slate-900 mb-1">Tidak ada jadwal follow up aktif</h4>
+          <p className="text-xs text-slate-500 mb-4">Semua follow up Anda sudah selesai. Kerja luar biasa!</p>
           <button
             type="button"
             onClick={onOpenAddLead}
-            className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#00A651] hover:bg-[#006B3C] text-white rounded-xl font-bold text-sm transition-all shadow-xs cursor-pointer active:scale-95"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-semibold text-xs transition-colors shadow-xs cursor-pointer active:scale-95"
           >
             <Plus className="w-4 h-4" />
             <span>+ Tambah Lead Baru</span>

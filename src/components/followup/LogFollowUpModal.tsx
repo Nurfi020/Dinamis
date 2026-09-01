@@ -6,14 +6,8 @@ import {
   Phone, 
   Users, 
   Mail, 
-  Check, 
-  Calendar, 
-  Clock, 
   Sparkles, 
   ArrowRight, 
-  AlertCircle, 
-  RotateCcw,
-  Send,
   FileText
 } from 'lucide-react';
 import { Modal } from '../common/Modal';
@@ -92,11 +86,11 @@ export const LogFollowUpModal: React.FC<LogFollowUpModalProps> = ({
   ];
 
   const statusesList: { id: LeadStatus; label: string; dot: string }[] = [
-    { id: 'Cold', label: 'Cold', dot: 'bg-[#64748B]' },
-    { id: 'Warm', label: 'Warm', dot: 'bg-[#F59E0B]' },
-    { id: 'Hot', label: 'Hot', dot: 'bg-[#EF4444]' },
-    { id: 'Closing', label: 'Closing', dot: 'bg-[#10B981]' },
-    { id: 'Tidak Berhasil', label: 'Tidak Berhasil', dot: 'bg-[#6B7280]' },
+    { id: 'Cold', label: 'Cold', dot: 'bg-slate-400' },
+    { id: 'Warm', label: 'Warm', dot: 'bg-amber-500' },
+    { id: 'Hot', label: 'Hot', dot: 'bg-rose-500' },
+    { id: 'Closing', label: 'Closing', dot: 'bg-emerald-600' },
+    { id: 'Tidak Berhasil', label: 'Tidak Berhasil', dot: 'bg-slate-400' },
   ];
 
   const handleApplyTemplate = (type: WhatsAppTemplateType) => {
@@ -159,7 +153,7 @@ export const LogFollowUpModal: React.FC<LogFollowUpModalProps> = ({
       <form onSubmit={handleSubmit} className="space-y-4 text-xs sm:text-sm">
         {/* 1. Metode Interaksi */}
         <div>
-          <label className="block font-bold text-[#17221C] mb-1.5">
+          <label className="block font-semibold text-slate-700 mb-1">
             Metode Follow Up <span className="text-rose-500">*</span>
           </label>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
@@ -171,13 +165,13 @@ export const LogFollowUpModal: React.FC<LogFollowUpModalProps> = ({
                   key={m.id}
                   type="button"
                   onClick={() => setMethod(m.id)}
-                  className={`p-2.5 rounded-xl border flex items-center justify-center gap-2 font-bold text-xs transition-all cursor-pointer ${
+                  className={`p-2.5 rounded-lg border flex items-center justify-center gap-2 font-semibold text-xs transition-colors cursor-pointer ${
                     isSelected
-                      ? 'bg-[#E8F7EF] text-[#006B3C] border-[#00A651] shadow-xs ring-1 ring-[#00A651]'
-                      : 'bg-white text-[#66736B] border-[#E2E9E4] hover:border-[#00A651]/40 hover:text-[#17221C]'
+                      ? 'bg-emerald-50 text-emerald-900 border-emerald-300 shadow-2xs'
+                      : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
                   }`}
                 >
-                  <Icon className="w-4 h-4 text-[#00A651]" />
+                  <Icon className={`w-4 h-4 ${isSelected ? 'text-emerald-700' : 'text-slate-400'}`} />
                   <span>{m.label}</span>
                 </button>
               );
@@ -187,17 +181,17 @@ export const LogFollowUpModal: React.FC<LogFollowUpModalProps> = ({
 
         {/* 1.1 WhatsApp Templates Picker (If WhatsApp Selected) */}
         {method === 'WhatsApp' && (
-          <div className="p-3.5 bg-[#E8F7EF]/60 rounded-2xl border border-[#A7F3D0] space-y-2.5">
+          <div className="p-3 bg-slate-50 rounded-lg border border-slate-200 space-y-2">
             <div className="flex items-center justify-between">
-              <span className="font-bold text-[#006B3C] text-xs flex items-center gap-1.5">
-                <FileText className="w-3.5 h-3.5" />
-                Template Pesan WhatsApp Siap Pakai:
+              <span className="font-semibold text-slate-700 text-xs flex items-center gap-1.5">
+                <FileText className="w-3.5 h-3.5 text-emerald-600" />
+                Template Pesan WhatsApp:
               </span>
               <a
                 href={liveWhatsAppUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 text-[11px] font-bold text-[#006B3C] hover:underline"
+                className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 hover:text-emerald-800"
               >
                 <span>Buka Chat WA</span>
                 <ArrowRight className="w-3 h-3" />
@@ -214,10 +208,10 @@ export const LogFollowUpModal: React.FC<LogFollowUpModalProps> = ({
                   key={tmpl.id}
                   type="button"
                   onClick={() => handleApplyTemplate(tmpl.id)}
-                  className={`p-2 rounded-xl text-xs font-bold border transition-all text-center cursor-pointer ${
+                  className={`p-1.5 rounded-md text-xs font-medium border transition-colors text-center cursor-pointer ${
                     selectedTemplate === tmpl.id
-                      ? 'bg-[#00A651] text-white border-[#00A651] shadow-xs'
-                      : 'bg-white text-[#006B3C] border-[#A7F3D0] hover:bg-[#E8F7EF]'
+                      ? 'bg-emerald-600 text-white border-emerald-600 font-semibold shadow-2xs'
+                      : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
                   }`}
                 >
                   {tmpl.label}
@@ -229,7 +223,7 @@ export const LogFollowUpModal: React.FC<LogFollowUpModalProps> = ({
 
         {/* 2. Hasil Respon / Interaksi */}
         <div>
-          <label className="block font-bold text-[#17221C] mb-1.5">
+          <label className="block font-semibold text-slate-700 mb-1">
             Hasil Respon Customer <span className="text-rose-500">*</span>
           </label>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
@@ -240,10 +234,10 @@ export const LogFollowUpModal: React.FC<LogFollowUpModalProps> = ({
                   key={res}
                   type="button"
                   onClick={() => handleQuickResultClick(res)}
-                  className={`p-2 rounded-xl text-xs font-semibold border transition-all text-center cursor-pointer ${
+                  className={`p-1.5 rounded-md text-xs font-medium border transition-colors text-center cursor-pointer ${
                     isSelected
-                      ? 'bg-[#00A651] text-white border-[#00A651] shadow-xs'
-                      : 'bg-white text-[#66736B] border-[#E2E9E4] hover:border-[#00A651]/40 hover:text-[#17221C]'
+                      ? 'bg-emerald-600 text-white border-emerald-600 font-semibold shadow-2xs'
+                      : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
                   }`}
                 >
                   {res}
@@ -253,13 +247,13 @@ export const LogFollowUpModal: React.FC<LogFollowUpModalProps> = ({
           </div>
         </div>
 
-        {/* 3. Perbarui Status Prospek (Large Selectable Segmented Buttons) */}
+        {/* 3. Perbarui Status Prospek */}
         <div>
-          <label className="block font-bold text-[#17221C] mb-1.5 flex items-center justify-between">
+          <label className="block font-semibold text-slate-700 mb-1 flex items-center justify-between">
             <span>Perbarui Status Lead</span>
-            <span className="text-xs text-[#66736B] font-normal">
+            <span className="text-xs text-slate-500 font-normal">
               {lead.status !== newStatus ? (
-                <span className="text-[#006B3C] font-bold">
+                <span className="text-emerald-700 font-semibold">
                   {lead.status} → {newStatus}
                 </span>
               ) : (
@@ -282,22 +276,22 @@ export const LogFollowUpModal: React.FC<LogFollowUpModalProps> = ({
                       setNoNextFollowUp(false);
                     }
                   }}
-                  className={`py-2.5 px-1.5 rounded-xl text-xs font-bold border transition-all text-center cursor-pointer ${
+                  className={`py-2 px-1.5 rounded-lg text-xs font-semibold border transition-colors text-center cursor-pointer ${
                     isSelected
                       ? s.id === 'Hot'
-                        ? 'bg-rose-50 text-rose-700 border-rose-400 ring-2 ring-rose-500/20'
+                        ? 'bg-rose-50 text-rose-800 border-rose-300 ring-2 ring-rose-500/15'
                         : s.id === 'Closing'
-                        ? 'bg-[#E8F7EF] text-[#006B3C] border-[#A7F3D0] ring-2 ring-[#00A651]/20'
+                        ? 'bg-emerald-50 text-emerald-800 border-emerald-300 ring-2 ring-emerald-600/15'
                         : s.id === 'Warm'
-                        ? 'bg-amber-50 text-amber-800 border-amber-400 ring-2 ring-amber-500/20'
+                        ? 'bg-amber-50 text-amber-900 border-amber-300 ring-2 ring-amber-500/15'
                         : s.id === 'Cold'
-                        ? 'bg-slate-100 text-slate-800 border-slate-400 ring-2 ring-slate-400/20'
-                        : 'bg-gray-100 text-gray-700 border-gray-300 ring-2 ring-gray-400/20'
-                      : 'bg-white text-[#66736B] border-[#E2E9E4] hover:bg-slate-50'
+                        ? 'bg-slate-100 text-slate-800 border-slate-300 ring-2 ring-slate-400/15'
+                        : 'bg-slate-100 text-slate-700 border-slate-300 ring-2 ring-slate-400/15'
+                      : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
                   }`}
                 >
                   <div className="flex items-center justify-center gap-1.5">
-                    <span className={`w-2 h-2 rounded-full ${s.dot}`} />
+                    <span className={`w-1.5 h-1.5 rounded-full ${s.dot}`} />
                     <span>{s.label}</span>
                   </div>
                 </button>
@@ -306,22 +300,22 @@ export const LogFollowUpModal: React.FC<LogFollowUpModalProps> = ({
           </div>
         </div>
 
-        {/* 3.1 Alasan Tidak Berhasil jika status Tidak Berhasil */}
+        {/* 3.1 Alasan Lost jika status Tidak Berhasil */}
         {newStatus === 'Tidak Berhasil' && (
-          <div className="p-4 bg-rose-50 rounded-2xl border border-rose-200 space-y-2">
-            <label className="block font-bold text-rose-800">
-              Alasan Tidak Berhasil <span className="text-rose-600">*</span>
+          <div className="p-3 bg-rose-50/50 rounded-lg border border-rose-200 space-y-1.5">
+            <label className="block font-semibold text-rose-800 text-xs">
+              Alasan Tidak Berhasil / Batal:
             </label>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
+            <div className="grid grid-cols-2 gap-1.5">
               {lostReasonsList.map((reason) => (
                 <button
                   key={reason}
                   type="button"
                   onClick={() => setLostReason(reason)}
-                  className={`p-2 rounded-xl text-xs font-bold border text-center transition-all cursor-pointer ${
+                  className={`p-1.5 rounded-md text-xs font-medium border text-left transition-colors cursor-pointer ${
                     lostReason === reason
-                      ? 'bg-rose-600 text-white border-rose-600 shadow-xs'
-                      : 'bg-white text-rose-900 border-rose-200 hover:bg-rose-100'
+                      ? 'bg-rose-100 text-rose-900 border-rose-300 font-semibold'
+                      : 'bg-white text-slate-600 border-slate-200 hover:bg-rose-50/30'
                   }`}
                 >
                   {reason}
@@ -331,109 +325,93 @@ export const LogFollowUpModal: React.FC<LogFollowUpModalProps> = ({
           </div>
         )}
 
-        {/* 4. Jadwal Follow Up Berikutnya */}
+        {/* 4. Catatan Hasil Follow Up */}
+        <div>
+          <label className="block font-semibold text-slate-700 mb-1 flex items-center justify-between">
+            <span>Catatan Percakapan / Detail Interaksi</span>
+            <span className="text-xs text-slate-400 font-normal">Opsional</span>
+          </label>
+          <textarea
+            rows={2}
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            placeholder="Tulis ringkasan hasil telepon atau chat WhatsApp..."
+            className="w-full p-2.5 bg-white border border-slate-300 rounded-lg text-xs text-slate-900 focus:outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/15"
+          />
+        </div>
+
+        {/* 5. Jadwal Follow Up Berikutnya */}
         {newStatus !== 'Closing' && newStatus !== 'Tidak Berhasil' && (
-          <div className="p-4 bg-[#F7F9F8] rounded-2xl border border-[#E2E9E4] space-y-3">
+          <div className="p-3 bg-slate-50 rounded-lg border border-slate-200 space-y-2">
             <div className="flex items-center justify-between">
-              <span className="font-bold text-[#17221C]">Jadwalkan Follow Up Selanjutnya</span>
-              <label className="flex items-center gap-1.5 text-xs text-[#66736B] cursor-pointer">
+              <label className="font-semibold text-slate-700 text-xs flex items-center gap-1">
+                <span>Rencanakan Jadwal Follow Up Berikutnya:</span>
+              </label>
+              <label className="flex items-center gap-1.5 text-xs text-slate-600 cursor-pointer">
                 <input
                   type="checkbox"
                   checked={noNextFollowUp}
                   onChange={(e) => setNoNextFollowUp(e.target.checked)}
-                  className="rounded border-[#E2E9E4] text-[#00A651] focus:ring-[#00A651]"
+                  className="rounded text-emerald-600 focus:ring-emerald-500"
                 />
-                <span>Tidak perlu jadwal lagi</span>
+                <span>Tidak Perlu Jadwal</span>
               </label>
             </div>
 
             {!noNextFollowUp && (
-              <>
-                {/* Quick date chips */}
+              <div className="space-y-2">
                 <div className="flex flex-wrap gap-1.5">
                   {[
-                    { label: 'Hari Ini', offset: 0 },
-                    { label: 'Besok', offset: 1 },
-                    { label: '3 Hari Lagi', offset: 3 },
-                    { label: '1 Minggu Lagi', offset: 7 },
-                  ].map((item) => (
+                    { label: 'Besok', days: 1 },
+                    { label: '+2 Hari', days: 2 },
+                    { label: '+3 Hari', days: 3 },
+                    { label: '+1 Minggu', days: 7 },
+                  ].map((preset) => (
                     <button
-                      key={item.label}
+                      key={preset.label}
                       type="button"
-                      onClick={() => setNextDate(getFormattedDate(item.offset))}
-                      className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
-                        nextDate === getFormattedDate(item.offset)
-                          ? 'bg-[#00A651] text-white border-[#00A651] shadow-xs'
-                          : 'bg-white text-[#66736B] border-[#E2E9E4] hover:border-[#00A651]/40 hover:text-[#17221C]'
-                      }`}
+                      onClick={() => setNextDate(getFormattedDate(preset.days))}
+                      className="px-2.5 py-1 rounded-md text-xs font-medium bg-white text-slate-700 border border-slate-200 hover:bg-slate-100 transition-colors cursor-pointer"
                     >
-                      {item.label}
+                      {preset.label}
                     </button>
                   ))}
                 </div>
 
-                {/* Date & Time Selectors */}
-                <div className="grid grid-cols-2 gap-2 pt-1">
-                  <div>
-                    <label className="block text-xs font-semibold text-[#66736B] mb-1">Tanggal</label>
-                    <input
-                      type="date"
-                      value={nextDate}
-                      onChange={(e) => setNextDate(e.target.value)}
-                      className="w-full px-3 py-2 bg-white border border-[#E2E9E4] rounded-xl text-xs font-medium text-[#17221C] focus:outline-none focus:border-[#00A651]"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-semibold text-[#66736B] mb-1">Waktu</label>
-                    <select
-                      value={nextTime}
-                      onChange={(e) => setNextTime(e.target.value)}
-                      className="w-full px-3 py-2 bg-white border border-[#E2E9E4] rounded-xl text-xs font-medium text-[#17221C] focus:outline-none focus:border-[#00A651] cursor-pointer"
-                    >
-                      <option value="09:00">09:00 Pagi</option>
-                      <option value="10:30">10:30 Pagi</option>
-                      <option value="13:00">13:00 Siang</option>
-                      <option value="15:00">15:00 Sore</option>
-                      <option value="16:30">16:30 Sore</option>
-                      <option value="19:00">19:00 Malam</option>
-                    </select>
-                  </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <input
+                    type="date"
+                    value={nextDate}
+                    onChange={(e) => setNextDate(e.target.value)}
+                    className="w-full px-2.5 py-1.5 bg-white border border-slate-300 rounded-md text-xs font-medium text-slate-900 focus:outline-none focus:border-emerald-600"
+                  />
+                  <input
+                    type="time"
+                    value={nextTime}
+                    onChange={(e) => setNextTime(e.target.value)}
+                    className="w-full px-2.5 py-1.5 bg-white border border-slate-300 rounded-md text-xs font-medium text-slate-900 focus:outline-none focus:border-emerald-600"
+                  />
                 </div>
-              </>
+              </div>
             )}
           </div>
         )}
 
-        {/* 5. Catatan Percakapan / Pesan WA */}
-        <div>
-          <label className="block font-bold text-[#17221C] mb-1 flex items-center justify-between">
-            <span>Catatan Percakapan / Draft Pesan</span>
-            <span className="text-xs text-[#66736B] font-normal">Dapat diedit bebas</span>
-          </label>
-          <textarea
-            rows={3}
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            placeholder="Ketik catatan hasil percakapan atau gunakan template di atas..."
-            className="w-full p-3 bg-white border border-[#E2E9E4] rounded-xl text-xs text-[#17221C] placeholder-[#66736B] focus:outline-none focus:border-[#00A651] focus:ring-2 focus:ring-[#00A651]/20"
-          />
-        </div>
-
         {/* Action Buttons */}
-        <div className="pt-3 flex items-center justify-end gap-3 border-t border-[#E2E9E4]">
+        <div className="pt-3 flex items-center justify-end gap-2.5 border-t border-slate-200">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2.5 rounded-xl text-sm font-semibold text-[#66736B] hover:text-[#17221C] hover:bg-slate-100 transition-colors cursor-pointer"
+            className="px-3.5 py-2 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors cursor-pointer"
           >
             Batal
           </button>
           <button
             type="submit"
-            className="px-6 py-2.5 rounded-xl bg-[#00A651] hover:bg-[#006B3C] text-white text-sm font-bold shadow-sm active:scale-95 transition-all flex items-center gap-2 cursor-pointer"
+            className="px-5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-xs active:scale-95 transition-all flex items-center gap-1.5 cursor-pointer"
           >
-            <Sparkles className="w-4 h-4" />
-            <span>Simpan Riwayat Follow Up</span>
+            <Sparkles className="w-3.5 h-3.5" />
+            <span>Simpan Riwayat</span>
           </button>
         </div>
       </form>

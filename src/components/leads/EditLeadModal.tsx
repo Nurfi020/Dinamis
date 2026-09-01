@@ -71,11 +71,11 @@ export const EditLeadModal: React.FC<EditLeadModalProps> = ({
   ];
 
   const statusesList: { id: LeadStatus; label: string; dot: string }[] = [
-    { id: 'Cold', label: 'Cold', dot: 'bg-[#64748B]' },
-    { id: 'Warm', label: 'Warm', dot: 'bg-[#F59E0B]' },
-    { id: 'Hot', label: 'Hot', dot: 'bg-[#EF4444]' },
-    { id: 'Closing', label: 'Closing', dot: 'bg-[#10B981]' },
-    { id: 'Tidak Berhasil', label: 'Tidak Berhasil', dot: 'bg-[#6B7280]' },
+    { id: 'Cold', label: 'Cold', dot: 'bg-slate-400' },
+    { id: 'Warm', label: 'Warm', dot: 'bg-amber-500' },
+    { id: 'Hot', label: 'Hot', dot: 'bg-rose-500' },
+    { id: 'Closing', label: 'Closing', dot: 'bg-emerald-600' },
+    { id: 'Tidak Berhasil', label: 'Tidak Berhasil', dot: 'bg-slate-400' },
   ];
 
   const validate = () => {
@@ -121,11 +121,11 @@ export const EditLeadModal: React.FC<EditLeadModalProps> = ({
       <form onSubmit={handleSubmit} className="space-y-4 text-xs sm:text-sm">
         {/* 1. Nama Lengkap */}
         <div>
-          <label className="block font-bold text-[#17221C] mb-1.5">
+          <label className="block font-semibold text-slate-700 mb-1">
             Nama Calon Pelanggan <span className="text-rose-500">*</span>
           </label>
           <div className="relative">
-            <User className="w-4 h-4 text-[#66736B] absolute left-3.5 top-1/2 -translate-y-1/2" />
+            <User className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               value={name}
@@ -134,10 +134,10 @@ export const EditLeadModal: React.FC<EditLeadModalProps> = ({
                 if (errors.name) setErrors({ ...errors, name: undefined });
               }}
               placeholder="Contoh: Budi Santoso"
-              className={`w-full pl-10 pr-3.5 py-2.5 bg-[#F7F9F8] border rounded-xl text-xs sm:text-sm text-[#17221C] focus:outline-none focus:bg-white transition-all ${
+              className={`w-full pl-9 pr-3.5 py-2 bg-white border rounded-lg text-xs sm:text-sm text-slate-900 placeholder-slate-400 focus:outline-none transition-all ${
                 errors.name
-                  ? 'border-rose-500 ring-2 ring-rose-500/20'
-                  : 'border-[#E2E9E4] focus:border-[#00A651]'
+                  ? 'border-rose-500 ring-2 ring-rose-500/15'
+                  : 'border-slate-300 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/15'
               }`}
             />
           </div>
@@ -151,11 +151,11 @@ export const EditLeadModal: React.FC<EditLeadModalProps> = ({
 
         {/* 2. Nomor WhatsApp */}
         <div>
-          <label className="block font-bold text-[#17221C] mb-1.5">
+          <label className="block font-semibold text-slate-700 mb-1">
             Nomor WhatsApp <span className="text-rose-500">*</span>
           </label>
           <div className="relative">
-            <Phone className="w-4 h-4 text-[#66736B] absolute left-3.5 top-1/2 -translate-y-1/2" />
+            <Phone className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               type="tel"
               value={phone}
@@ -164,10 +164,10 @@ export const EditLeadModal: React.FC<EditLeadModalProps> = ({
                 if (errors.phone) setErrors({ ...errors, phone: undefined });
               }}
               placeholder="081289123456"
-              className={`w-full pl-10 pr-3.5 py-2.5 bg-[#F7F9F8] border rounded-xl text-xs sm:text-sm text-[#17221C] focus:outline-none focus:bg-white transition-all ${
+              className={`w-full pl-9 pr-3.5 py-2 bg-white border rounded-lg text-xs sm:text-sm text-slate-900 placeholder-slate-400 focus:outline-none transition-all ${
                 errors.phone
-                  ? 'border-rose-500 ring-2 ring-rose-500/20'
-                  : 'border-[#E2E9E4] focus:border-[#00A651]'
+                  ? 'border-rose-500 ring-2 ring-rose-500/15'
+                  : 'border-slate-300 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/15'
               }`}
             />
           </div>
@@ -181,15 +181,15 @@ export const EditLeadModal: React.FC<EditLeadModalProps> = ({
 
         {/* 3. Kota Domisili */}
         <div>
-          <label className="block font-bold text-[#17221C] mb-1.5">
+          <label className="block font-semibold text-slate-700 mb-1">
             Kota Domisili <span className="text-rose-500">*</span>
           </label>
           <div className="relative">
-            <MapPin className="w-4 h-4 text-[#66736B] absolute left-3.5 top-1/2 -translate-y-1/2" />
+            <MapPin className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
             <select
               value={city}
               onChange={(e) => setCity(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 bg-[#F7F9F8] border border-[#E2E9E4] rounded-xl text-xs sm:text-sm text-[#17221C] focus:outline-none focus:border-[#00A651] focus:bg-white cursor-pointer"
+              className="w-full pl-9 pr-4 py-2 bg-white border border-slate-300 rounded-lg text-xs sm:text-sm text-slate-900 font-medium focus:outline-none focus:border-emerald-600 cursor-pointer"
             >
               {CITIES_LIST.map((c) => (
                 <option key={c} value={c}>{c}</option>
@@ -200,15 +200,15 @@ export const EditLeadModal: React.FC<EditLeadModalProps> = ({
 
         {/* 4. Produk Peminatan */}
         <div>
-          <label className="block font-bold text-[#17221C] mb-1.5">
+          <label className="block font-semibold text-slate-700 mb-1">
             Produk Peminatan <span className="text-rose-500">*</span>
           </label>
           <div className="relative">
-            <Package className="w-4 h-4 text-[#66736B] absolute left-3.5 top-1/2 -translate-y-1/2" />
+            <Package className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
             <select
               value={product}
               onChange={(e) => setProduct(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 bg-[#F7F9F8] border border-[#E2E9E4] rounded-xl text-xs sm:text-sm text-[#17221C] focus:outline-none focus:border-[#00A651] focus:bg-white cursor-pointer"
+              className="w-full pl-9 pr-4 py-2 bg-white border border-slate-300 rounded-lg text-xs sm:text-sm text-slate-900 font-medium focus:outline-none focus:border-emerald-600 cursor-pointer"
             >
               {PRODUCTS_LIST.map((p) => (
                 <option key={p} value={p}>{p}</option>
@@ -219,11 +219,11 @@ export const EditLeadModal: React.FC<EditLeadModalProps> = ({
 
         {/* 5. Estimasi Nilai Deal (Nominal Rupiah) */}
         <div>
-          <label className="block font-bold text-[#17221C] mb-1.5 flex items-center justify-between">
+          <label className="block font-semibold text-slate-700 mb-1 flex items-center justify-between">
             <span>Estimasi Nilai Deal (Rupiah)</span>
-            <span className="text-[11px] text-[#006B3C] font-semibold">Potensi Revenue</span>
+            <span className="text-xs text-emerald-700 font-semibold">Potensi Revenue</span>
           </label>
-          <div className="flex flex-wrap gap-1.5 mb-2">
+          <div className="flex flex-wrap gap-1.5 mb-1.5">
             {[
               { label: 'Rp 15 Jt', val: '15000000' },
               { label: 'Rp 25 Jt', val: '25000000' },
@@ -234,10 +234,10 @@ export const EditLeadModal: React.FC<EditLeadModalProps> = ({
                 key={p.val}
                 type="button"
                 onClick={() => setValue(p.val)}
-                className={`px-3 py-1 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
+                className={`px-2.5 py-1 rounded-md text-xs font-medium border transition-colors cursor-pointer ${
                   value === p.val
-                    ? 'bg-[#E8F7EF] text-[#006B3C] border-[#00A651] shadow-xs'
-                    : 'bg-white text-[#66736B] border-[#E2E9E4] hover:bg-slate-50'
+                    ? 'bg-emerald-50 text-emerald-800 border-emerald-300 font-semibold'
+                    : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
                 }`}
               >
                 {p.label}
@@ -245,20 +245,20 @@ export const EditLeadModal: React.FC<EditLeadModalProps> = ({
             ))}
           </div>
           <div className="relative">
-            <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-[#66736B]">Rp</span>
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-500">Rp</span>
             <input
               type="number"
               value={value}
               onChange={(e) => setValue(e.target.value)}
               placeholder="25000000"
-              className="w-full pl-10 pr-3.5 py-2.5 bg-[#F7F9F8] border border-[#E2E9E4] focus:border-[#00A651] focus:bg-white rounded-xl text-sm font-bold font-mono text-[#17221C] focus:outline-none focus:ring-2 focus:ring-[#00A651]/20 transition-all"
+              className="w-full pl-9 pr-3.5 py-2 bg-white border border-slate-300 focus:border-emerald-600 rounded-lg text-xs sm:text-sm font-bold font-mono text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-600/15 transition-all"
             />
           </div>
         </div>
 
         {/* 6. Sumber Lead */}
         <div>
-          <label className="block font-bold text-[#17221C] mb-1.5">
+          <label className="block font-semibold text-slate-700 mb-1">
             Sumber Lead <span className="text-rose-500">*</span>
           </label>
           <div className="grid grid-cols-3 sm:grid-cols-6 gap-1.5">
@@ -269,13 +269,13 @@ export const EditLeadModal: React.FC<EditLeadModalProps> = ({
                   key={s.id}
                   type="button"
                   onClick={() => setSource(s.id)}
-                  className={`p-2 rounded-xl text-xs font-semibold border flex flex-col items-center justify-center gap-1 transition-all cursor-pointer ${
+                  className={`p-1.5 rounded-lg text-xs font-medium border flex flex-col items-center justify-center gap-1 transition-colors cursor-pointer ${
                     isSelected
-                      ? 'bg-[#E8F7EF] text-[#006B3C] border-[#00A651] shadow-xs'
-                      : 'bg-white text-[#66736B] border-[#E2E9E4] hover:border-[#00A651]/40'
+                      ? 'bg-emerald-50 text-emerald-900 border-emerald-300 font-semibold'
+                      : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
                   }`}
                 >
-                  <s.icon className="w-4 h-4 text-[#00A651]" />
+                  <s.icon className="w-3.5 h-3.5 text-slate-500" />
                   <span className="text-[11px]">{s.label}</span>
                 </button>
               );
@@ -285,7 +285,7 @@ export const EditLeadModal: React.FC<EditLeadModalProps> = ({
 
         {/* 7. Status Prospek */}
         <div>
-          <label className="block font-bold text-[#17221C] mb-1.5">
+          <label className="block font-semibold text-slate-700 mb-1">
             Status Prospek <span className="text-rose-500">*</span>
           </label>
           <div className="grid grid-cols-2 sm:grid-cols-5 gap-1.5">
@@ -296,10 +296,10 @@ export const EditLeadModal: React.FC<EditLeadModalProps> = ({
                   key={s.id}
                   type="button"
                   onClick={() => setStatus(s.id)}
-                  className={`p-2.5 rounded-xl text-xs font-bold border transition-all text-center cursor-pointer ${
+                  className={`p-2 rounded-lg text-xs font-semibold border transition-colors text-center cursor-pointer ${
                     isSelected
-                      ? 'bg-[#E8F7EF] text-[#006B3C] border-[#00A651] shadow-xs ring-1 ring-[#00A651]'
-                      : 'bg-white text-[#66736B] border-[#E2E9E4] hover:bg-slate-50'
+                      ? 'bg-emerald-50 text-emerald-900 border-emerald-300'
+                      : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
                   }`}
                 >
                   <span>{s.label}</span>
@@ -312,31 +312,31 @@ export const EditLeadModal: React.FC<EditLeadModalProps> = ({
         {/* 8. Jadwal Follow Up Berikutnya */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
-            <label className="block font-bold text-[#17221C] mb-1.5 flex items-center gap-1">
-              <CalendarClock className="w-3.5 h-3.5 text-[#00A651]" />
+            <label className="block font-semibold text-slate-700 mb-1 flex items-center gap-1">
+              <CalendarClock className="w-3.5 h-3.5 text-emerald-600" />
               <span>Tanggal Follow Up</span>
             </label>
             <input
               type="date"
               value={nextFollowUpDate}
               onChange={(e) => setNextFollowUpDate(e.target.value)}
-              className="w-full px-3 py-2.5 bg-[#F7F9F8] border border-[#E2E9E4] rounded-xl text-xs sm:text-sm text-[#17221C] focus:outline-none focus:border-[#00A651] focus:bg-white"
+              className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-xs sm:text-sm text-slate-900 focus:outline-none focus:border-emerald-600"
             />
           </div>
           <div>
-            <label className="block font-bold text-[#17221C] mb-1.5">Waktu / Jam</label>
+            <label className="block font-semibold text-slate-700 mb-1">Waktu / Jam</label>
             <input
               type="time"
               value={nextFollowUpTime}
               onChange={(e) => setNextFollowUpTime(e.target.value)}
-              className="w-full px-3 py-2.5 bg-[#F7F9F8] border border-[#E2E9E4] rounded-xl text-xs sm:text-sm text-[#17221C] focus:outline-none focus:border-[#00A651] focus:bg-white"
+              className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-xs sm:text-sm text-slate-900 focus:outline-none focus:border-emerald-600"
             />
           </div>
         </div>
 
         {/* 9. Catatan */}
         <div>
-          <label className="block font-bold text-[#17221C] mb-1.5">
+          <label className="block font-semibold text-slate-700 mb-1">
             Catatan Tambahan
           </label>
           <textarea
@@ -344,24 +344,24 @@ export const EditLeadModal: React.FC<EditLeadModalProps> = ({
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             placeholder="Catatan hasil diskusi atau kebutuhan prospek..."
-            className="w-full p-3 bg-[#F7F9F8] border border-[#E2E9E4] rounded-xl text-xs text-[#17221C] focus:outline-none focus:border-[#00A651] focus:bg-white"
+            className="w-full p-2.5 bg-white border border-slate-300 rounded-lg text-xs text-slate-900 focus:outline-none focus:border-emerald-600"
           />
         </div>
 
         {/* Submit Actions */}
-        <div className="pt-3 flex items-center justify-end gap-3 border-t border-[#E2E9E4]">
+        <div className="pt-3 flex items-center justify-end gap-2.5 border-t border-slate-200">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold text-[#66736B] hover:text-[#17221C] hover:bg-slate-100 transition-colors cursor-pointer"
+            className="px-3.5 py-2 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors cursor-pointer"
           >
             Batal
           </button>
           <button
             type="submit"
-            className="px-6 py-2.5 rounded-xl bg-[#00A651] hover:bg-[#006B3C] text-white text-xs sm:text-sm font-bold shadow-sm active:scale-95 transition-all flex items-center gap-2 cursor-pointer"
+            className="px-5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-xs active:scale-95 transition-all flex items-center gap-1.5 cursor-pointer"
           >
-            <Sparkles className="w-4 h-4" />
+            <Sparkles className="w-3.5 h-3.5" />
             <span>Simpan Perubahan</span>
           </button>
         </div>

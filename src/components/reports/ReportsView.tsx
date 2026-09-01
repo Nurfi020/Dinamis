@@ -14,8 +14,7 @@ import {
   Download,
   Wallet
 } from 'lucide-react';
-import { Lead, LeadStatus, LeadSource } from '../../types';
-import { StatusBadge } from '../common/StatusBadge';
+import { Lead, LeadSource } from '../../types';
 import { SourceBadge } from '../common/SourceBadge';
 import { CITIES_LIST, PRODUCTS_LIST } from '../../data/mockData';
 import { formatRupiah } from '../../utils/helpers';
@@ -62,11 +61,9 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ leads }) => {
 
   // Baseline data calculations
   const totalLeads = filteredLeads.length;
-  const coldCount = useMemo(() => filteredLeads.filter((l) => l.status === 'Cold').length, [filteredLeads]);
   const warmCount = useMemo(() => filteredLeads.filter((l) => l.status === 'Warm').length, [filteredLeads]);
   const hotCount = useMemo(() => filteredLeads.filter((l) => l.status === 'Hot').length, [filteredLeads]);
   const closingCount = useMemo(() => filteredLeads.filter((l) => l.status === 'Closing').length, [filteredLeads]);
-  const failedCount = useMemo(() => filteredLeads.filter((l) => l.status === 'Tidak Berhasil').length, [filteredLeads]);
 
   // Revenue calculations
   const totalPipelineRevenue = useMemo(() => {
@@ -175,26 +172,26 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ leads }) => {
   };
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto pb-24 md:pb-12">
+    <div className="space-y-5 max-w-7xl mx-auto pb-24 md:pb-12">
       {/* Header section with Filter and Export */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h2 className="text-xl sm:text-2xl font-bold text-[#17221C] tracking-tight">
+          <h2 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
             Laporan Performa Penjualan
           </h2>
-          <p className="text-xs sm:text-sm text-[#66736B] mt-0.5">
-            Analisis konversi lead, efektivitas saluran, dan tingkat closing
+          <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
+            Analisis konversi prospek, efektivitas saluran, dan realisasi closing
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2.5">
+        <div className="flex flex-wrap items-center gap-2">
           {/* Period selector */}
-          <div className="flex items-center gap-1.5 bg-white border border-[#E2E9E4] rounded-xl px-3 py-1.5 text-xs text-[#17221C]">
-            <Calendar className="w-3.5 h-3.5 text-[#00A651]" />
+          <div className="flex items-center gap-1.5 bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs text-slate-700">
+            <Calendar className="w-3.5 h-3.5 text-slate-400" />
             <select
               value={period}
               onChange={(e) => setPeriod(e.target.value as any)}
-              className="bg-transparent text-xs font-bold text-[#17221C] focus:outline-none cursor-pointer pr-1"
+              className="bg-transparent text-xs font-semibold text-slate-900 focus:outline-none cursor-pointer pr-1"
             >
               <option value="all">Semua Waktu</option>
               <option value="this_month">Bulan Ini</option>
@@ -206,117 +203,117 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ leads }) => {
           <button
             type="button"
             onClick={handleExportCSV}
-            className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white hover:bg-[#F4FBF7] text-[#006B3C] border border-[#A7F3D0] text-xs font-bold transition-all shadow-xs cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 text-xs font-semibold transition-colors shadow-2xs cursor-pointer"
           >
-            <Download className="w-3.5 h-3.5" />
+            <Download className="w-3.5 h-3.5 text-slate-500" />
             <span>Ekspor CSV</span>
           </button>
 
           <button
             type="button"
             onClick={handlePrint}
-            className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white hover:bg-[#F4FBF7] text-[#17221C] border border-[#E2E9E4] text-xs font-bold transition-all shadow-xs cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 text-xs font-semibold transition-colors shadow-2xs cursor-pointer"
           >
-            <Printer className="w-3.5 h-3.5 text-[#00A651]" />
+            <Printer className="w-3.5 h-3.5 text-slate-500" />
             <span>Cetak PDF</span>
           </button>
         </div>
       </div>
 
       {/* REVENUE HIGHLIGHT BANNER */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="bg-gradient-to-br from-white to-[#F0FDF4] border border-[#A7F3D0] rounded-2xl p-5 shadow-sm flex items-center justify-between">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+        <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-xs flex items-center justify-between">
           <div>
-            <span className="text-xs font-bold text-[#66736B] uppercase tracking-wider block">Potensi Pipeline Periode Ini</span>
-            <span className="text-2xl sm:text-3xl font-extrabold text-[#17221C] mt-1 block font-mono">
+            <span className="text-xs font-medium text-slate-500 block">Potensi Pipeline Periode Ini</span>
+            <span className="text-2xl font-bold text-slate-900 mt-1 block font-mono">
               {formatRupiah(totalPipelineRevenue)}
             </span>
-            <span className="text-[11px] text-[#006B3C] font-semibold mt-0.5 block">{coldCount + warmCount + hotCount} Prospek Aktif</span>
+            <span className="text-xs text-slate-500 mt-0.5 block">{filteredLeads.filter((l) => l.status !== 'Closing' && l.status !== 'Tidak Berhasil').length} Prospek Aktif</span>
           </div>
-          <div className="w-12 h-12 rounded-2xl bg-[#E8F7EF] border border-[#A7F3D0] flex items-center justify-center text-[#006B3C]">
-            <TrendingUp className="w-6 h-6 text-[#00A651]" />
+          <div className="w-10 h-10 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-700">
+            <TrendingUp className="w-5 h-5 text-slate-600" />
           </div>
         </div>
 
-        <div className="bg-gradient-to-br from-white to-[#E8F7EF] border border-[#00A651]/40 rounded-2xl p-5 shadow-sm flex items-center justify-between">
+        <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-xs flex items-center justify-between">
           <div>
-            <span className="text-xs font-bold text-[#66736B] uppercase tracking-wider block">Realisasi Closing Periode Ini</span>
-            <span className="text-2xl sm:text-3xl font-extrabold text-[#006B3C] mt-1 block font-mono">
+            <span className="text-xs font-medium text-slate-500 block">Realisasi Closing Periode Ini</span>
+            <span className="text-2xl font-bold text-slate-900 mt-1 block font-mono">
               {formatRupiah(totalClosingRevenue)}
             </span>
-            <span className="text-[11px] text-[#006B3C] font-semibold mt-0.5 block">{closingCount} Transaksi Sukses ({closingRate}%)</span>
+            <span className="text-xs text-emerald-700 font-semibold mt-0.5 block">{closingCount} Transaksi Sukses ({closingRate}%)</span>
           </div>
-          <div className="w-12 h-12 rounded-2xl bg-[#00A651] flex items-center justify-center text-white shadow-xs">
-            <Wallet className="w-6 h-6" />
+          <div className="w-10 h-10 rounded-lg bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-700">
+            <Wallet className="w-5 h-5" />
           </div>
         </div>
       </div>
 
       {/* 4 Main Actionable Metric Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
         {/* Total Lead */}
-        <div className="bg-white border border-[#E2E9E4] rounded-2xl p-5 shadow-sm">
-          <div className="flex items-center justify-between text-xs font-semibold text-[#66736B]">
+        <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-xs">
+          <div className="flex items-center justify-between text-xs font-medium text-slate-500">
             <span>Total Lead</span>
-            <div className="p-1.5 rounded-lg bg-[#E8F7EF] text-[#006B3C]">
+            <div className="p-1.5 rounded-md bg-slate-100 text-slate-600">
               <Users className="w-4 h-4" />
             </div>
           </div>
-          <div className="text-3xl font-extrabold text-[#17221C] mt-2">{totalLeads}</div>
-          <div className="text-[11px] text-[#66736B] mt-1 font-medium">Periode {period}</div>
+          <div className="text-2xl font-bold text-slate-900 mt-1.5">{totalLeads}</div>
+          <div className="text-xs text-slate-500 mt-0.5 font-normal">Periode terpilih</div>
         </div>
 
         {/* Lead Closing */}
-        <div className="bg-white border border-[#E2E9E4] rounded-2xl p-5 shadow-sm">
-          <div className="flex items-center justify-between text-xs font-semibold text-[#66736B]">
+        <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-xs">
+          <div className="flex items-center justify-between text-xs font-medium text-slate-500">
             <span>Deal Closing</span>
-            <div className="p-1.5 rounded-lg bg-emerald-50 text-[#10B981]">
+            <div className="p-1.5 rounded-md bg-emerald-50 text-emerald-700">
               <CheckCircle2 className="w-4 h-4" />
             </div>
           </div>
-          <div className="text-3xl font-extrabold text-[#006B3C] mt-2">{closingCount}</div>
-          <div className="text-[11px] text-[#006B3C] mt-1 font-bold">Tingkat Closing: {closingRate}%</div>
+          <div className="text-2xl font-bold text-emerald-700 mt-1.5">{closingCount}</div>
+          <div className="text-xs text-slate-500 mt-0.5">Konversi: {closingRate}%</div>
         </div>
 
         {/* Lead Hot */}
-        <div className="bg-white border border-[#E2E9E4] rounded-2xl p-5 shadow-sm">
-          <div className="flex items-center justify-between text-xs font-semibold text-[#66736B]">
+        <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-xs">
+          <div className="flex items-center justify-between text-xs font-medium text-slate-500">
             <span>Prospek Hot</span>
-            <div className="p-1.5 rounded-lg bg-rose-50 text-rose-600">
+            <div className="p-1.5 rounded-md bg-rose-50 text-rose-600">
               <Flame className="w-4 h-4" />
             </div>
           </div>
-          <div className="text-3xl font-extrabold text-[#17221C] mt-2">{hotCount}</div>
-          <div className="text-[11px] text-rose-600 mt-1 font-medium">Peluang closing tertinggi</div>
+          <div className="text-2xl font-bold text-slate-900 mt-1.5">{hotCount}</div>
+          <div className="text-xs text-rose-600 mt-0.5">Peluang tinggi</div>
         </div>
 
         {/* Lead Warm */}
-        <div className="bg-white border border-[#E2E9E4] rounded-2xl p-5 shadow-sm">
-          <div className="flex items-center justify-between text-xs font-semibold text-[#66736B]">
+        <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-xs">
+          <div className="flex items-center justify-between text-xs font-medium text-slate-500">
             <span>Prospek Warm</span>
-            <div className="p-1.5 rounded-lg bg-amber-50 text-amber-600">
+            <div className="p-1.5 rounded-md bg-amber-50 text-amber-600">
               <TrendingUp className="w-4 h-4" />
             </div>
           </div>
-          <div className="text-3xl font-extrabold text-[#17221C] mt-2">{warmCount}</div>
-          <div className="text-[11px] text-amber-700 mt-1 font-medium">Tahap pertimbangan</div>
+          <div className="text-2xl font-bold text-slate-900 mt-1.5">{warmCount}</div>
+          <div className="text-xs text-amber-700 mt-0.5">Pertimbangan</div>
         </div>
       </div>
 
       {/* Middle Grid: Breakdown Saluran & Breakdown Produk */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
         {/* Breakdown Sumber Saluran */}
-        <div className="lg:col-span-6 bg-white border border-[#E2E9E4] rounded-2xl p-5 shadow-sm">
-          <div className="flex items-center justify-between mb-4 border-b border-[#E2E9E4] pb-3">
-            <h3 className="text-base font-bold text-[#17221C] flex items-center gap-2">
-              <BarChart3 className="w-4 h-4 text-[#00A651]" />
+        <div className="lg:col-span-6 bg-white border border-slate-200 rounded-xl p-5 shadow-xs">
+          <div className="flex items-center justify-between mb-3 border-b border-slate-100 pb-2.5">
+            <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+              <BarChart3 className="w-4 h-4 text-emerald-600" />
               <span>Efektivitas Sumber Lead</span>
             </h3>
-            <span className="text-xs text-[#66736B]">{sourceStats.filter((s) => s.leads > 0).length} Saluran Aktif</span>
+            <span className="text-xs text-slate-500">{sourceStats.filter((s) => s.leads > 0).length} Saluran Aktif</span>
           </div>
 
-          <div className="space-y-3">
-            <div className="grid grid-cols-12 text-[11px] font-bold text-[#66736B] pb-1 border-b border-[#E2E9E4]">
+          <div className="space-y-2">
+            <div className="grid grid-cols-12 text-[11px] font-semibold text-slate-500 pb-1 border-b border-slate-100">
               <span className="col-span-5">Saluran</span>
               <span className="col-span-2 text-center">Lead</span>
               <span className="col-span-2 text-center">Closing</span>
@@ -326,18 +323,18 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ leads }) => {
             {sourceStats.map((item) => (
               <div
                 key={item.source}
-                className="grid grid-cols-12 items-center py-1.5 text-xs hover:bg-[#F4FBF7] rounded-xl px-1 transition-colors"
+                className="grid grid-cols-12 items-center py-1.5 text-xs hover:bg-slate-50 rounded-lg px-1 transition-colors"
               >
                 <div className="col-span-5 flex items-center gap-2">
                   <SourceBadge source={item.source} size="sm" showText={true} />
                 </div>
-                <div className="col-span-2 text-center font-semibold text-[#17221C]">
+                <div className="col-span-2 text-center font-medium text-slate-800">
                   {item.leads}
                 </div>
-                <div className="col-span-2 text-center font-bold text-[#006B3C]">
+                <div className="col-span-2 text-center font-bold text-emerald-700">
                   {item.closing}
                 </div>
-                <div className="col-span-3 text-right font-bold text-[#17221C]">
+                <div className="col-span-3 text-right font-medium text-slate-700">
                   {item.rate}
                 </div>
               </div>
@@ -346,28 +343,28 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ leads }) => {
         </div>
 
         {/* Breakdown Produk */}
-        <div className="lg:col-span-6 bg-white border border-[#E2E9E4] rounded-2xl p-5 shadow-sm">
-          <div className="flex items-center justify-between mb-4 border-b border-[#E2E9E4] pb-3">
-            <h3 className="text-base font-bold text-[#17221C] flex items-center gap-2">
-              <Percent className="w-4 h-4 text-[#00A651]" />
+        <div className="lg:col-span-6 bg-white border border-slate-200 rounded-xl p-5 shadow-xs">
+          <div className="flex items-center justify-between mb-3 border-b border-slate-100 pb-2.5">
+            <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+              <Percent className="w-4 h-4 text-emerald-600" />
               <span>Peminatan Produk</span>
             </h3>
-            <span className="text-xs text-[#66736B]">{PRODUCTS_LIST.length} Produk</span>
+            <span className="text-xs text-slate-500">{PRODUCTS_LIST.length} Produk</span>
           </div>
 
-          <div className="space-y-4">
+          <div className="space-y-3">
             {productStats.map((prod) => (
-              <div key={prod.name} className="space-y-1.5">
+              <div key={prod.name} className="space-y-1">
                 <div className="flex items-center justify-between text-xs">
-                  <span className="font-bold text-[#17221C]">{prod.name}</span>
+                  <span className="font-medium text-slate-800">{prod.name}</span>
                   <div className="flex items-center gap-2">
-                    <span className="text-[#66736B]">{prod.count} Lead</span>
-                    <span className="font-bold text-[#006B3C]">({prod.closing} Deal)</span>
+                    <span className="text-slate-500">{prod.count} Lead</span>
+                    <span className="font-semibold text-emerald-700">({prod.closing} Deal)</span>
                   </div>
                 </div>
-                <div className="w-full bg-[#F1F5F3] rounded-full h-2.5 overflow-hidden border border-[#E2E9E4]">
+                <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden border border-slate-200">
                   <div
-                    className="bg-[#00A651] h-full rounded-full transition-all duration-300"
+                    className="bg-emerald-600 h-full rounded-full transition-all duration-300"
                     style={{ width: prod.pct }}
                   />
                 </div>
@@ -378,33 +375,33 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ leads }) => {
       </div>
 
       {/* Bottom Grid: Breakdown Kota Domisili */}
-      <div className="bg-white border border-[#E2E9E4] rounded-2xl p-5 shadow-sm">
-        <div className="flex items-center justify-between mb-4 border-b border-[#E2E9E4] pb-3">
-          <h3 className="text-base font-bold text-[#17221C] flex items-center gap-2">
-            <MapPin className="w-4 h-4 text-[#00A651]" />
+      <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-xs">
+        <div className="flex items-center justify-between mb-3 border-b border-slate-100 pb-2.5">
+          <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+            <MapPin className="w-4 h-4 text-emerald-600" />
             <span>Performa Berdasarkan Kota Domisili</span>
           </h3>
-          <span className="text-xs text-[#66736B]">Sebaran Geografis Calon Pelanggan</span>
+          <span className="text-xs text-slate-500">Sebaran Geografis Calon Pelanggan</span>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
           {cityStats.slice(0, 6).map((c) => (
             <div
               key={c.city}
-              className="p-3.5 bg-[#F7F9F8] border border-[#E2E9E4] rounded-2xl flex items-center justify-between hover:border-[#00A651]/40 transition-colors"
+              className="p-3 bg-slate-50/70 border border-slate-200 rounded-lg flex items-center justify-between hover:bg-slate-100/60 transition-colors"
             >
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-xl bg-[#E8F7EF] text-[#006B3C] border border-[#A7F3D0] flex items-center justify-center font-bold text-xs">
+                <div className="w-7 h-7 rounded-md bg-white text-slate-700 border border-slate-200 flex items-center justify-center font-bold text-xs">
                   {c.city.slice(0, 2).toUpperCase()}
                 </div>
                 <div>
-                  <h4 className="font-bold text-xs text-[#17221C]">{c.city}</h4>
-                  <p className="text-[11px] text-[#66736B]">{c.leads} Calon Pelanggan</p>
+                  <h4 className="font-semibold text-xs text-slate-900">{c.city}</h4>
+                  <p className="text-[11px] text-slate-500">{c.leads} Lead</p>
                 </div>
               </div>
               <div className="text-right">
-                <span className="text-xs font-bold text-[#006B3C] block">{c.closing} Closing</span>
-                <span className="text-[10px] text-[#66736B]">{c.rate}</span>
+                <span className="text-xs font-semibold text-emerald-700 block">{c.closing} Closing</span>
+                <span className="text-[10px] text-slate-400">{c.rate}</span>
               </div>
             </div>
           ))}

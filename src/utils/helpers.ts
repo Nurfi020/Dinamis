@@ -139,25 +139,25 @@ export function getStatusTheme(status: LeadStatus) {
       };
     case 'Closing':
       return {
-        bg: 'bg-[#E8F7EF]',
-        text: 'text-[#006B3C]',
-        border: 'border-[#A7F3D0]',
-        dot: 'bg-[#10B981]',
+        bg: 'bg-emerald-50',
+        text: 'text-emerald-800',
+        border: 'border-emerald-200',
+        dot: 'bg-emerald-600',
         glow: 'shadow-none',
         label: 'Closing',
         desc: 'Berhasil transaksi',
-        badgeBg: 'bg-[#E8F7EF]',
+        badgeBg: 'bg-emerald-100/70',
       };
     case 'Tidak Berhasil':
       return {
-        bg: 'bg-gray-100',
-        text: 'text-gray-600',
-        border: 'border-gray-300',
-        dot: 'bg-[#6B7280]',
+        bg: 'bg-slate-100',
+        text: 'text-slate-600',
+        border: 'border-slate-200',
+        dot: 'bg-slate-400',
         glow: 'shadow-none',
         label: 'Tidak Berhasil',
         desc: 'Tidak berlanjut',
-        badgeBg: 'bg-gray-200/70',
+        badgeBg: 'bg-slate-200/70',
       };
   }
 }

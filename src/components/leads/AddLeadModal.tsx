@@ -5,7 +5,6 @@ import {
   User, 
   Phone, 
   MapPin, 
-  Package, 
   Check, 
   Sparkles, 
   AlertCircle,
@@ -105,11 +104,11 @@ export const AddLeadModal: React.FC<AddLeadModalProps> = ({
       <form onSubmit={handleSubmit} className="space-y-4 text-xs sm:text-sm">
         {/* 1. Nama Lengkap (Text Input) */}
         <div>
-          <label className="block font-bold text-[#17221C] mb-1.5">
+          <label className="block font-semibold text-slate-700 mb-1">
             Nama Calon Pelanggan <span className="text-rose-500">*</span>
           </label>
           <div className="relative">
-            <User className="w-4 h-4 text-[#66736B] absolute left-3.5 top-1/2 -translate-y-1/2" />
+            <User className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               value={name}
@@ -118,10 +117,10 @@ export const AddLeadModal: React.FC<AddLeadModalProps> = ({
                 if (errors.name) setErrors({ ...errors, name: undefined });
               }}
               placeholder="Contoh: Andi Pratama"
-              className={`w-full pl-10 pr-3.5 py-2.5 bg-white border rounded-xl text-sm text-[#17221C] placeholder-[#66736B] focus:outline-none transition-all ${
+              className={`w-full pl-9 pr-3.5 py-2 bg-white border rounded-lg text-xs sm:text-sm text-slate-900 placeholder-slate-400 focus:outline-none transition-all ${
                 errors.name
-                  ? 'border-rose-500 ring-2 ring-rose-500/20'
-                  : 'border-[#E2E9E4] focus:border-[#00A651] focus:ring-2 focus:ring-[#00A651]/20'
+                  ? 'border-rose-500 ring-2 ring-rose-500/15'
+                  : 'border-slate-300 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/15'
               }`}
             />
           </div>
@@ -135,11 +134,11 @@ export const AddLeadModal: React.FC<AddLeadModalProps> = ({
 
         {/* 2. Nomor WhatsApp (Text Input) */}
         <div>
-          <label className="block font-bold text-[#17221C] mb-1.5">
+          <label className="block font-semibold text-slate-700 mb-1">
             Nomor WhatsApp <span className="text-rose-500">*</span>
           </label>
           <div className="relative">
-            <Phone className="w-4 h-4 text-[#66736B] absolute left-3.5 top-1/2 -translate-y-1/2" />
+            <Phone className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               type="tel"
               value={phone}
@@ -148,10 +147,10 @@ export const AddLeadModal: React.FC<AddLeadModalProps> = ({
                 if (errors.phone) setErrors({ ...errors, phone: undefined });
               }}
               placeholder="Contoh: 081234567890"
-              className={`w-full pl-10 pr-3.5 py-2.5 bg-white border rounded-xl text-sm text-[#17221C] placeholder-[#66736B] focus:outline-none transition-all ${
+              className={`w-full pl-9 pr-3.5 py-2 bg-white border rounded-lg text-xs sm:text-sm text-slate-900 placeholder-slate-400 focus:outline-none transition-all ${
                 errors.phone
-                  ? 'border-rose-500 ring-2 ring-rose-500/20'
-                  : 'border-[#E2E9E4] focus:border-[#00A651] focus:ring-2 focus:ring-[#00A651]/20'
+                  ? 'border-rose-500 ring-2 ring-rose-500/15'
+                  : 'border-slate-300 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/15'
               }`}
             />
           </div>
@@ -165,19 +164,19 @@ export const AddLeadModal: React.FC<AddLeadModalProps> = ({
 
         {/* 3. Kota dengan Quick Chips */}
         <div>
-          <label className="block font-bold text-[#17221C] mb-1.5">
+          <label className="block font-semibold text-slate-700 mb-1">
             Kota Domisili <span className="text-rose-500">*</span>
           </label>
-          <div className="flex flex-wrap gap-1.5 mb-2">
+          <div className="flex flex-wrap gap-1.5 mb-1.5">
             {popularCities.map((c) => (
               <button
                 key={c}
                 type="button"
                 onClick={() => setCity(c)}
-                className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
+                className={`px-2.5 py-1 rounded-md text-xs font-medium border transition-colors cursor-pointer ${
                   city === c
-                    ? 'bg-[#E8F7EF] text-[#006B3C] border-[#00A651] shadow-xs'
-                    : 'bg-white text-[#66736B] border-[#E2E9E4] hover:border-[#00A651]/40 hover:text-[#17221C]'
+                    ? 'bg-emerald-50 text-emerald-800 border-emerald-300 font-semibold'
+                    : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
                 }`}
               >
                 {c}
@@ -186,14 +185,14 @@ export const AddLeadModal: React.FC<AddLeadModalProps> = ({
           </div>
 
           <div className="relative">
-            <MapPin className="w-4 h-4 text-[#66736B] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <MapPin className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
             <select
               value={city}
               onChange={(e) => setCity(e.target.value)}
-              className="w-full pl-10 pr-3.5 py-2.5 bg-white border border-[#E2E9E4] rounded-xl text-sm text-[#17221C] font-medium focus:outline-none focus:border-[#00A651] cursor-pointer"
+              className="w-full pl-9 pr-3.5 py-2 bg-white border border-slate-300 rounded-lg text-xs sm:text-sm text-slate-900 font-medium focus:outline-none focus:border-emerald-600 cursor-pointer"
             >
               {CITIES_LIST.map((c) => (
-                <option key={c} value={c} className="bg-white text-[#17221C]">
+                <option key={c} value={c} className="bg-white text-slate-900">
                   {c}
                 </option>
               ))}
@@ -203,7 +202,7 @@ export const AddLeadModal: React.FC<AddLeadModalProps> = ({
 
         {/* 4. Sumber Informasi (Clickable Chips) */}
         <div>
-          <label className="block font-bold text-[#17221C] mb-1.5">
+          <label className="block font-semibold text-slate-700 mb-1">
             Sumber Informasi <span className="text-rose-500">*</span>
           </label>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
@@ -215,17 +214,17 @@ export const AddLeadModal: React.FC<AddLeadModalProps> = ({
                   key={src.id}
                   type="button"
                   onClick={() => setSource(src.id)}
-                  className={`p-2.5 rounded-xl text-xs font-bold border flex items-center justify-between transition-all cursor-pointer ${
+                  className={`p-2 rounded-lg text-xs font-semibold border flex items-center justify-between transition-colors cursor-pointer ${
                     isSelected
-                      ? 'bg-[#E8F7EF] text-[#006B3C] border-[#00A651] shadow-xs ring-1 ring-[#00A651]'
-                      : 'bg-white text-[#66736B] border-[#E2E9E4] hover:border-[#00A651]/40 hover:text-[#17221C]'
+                      ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
+                      : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
                   }`}
                 >
-                  <div className="flex items-center gap-2">
-                    <Icon className="w-4 h-4 text-[#00A651]" />
+                  <div className="flex items-center gap-1.5">
+                    <Icon className="w-3.5 h-3.5 text-slate-500" />
                     <span>{src.label}</span>
                   </div>
-                  {isSelected && <Check className="w-3.5 h-3.5 text-[#006B3C]" />}
+                  {isSelected && <Check className="w-3.5 h-3.5 text-emerald-600" />}
                 </button>
               );
             })}
@@ -234,7 +233,7 @@ export const AddLeadModal: React.FC<AddLeadModalProps> = ({
 
         {/* 5. Produk Peminatan (Clickable Chips) */}
         <div>
-          <label className="block font-bold text-[#17221C] mb-1.5">
+          <label className="block font-semibold text-slate-700 mb-1">
             Produk Peminatan <span className="text-rose-500">*</span>
           </label>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -248,17 +247,17 @@ export const AddLeadModal: React.FC<AddLeadModalProps> = ({
                   key={prod}
                   type="button"
                   onClick={() => setProduct(prod)}
-                  className={`p-2.5 rounded-xl text-left border transition-all cursor-pointer ${
+                  className={`p-2.5 rounded-lg text-left border transition-colors cursor-pointer ${
                     isSelected
-                      ? 'bg-[#E8F7EF] text-[#006B3C] border-[#00A651] shadow-xs ring-1 ring-[#00A651]'
-                      : 'bg-white text-[#66736B] border-[#E2E9E4] hover:border-[#00A651]/40 hover:text-[#17221C]'
+                      ? 'bg-emerald-50 text-emerald-900 border-emerald-300'
+                      : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
                   }`}
                 >
                   <div className="flex items-center justify-between">
-                    <span className="font-bold text-xs text-[#17221C]">{shortName}</span>
-                    {isSelected && <Check className="w-3.5 h-3.5 text-[#006B3C]" />}
+                    <span className="font-semibold text-xs text-slate-900">{shortName}</span>
+                    {isSelected && <Check className="w-3.5 h-3.5 text-emerald-600" />}
                   </div>
-                  {desc && <span className="text-[11px] text-[#66736B] block mt-0.5">{desc}</span>}
+                  {desc && <span className="text-[11px] text-slate-500 block mt-0.5">{desc}</span>}
                 </button>
               );
             })}
@@ -267,11 +266,11 @@ export const AddLeadModal: React.FC<AddLeadModalProps> = ({
 
         {/* 6. Estimasi Nilai Deal (Nominal Rupiah) */}
         <div>
-          <label className="block font-bold text-[#17221C] mb-1.5 flex items-center justify-between">
+          <label className="block font-semibold text-slate-700 mb-1 flex items-center justify-between">
             <span>Estimasi Nilai Deal (Rupiah)</span>
-            <span className="text-[11px] text-[#006B3C] font-semibold">Potensi Revenue</span>
+            <span className="text-xs text-emerald-700 font-semibold">Potensi Revenue</span>
           </label>
-          <div className="flex flex-wrap gap-1.5 mb-2">
+          <div className="flex flex-wrap gap-1.5 mb-1.5">
             {[
               { label: 'Rp 15 Jt', val: '15000000' },
               { label: 'Rp 25 Jt', val: '25000000' },
@@ -282,10 +281,10 @@ export const AddLeadModal: React.FC<AddLeadModalProps> = ({
                 key={p.val}
                 type="button"
                 onClick={() => setDealValue(p.val)}
-                className={`px-3 py-1 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
+                className={`px-2.5 py-1 rounded-md text-xs font-medium border transition-colors cursor-pointer ${
                   dealValue === p.val
-                    ? 'bg-[#E8F7EF] text-[#006B3C] border-[#00A651] shadow-xs'
-                    : 'bg-white text-[#66736B] border-[#E2E9E4] hover:bg-slate-50'
+                    ? 'bg-emerald-50 text-emerald-800 border-emerald-300 font-semibold'
+                    : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
                 }`}
               >
                 {p.label}
@@ -293,82 +292,82 @@ export const AddLeadModal: React.FC<AddLeadModalProps> = ({
             ))}
           </div>
           <div className="relative">
-            <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-[#66736B]">Rp</span>
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-500">Rp</span>
             <input
               type="number"
               value={dealValue}
               onChange={(e) => setDealValue(e.target.value)}
               placeholder="25000000"
-              className="w-full pl-10 pr-3.5 py-2.5 bg-white border border-[#E2E9E4] focus:border-[#00A651] rounded-xl text-sm font-bold font-mono text-[#17221C] focus:outline-none focus:ring-2 focus:ring-[#00A651]/20 transition-all"
+              className="w-full pl-9 pr-3.5 py-2 bg-white border border-slate-300 focus:border-emerald-600 rounded-lg text-xs sm:text-sm font-bold font-mono text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-600/15 transition-all"
             />
           </div>
         </div>
 
-        {/* 7. Status Awal (Large Selectable Segmented Buttons) */}
+        {/* 7. Status Awal (Selectable Segmented Buttons) */}
         <div>
-          <label className="block font-bold text-[#17221C] mb-1.5">
-            Bagaimana Kondisi Lead? (Status Awal) <span className="text-rose-500">*</span>
+          <label className="block font-semibold text-slate-700 mb-1">
+            Status Awal <span className="text-rose-500">*</span>
           </label>
-          <div className="grid grid-cols-3 gap-2.5">
+          <div className="grid grid-cols-3 gap-2">
             {[
-              { id: 'Cold' as LeadStatus, label: 'Cold', desc: 'Baru tanya', dot: 'bg-[#64748B]' },
-              { id: 'Warm' as LeadStatus, label: 'Warm', desc: 'Tertarik produk', dot: 'bg-[#F59E0B]' },
-              { id: 'Hot' as LeadStatus, label: 'Hot', desc: 'Siap beli', dot: 'bg-[#EF4444]' },
+              { id: 'Cold' as LeadStatus, label: 'Cold', desc: 'Baru masuk', dot: 'bg-slate-400' },
+              { id: 'Warm' as LeadStatus, label: 'Warm', desc: 'Berminat', dot: 'bg-amber-500' },
+              { id: 'Hot' as LeadStatus, label: 'Hot', desc: 'Peluang tinggi', dot: 'bg-rose-500' },
             ].map((s) => (
               <button
                 key={s.id}
                 type="button"
                 onClick={() => setStatus(s.id)}
-                className={`py-3 px-2 rounded-xl text-center border transition-all cursor-pointer ${
+                className={`py-2.5 px-2 rounded-lg text-center border transition-colors cursor-pointer ${
                   status === s.id
                     ? s.id === 'Cold'
-                      ? 'bg-slate-100 text-slate-800 border-slate-400 ring-2 ring-slate-400/20'
+                      ? 'bg-slate-100 text-slate-800 border-slate-300 font-semibold'
                       : s.id === 'Warm'
-                      ? 'bg-amber-50 text-amber-800 border-amber-400 ring-2 ring-amber-500/20'
-                      : 'bg-rose-50 text-rose-700 border-rose-400 ring-2 ring-rose-500/20'
-                    : 'bg-white text-[#66736B] border-[#E2E9E4] hover:bg-slate-50'
+                      ? 'bg-amber-50 text-amber-900 border-amber-300 font-semibold'
+                      : 'bg-rose-50 text-rose-800 border-rose-300 font-semibold'
+                    : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
                 }`}
               >
                 <div className="flex items-center justify-center gap-1.5 mb-0.5">
-                  <span className={`w-2.5 h-2.5 rounded-full ${s.dot}`} />
-                  <span className="font-extrabold text-xs">{s.label}</span>
+                  <span className={`w-2 h-2 rounded-full ${s.dot}`} />
+                  <span className="font-bold text-xs">{s.label}</span>
                 </div>
-                <span className="text-[10px] opacity-80 block">{s.desc}</span>
+                <span className="text-[10px] text-slate-500 block">{s.desc}</span>
               </button>
             ))}
           </div>
         </div>
 
-        {/* 7. Catatan Awal (Opsional) */}
+        {/* 8. Catatan Awal */}
         <div>
-          <label className="block font-bold text-[#17221C] mb-1.5 flex items-center justify-between">
-            <span>Catatan Kebutuhan Calon Pelanggan</span>
-            <span className="text-xs text-[#66736B] font-normal">Opsional</span>
+          <label className="block font-semibold text-slate-700 mb-1 flex items-center justify-between">
+            <span>Catatan Kebutuhan</span>
+            <span className="text-xs text-slate-400 font-normal">Opsional</span>
           </label>
           <textarea
             rows={2}
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             placeholder="Catat pertanyaan atau kebutuhan khusus calon pembeli..."
-            className="w-full p-3 bg-white border border-[#E2E9E4] rounded-xl text-xs text-[#17221C] placeholder-[#66736B] focus:outline-none focus:border-[#00A651] focus:ring-2 focus:ring-[#00A651]/20"
+            className="w-full p-2.5 bg-white border border-slate-300 rounded-lg text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/15"
           />
         </div>
 
         {/* Submit / Action Buttons */}
-        <div className="pt-3 flex items-center justify-end gap-3 border-t border-[#E2E9E4]">
+        <div className="pt-3 flex items-center justify-end gap-2.5 border-t border-slate-200">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2.5 rounded-xl text-sm font-semibold text-[#66736B] hover:text-[#17221C] hover:bg-slate-100 transition-colors cursor-pointer"
+            className="px-3.5 py-2 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors cursor-pointer"
           >
             Batal
           </button>
           <button
             type="submit"
-            className="px-6 py-2.5 rounded-xl bg-[#00A651] hover:bg-[#006B3C] text-white text-sm font-bold shadow-sm active:scale-95 transition-all flex items-center gap-2 cursor-pointer"
+            className="px-5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-xs active:scale-95 transition-all flex items-center gap-1.5 cursor-pointer"
           >
-            <Sparkles className="w-4 h-4" />
-            <span>Simpan Lead Baru</span>
+            <Sparkles className="w-3.5 h-3.5" />
+            <span>Simpan Lead</span>
           </button>
         </div>
       </form>
