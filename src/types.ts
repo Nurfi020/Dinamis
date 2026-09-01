@@ -77,7 +77,95 @@ export interface UserProfile {
   closingCount: number;
 }
 
-export type ActiveTab = 'dashboard' | 'leads' | 'followup' | 'reports' | 'profile' | 'admin_licenses';
+export type DemoRole = 'sales' | 'supervisor' | 'manager' | 'admin';
+
+export interface DemoPersona {
+  id: string;
+  role: DemoRole;
+  name: string;
+  title: string;
+  organization: string;
+  branch: string;
+  team?: string;
+  email: string;
+  phone: string;
+  avatarUrl?: string;
+  monthlyTarget?: number;
+  closingCount?: number;
+}
+
+export interface TeamMemberPerformance {
+  id: string;
+  name: string;
+  role: string;
+  avatarUrl?: string;
+  leadsCount: number;
+  hotLeadsCount: number;
+  pipelineValue: number;
+  closingCount: number;
+  closingValue: number;
+  monthlyTarget: number;
+  achievementPct: number;
+  conversionRatePct: number;
+  pendingFollowUps: number;
+}
+
+export interface BranchPerformance {
+  id: string;
+  name: string;
+  city: string;
+  headName: string;
+  teamsCount: number;
+  salesCount: number;
+  leadsCount: number;
+  pipelineValue: number;
+  closingCount: number;
+  closingValue: number;
+  monthlyTarget: number;
+  achievementPct: number;
+  conversionRatePct: number;
+}
+
+export interface TeamPerformance {
+  id: string;
+  name: string;
+  branchName: string;
+  supervisorName: string;
+  salesCount: number;
+  leadsCount: number;
+  pipelineValue: number;
+  closingCount: number;
+  closingValue: number;
+  conversionRatePct: number;
+  achievementPct: number;
+}
+
+export interface AuditLogItem {
+  id: string;
+  timestamp: string;
+  userName: string;
+  userRole: string;
+  action: string;
+  entity: string;
+  entityName: string;
+  details: string;
+  ipAddress?: string;
+}
+
+export type ActiveTab = 
+  | 'dashboard' 
+  | 'leads' 
+  | 'pipeline' 
+  | 'followup' 
+  | 'team_performance' 
+  | 'branches' 
+  | 'teams' 
+  | 'reports' 
+  | 'users' 
+  | 'audit_log' 
+  | 'settings' 
+  | 'profile' 
+  | 'admin_licenses';
 
 export interface LicenseInfo {
   id: string;

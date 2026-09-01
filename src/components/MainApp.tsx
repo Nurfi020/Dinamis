@@ -8,7 +8,9 @@ import {
   UserProfile, 
   FollowUpLog, 
   LicenseInfo, 
-  DevModeInfo 
+  DevModeInfo,
+  DemoRole,
+  DemoPersona
 } from '../types';
 import { 
   getStoredLeads, 
@@ -19,11 +21,21 @@ import {
   INITIAL_USER_PROFILE, 
   INITIAL_LEADS 
 } from '../data/mockData';
+import { DEMO_PERSONAS } from '../data/enterpriseDemoData';
 import { leadService, followUpService, profileService } from '../services/api';
 import { Sidebar } from './layout/Sidebar';
 import { BottomNav } from './layout/BottomNav';
 import { TopHeader } from './layout/TopHeader';
 import { DashboardView } from './dashboard/DashboardView';
+import { SupervisorDashboardView } from './supervisor/SupervisorDashboardView';
+import { ManagerDashboardView } from './manager/ManagerDashboardView';
+import { AdminDashboardView } from './admin/AdminDashboardView';
+import { 
+  AdminUsersView, 
+  AdminBranchesView, 
+  AdminAuditLogView, 
+  AdminSettingsView 
+} from './admin/AdminEnterpriseViews';
 import { LeadListView } from './leads/LeadListView';
 import { LeadDetailView } from './leads/LeadDetailView';
 import { AddLeadModal } from './leads/AddLeadModal';
@@ -83,6 +95,10 @@ export function MainApp({
   const [isClient, setIsClient] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
+  // ENTERPRISE DEMO ROLE & PERSONA STATE
+  const [currentRole, setCurrentRole] = useState<DemoRole>('sales');
+  const [currentPersona, setCurrentPersona] = useState<DemoPersona>(DEMO_PERSONAS.sales);
+
   // License & Dev Mode state (bypassed if AUTH_BYPASS_ENABLED is true)
   const [isLicenseChecking, setIsLicenseChecking] = useState(!AUTH_BYPASS_ENABLED);
   const [isActivated, setIsActivated] = useState(AUTH_BYPASS_ENABLED);
@@ -137,6 +153,16 @@ export function MainApp({
 
   const removeToast = (id: string) => {
     setToasts((prev) => prev.filter((t) => t.id !== id));
+  };
+
+  // Role Switcher Handler (Instant Simulated State)
+  const handleSwitchRole = (role: DemoRole) => {
+    const targetPersona = DEMO_PERSONAS[role];
+    setCurrentRole(role);
+    setCurrentPersona(targetPersona);
+    setSelectedLeadId(null);
+    setActiveTab('dashboard');
+    addToast('info', `Beralih ke ${role.toUpperCase()} Portal`, `Akun aktif: ${targetPersona.name} (${targetPersona.title})`);
   };
 
   // Fetch from backend API with fallback to local storage
@@ -199,7 +225,7 @@ export function MainApp({
           setDevModeInfo(null);
           setLicenseInfo(null);
         }
-      } catch (e) {
+      } catch {
         setIsActivated(false);
         setDevModeInfo(null);
         setLicenseInfo(null);
@@ -350,7 +376,7 @@ export function MainApp({
       };
       setProfile(updatedProfile);
       saveStoredProfile(updatedProfile);
-      addToast('success', '🎉 DEAL CLOSING BERHASIL!', 'Selamat! Target closing Anda bertambah.');
+      addToast('success', '🎉 DEAL CLOSING BERHASIL!', 'Selamat! Target closing bertambah.');
     } else {
       addToast('success', 'Follow Up Dicatat', 'Riwayat aktivitas lead berhasil diperbarui.');
     }
@@ -408,13 +434,13 @@ export function MainApp({
     try {
       const saved = await profileService.updateProfile(updated);
       setProfile(saved);
-      addToast('success', 'Profil Diperbarui', 'Data profil sales berhasil disimpan ke database.');
+      addToast('success', 'Profil Diperbarui', 'Data profil berhasil disimpan ke database.');
     } catch {
-      addToast('success', 'Profil Diperbarui', 'Data profil sales berhasil disimpan lokal.');
+      addToast('success', 'Profil Diperbarui', 'Data profil berhasil disimpan lokal.');
     }
   };
 
-  // Header title & subtitle based on active tab
+  // Header title & subtitle dynamically tailored to active tab and active role
   const getHeaderInfo = () => {
     if (selectedLead && activeTab === 'leads') {
       return {
@@ -424,32 +450,91 @@ export function MainApp({
     }
     switch (activeTab) {
       case 'dashboard':
+        if (currentRole === 'supervisor') {
+          return {
+            title: 'Dashboard Tim',
+            subtitle: `Monitoring kinerja tim & pipeline ${currentPersona.team || 'Sales'}`,
+          };
+        }
+        if (currentRole === 'manager') {
+          return {
+            title: 'Dashboard Eksekutif',
+            subtitle: `Konsolidasi kinerja cabang & target korporasi ${currentPersona.branch}`,
+          };
+        }
+        if (currentRole === 'admin') {
+          return {
+            title: 'Dashboard Administrator',
+            subtitle: 'Status operasional sistem, manajemen lisensi, dan log keamanan',
+          };
+        }
         return {
-          title: 'Dashboard',
-          subtitle: 'Ringkasan aktivitas lead Anda hari ini',
+          title: 'Dashboard Sales',
+          subtitle: 'Ringkasan aktivitas lead dan pencapaian target closing Anda',
         };
+
       case 'leads':
         return {
-          title: 'Daftar Calon Pelanggan',
-          subtitle: 'Kelola semua calon pelanggan dan status prospek',
+          title: currentRole === 'supervisor' ? 'Daftar Lead Tim' : currentRole === 'manager' ? 'Semua Pipeline Organisasi' : 'Daftar Calon Pelanggan',
+          subtitle: 'Kelola semua calon pelanggan dan status prospek perbankan',
         };
+
       case 'followup':
         return {
-          title: 'Jadwal Follow Up',
-          subtitle: 'Pantau lead yang terlambat, hari ini, dan mendatang',
+          title: currentRole === 'supervisor' ? 'Monitoring Follow Up Tim' : 'Jadwal Follow Up',
+          subtitle: 'Pantau lead yang terlambat, hari ini, dan jadwal mendatang',
         };
+
+      case 'team_performance':
+        return {
+          title: 'Kinerja & Leaderboard Tim',
+          subtitle: 'Evaluasi pencapaian target dan rasio konversi per sales representative',
+        };
+
+      case 'branches':
+        return {
+          title: 'Kinerja Kantor Cabang',
+          subtitle: 'Komparasi performa KC Jakarta, KC Bandung, dan KC Surabaya',
+        };
+
+      case 'teams':
+        return {
+          title: 'Kinerja Unit Tim Sales',
+          subtitle: 'Produktivitas Sales Team Alpha, Team Beta, dan Regional Commercial',
+        };
+
+      case 'users':
+        return {
+          title: 'Manajemen Pengguna & Role',
+          subtitle: 'Daftar staf sales, supervisor tim, branch manager, dan administrator',
+        };
+
+      case 'audit_log':
+        return {
+          title: 'Audit & Activity Log',
+          subtitle: 'Rekam jejak seluruh aktivitas perubahan data dan keamanan sistem',
+        };
+
+      case 'settings':
+        return {
+          title: 'Pengaturan Sistem CRM',
+          subtitle: 'Konfigurasi lisensi enterprise dan parameter operasional',
+        };
+
       case 'reports':
         return {
-          title: 'Laporan Performa',
-          subtitle: 'Lihat perkembangan, efektivitas sumber, dan tingkat closing',
+          title: currentRole === 'manager' ? 'Laporan Kinerja Manajemen' : currentRole === 'supervisor' ? 'Laporan Performa Tim' : 'Laporan Performa Penjualan',
+          subtitle: 'Analisis konversi lead, efektivitas saluran, dan tingkat closing',
         };
+
       case 'profile':
         return {
-          title: 'Pengaturan & Profil Sales',
-          subtitle: 'Informasi akun dan target closing bulanan',
+          title: `Profil ${currentPersona.title}`,
+          subtitle: `Informasi akun ${currentPersona.name} • ${currentPersona.organization}`,
         };
+
       default:
-        return { title: 'Kelola Lead', subtitle: 'CRM Sales' };
+        return { title: 'Kelola Lead', subtitle: 'Enterprise Demo CRM' };
     }
   };
 
@@ -462,7 +547,7 @@ export function MainApp({
           <span className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
         </div>
         <p className="text-sm font-bold text-[#17221C] tracking-wide">Kelola Lead Sales CRM</p>
-        <p className="text-xs text-[#006B3C] mt-1 font-mono font-semibold">Memuat dashboard...</p>
+        <p className="text-xs text-[#006B3C] mt-1 font-mono font-semibold">Memuat dashboard enterprise...</p>
       </div>
     );
   }
@@ -503,6 +588,8 @@ export function MainApp({
         onOpenAddLead={() => setIsAddModalOpen(true)}
         followUpCount={followUpCount}
         onOpenHelp={() => setIsHelpOpen(true)}
+        currentRole={currentRole}
+        currentPersona={currentPersona}
         devModeInfo={devModeInfo}
       />
 
@@ -513,6 +600,9 @@ export function MainApp({
           title={headerInfo.title}
           subtitle={headerInfo.subtitle}
           profile={profile}
+          currentRole={currentRole}
+          currentPersona={currentPersona}
+          onSwitchRole={handleSwitchRole}
           devModeInfo={devModeInfo}
           onOpenProfile={() => {
             setSelectedLeadId(null);
@@ -529,30 +619,91 @@ export function MainApp({
 
         {/* Dynamic Views */}
         <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto">
+          {/* A. Dashboard Tab per Role */}
           {activeTab === 'dashboard' && (
-            <DashboardView
+            <>
+              {currentRole === 'sales' && (
+                <DashboardView
+                  leads={leads}
+                  onSelectLead={(lead) => {
+                    setSelectedLeadId(lead.id);
+                    setActiveTab('leads');
+                  }}
+                  onFilterByStatus={(status) => {
+                    setInitialFilterStatus(status);
+                    setSelectedLeadId(null);
+                    setActiveTab('leads');
+                  }}
+                  onFilterFollowUp={() => {
+                    setSelectedLeadId(null);
+                    setActiveTab('followup');
+                  }}
+                  onNavigateToTab={(tab) => {
+                    setSelectedLeadId(null);
+                    setActiveTab(tab);
+                  }}
+                  onOpenAddLead={() => setIsAddModalOpen(true)}
+                />
+              )}
+
+              {currentRole === 'supervisor' && (
+                <SupervisorDashboardView
+                  leads={leads}
+                  onSelectLead={(lead) => {
+                    setSelectedLeadId(lead.id);
+                    setActiveTab('leads');
+                  }}
+                  onNavigateToTab={(tab) => {
+                    setSelectedLeadId(null);
+                    setActiveTab(tab);
+                  }}
+                  onOpenAddLead={() => setIsAddModalOpen(true)}
+                />
+              )}
+
+              {currentRole === 'manager' && (
+                <ManagerDashboardView
+                  leads={leads}
+                  onNavigateToTab={(tab) => {
+                    setSelectedLeadId(null);
+                    setActiveTab(tab);
+                  }}
+                />
+              )}
+
+              {currentRole === 'admin' && (
+                <AdminDashboardView
+                  onNavigateToTab={(tab) => {
+                    setSelectedLeadId(null);
+                    setActiveTab(tab);
+                  }}
+                />
+              )}
+            </>
+          )}
+
+          {/* B. Specific Role Tabs */}
+          {activeTab === 'team_performance' && (
+            <SupervisorDashboardView
               leads={leads}
               onSelectLead={(lead) => {
                 setSelectedLeadId(lead.id);
                 setActiveTab('leads');
               }}
-              onFilterByStatus={(status) => {
-                setInitialFilterStatus(status);
-                setSelectedLeadId(null);
-                setActiveTab('leads');
-              }}
-              onFilterFollowUp={() => {
-                setSelectedLeadId(null);
-                setActiveTab('followup');
-              }}
               onNavigateToTab={(tab) => {
                 setSelectedLeadId(null);
                 setActiveTab(tab);
               }}
-              onOpenAddLead={() => setIsAddModalOpen(true)}
             />
           )}
 
+          {activeTab === 'branches' && <AdminBranchesView />}
+          {activeTab === 'teams' && <AdminBranchesView />}
+          {activeTab === 'users' && <AdminUsersView />}
+          {activeTab === 'audit_log' && <AdminAuditLogView />}
+          {activeTab === 'settings' && <AdminSettingsView />}
+
+          {/* C. Existing Core CRM Tabs (Preserved 100%) */}
           {activeTab === 'leads' && (
             <>
               {selectedLead ? (
@@ -601,7 +752,15 @@ export function MainApp({
 
           {activeTab === 'profile' && (
             <ProfileView
-              profile={profile}
+              profile={{
+                ...profile,
+                name: currentPersona.name,
+                role: currentPersona.title,
+                email: currentPersona.email,
+                phone: currentPersona.phone,
+                monthlyTarget: currentPersona.monthlyTarget || profile.monthlyTarget,
+                closingCount: currentPersona.closingCount !== undefined ? currentPersona.closingCount : profile.closingCount,
+              }}
               license={licenseInfo}
               devModeInfo={devModeInfo}
               onUpdateProfile={handleUpdateProfile}
@@ -621,6 +780,7 @@ export function MainApp({
         }}
         onOpenAddLead={() => setIsAddModalOpen(true)}
         followUpCount={followUpCount}
+        currentRole={currentRole}
       />
 
       {/* 4. Modals */}
