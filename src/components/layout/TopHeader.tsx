@@ -16,6 +16,7 @@ import {
   MapPin, 
   Lock,
   Hammer,
+  Store,
   LayoutGrid
 } from 'lucide-react';
 import { 
@@ -99,29 +100,61 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
   const roleOptions: { role: DemoRole; label: string; desc: string; icon: any; minPackage: DemoPackage }[] = [
     {
       role: 'sales',
-      label: currentIndustry === 'contractor' ? 'Budi Estimator' : DEMO_PERSONAS.sales.name,
-      desc: currentIndustry === 'contractor' ? 'Project Sales & Estimator' : DEMO_PERSONAS.sales.title,
+      label: currentIndustry === 'contractor' 
+        ? 'Budi Estimator' 
+        : currentIndustry === 'umkm'
+        ? 'Budi Sales UMKM'
+        : DEMO_PERSONAS.sales.name,
+      desc: currentIndustry === 'contractor' 
+        ? 'Project Sales & Estimator' 
+        : currentIndustry === 'umkm'
+        ? 'Staff Penjualan & Layanan Pelanggan'
+        : DEMO_PERSONAS.sales.title,
       icon: UserCircle2,
       minPackage: 'basic',
     },
     {
       role: 'supervisor',
-      label: currentIndustry === 'contractor' ? 'Dimas SPV Proyek' : DEMO_PERSONAS.supervisor.name,
-      desc: currentIndustry === 'contractor' ? 'Project Team Supervisor' : DEMO_PERSONAS.supervisor.title,
+      label: currentIndustry === 'contractor' 
+        ? 'Dimas SPV Proyek' 
+        : currentIndustry === 'umkm'
+        ? 'Dimas SPV Toko'
+        : DEMO_PERSONAS.supervisor.name,
+      desc: currentIndustry === 'contractor' 
+        ? 'Project Team Supervisor' 
+        : currentIndustry === 'umkm'
+        ? 'Supervisor Tim Penjualan UMKM'
+        : DEMO_PERSONAS.supervisor.title,
       icon: Users,
       minPackage: 'business',
     },
     {
       role: 'manager',
-      label: currentIndustry === 'contractor' ? 'Ir. Hendra (Dir. Proyek)' : DEMO_PERSONAS.manager.name,
-      desc: currentIndustry === 'contractor' ? 'Project Director / Branch Manager' : DEMO_PERSONAS.manager.title,
+      label: currentIndustry === 'contractor' 
+        ? 'Ir. Hendra (Dir. Proyek)' 
+        : currentIndustry === 'umkm'
+        ? 'Ibu Ratna (Owner Bisnis)'
+        : DEMO_PERSONAS.manager.name,
+      desc: currentIndustry === 'contractor' 
+        ? 'Project Director / Branch Manager' 
+        : currentIndustry === 'umkm'
+        ? 'Owner & Pengelola Bisnis'
+        : DEMO_PERSONAS.manager.title,
       icon: Briefcase,
       minPackage: 'enterprise',
     },
     {
       role: 'admin',
-      label: currentIndustry === 'contractor' ? 'Fauzan (Admin Kontrak)' : DEMO_PERSONAS.admin.name,
-      desc: currentIndustry === 'contractor' ? 'Contract & System Administrator' : DEMO_PERSONAS.admin.title,
+      label: currentIndustry === 'contractor' 
+        ? 'Fauzan (Admin Kontrak)' 
+        : currentIndustry === 'umkm'
+        ? 'Fauzan (Admin Sistem)'
+        : DEMO_PERSONAS.admin.name,
+      desc: currentIndustry === 'contractor' 
+        ? 'Contract & System Administrator' 
+        : currentIndustry === 'umkm'
+        ? 'Administrator Sistem & Pengguna'
+        : DEMO_PERSONAS.admin.title,
       icon: ShieldCheck,
       minPackage: 'enterprise',
     },
@@ -154,6 +187,32 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
             branch: 'Divisi Commercial & Infra',
             badge: 'CONTRACTOR • Enterprise EPC',
             badgeClass: 'bg-slate-900 text-amber-400 border-slate-700',
+          };
+      }
+    }
+
+    if (currentIndustry === 'umkm') {
+      switch (currentPackage) {
+        case 'basic':
+          return {
+            org: 'Toko Barokah — Retail & Kuliner UMKM',
+            branch: 'Jakarta Barat',
+            badge: 'UMKM • Usaha Mandiri',
+            badgeClass: 'bg-emerald-50 text-emerald-800 border-emerald-200',
+          };
+        case 'business':
+          return {
+            org: 'CV Usaha Maju Bersama — Distributor & Retail',
+            branch: 'Jakarta Pusat',
+            badge: 'UMKM • Tim Penjualan',
+            badgeClass: 'bg-emerald-50 text-emerald-800 border-emerald-200',
+          };
+        case 'enterprise':
+          return {
+            org: 'PT Sentra Niaga Nusantara — Multi-Store Network',
+            branch: 'KC Sudirman',
+            badge: 'UMKM • Multi-Outlet',
+            badgeClass: 'bg-slate-900 text-emerald-400 border-slate-700',
           };
       }
     }
@@ -199,6 +258,8 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
           <div className="hidden xl:flex items-center gap-2 px-2.5 py-1 rounded-full bg-[#F7F9F8] border border-[#E2E9E4] text-[11px] text-[#66736B]">
             {currentIndustry === 'contractor' ? (
               <Hammer className="w-3.5 h-3.5 text-amber-600" />
+            ) : currentIndustry === 'umkm' ? (
+              <Store className="w-3.5 h-3.5 text-[#00A651]" />
             ) : (
               <Building2 className="w-3.5 h-3.5 text-[#00A651]" />
             )}
@@ -222,14 +283,14 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
         )}
       </div>
 
-      {/* 2. Right Controls: PACKAGE + INDUSTRY + ROLE + Actions */}
+      {/* 2. Right Controls: INDUSTRY + PACKAGE + ROLE + Actions */}
       <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
         {/* A. INDUSTRY SWITCHER CONTROL */}
         <div className="flex items-center bg-[#F1F5F3] p-0.5 sm:p-1 rounded-xl border border-[#E2E9E4] shadow-2xs">
           <span className="text-[10px] uppercase font-extrabold text-[#66736B] px-1.5 hidden 2xl:inline">
             Industri:
           </span>
-          {(['general', 'contractor'] as DemoIndustry[]).map((indKey) => {
+          {(['general', 'umkm', 'contractor'] as DemoIndustry[]).map((indKey) => {
             const indConfig = DEMO_INDUSTRIES[indKey];
             const isActive = currentIndustry === indKey;
             return (
@@ -241,6 +302,8 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
                   isActive
                     ? indKey === 'contractor'
                       ? 'bg-amber-600 text-white shadow-xs'
+                      : indKey === 'umkm'
+                      ? 'bg-[#00A651] text-white shadow-xs'
                       : 'bg-slate-800 text-white shadow-xs'
                     : 'text-[#66736B] hover:text-[#17221C] hover:bg-white/60'
                 }`}
@@ -248,10 +311,14 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
               >
                 {indKey === 'contractor' ? (
                   <Hammer className="w-3 h-3" />
+                ) : indKey === 'umkm' ? (
+                  <Store className="w-3 h-3" />
                 ) : (
                   <LayoutGrid className="w-3 h-3" />
                 )}
-                <span>{indKey === 'general' ? 'General' : 'Kontraktor'}</span>
+                <span>
+                  {indKey === 'general' ? 'General' : indKey === 'umkm' ? 'UMKM' : 'Kontraktor'}
+                </span>
               </button>
             );
           })}
@@ -424,7 +491,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
           type="button"
           onClick={onOpenFollowUps}
           className="relative p-2 rounded-xl border border-[#E2E9E4] bg-[#F7F9F8] hover:bg-white text-[#66736B] hover:text-[#17221C] transition-colors cursor-pointer"
-          title={`${followUpCount} ${currentIndustry === 'contractor' ? 'prospek proyek' : 'lead'} perlu di-follow up`}
+          title={`${followUpCount} ${currentIndustry === 'contractor' ? 'prospek proyek' : currentIndustry === 'umkm' ? 'calon pelanggan' : 'lead'} perlu di-follow up`}
           aria-label="Notifikasi Follow Up"
         >
           <Bell className="w-4 h-4" />

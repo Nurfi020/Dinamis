@@ -19,7 +19,8 @@ import {
   Briefcase,
   ShieldCheck,
   Lock,
-  Hammer
+  Hammer,
+  Store
 } from 'lucide-react';
 import { ActiveTab, DevModeInfo, DemoRole, DemoPersona, DemoPackage, DemoIndustry } from '../../types';
 import { DEMO_PACKAGES } from '../../data/packageDemoData';
@@ -54,37 +55,38 @@ export const Sidebar: React.FC<SidebarProps> = ({
 }) => {
   const pkgConfig = DEMO_PACKAGES[currentPackage];
   const isContractor = currentIndustry === 'contractor';
+  const isUmkm = currentIndustry === 'umkm';
 
   // Navigation matrix dynamically tailored to active demo role, active package, and active industry
   const getNavItems = () => {
-    // When in Basic package: Focus on Solo Sales / Small Contractor
+    // When in Basic package: Focus on Solo Sales / Small Contractor / Solo UMKM
     if (currentPackage === 'basic') {
       return [
         {
           id: 'dashboard' as ActiveTab,
-          label: isContractor ? 'Dashboard Proyek' : 'Dashboard Saya',
+          label: isContractor ? 'Dashboard Proyek' : isUmkm ? 'Dashboard Usaha' : 'Dashboard Saya',
           icon: LayoutDashboard,
         },
         {
           id: 'leads' as ActiveTab,
-          label: isContractor ? 'Prospek Proyek' : 'Semua Lead',
-          icon: isContractor ? Hammer : Users,
+          label: isContractor ? 'Prospek Proyek' : isUmkm ? 'Calon Pelanggan' : 'Semua Lead',
+          icon: isContractor ? Hammer : isUmkm ? Store : Users,
         },
         {
           id: 'add_lead_action' as ActiveTab,
-          label: isContractor ? 'Tambah Proyek' : 'Tambah Lead',
+          label: isContractor ? 'Tambah Proyek' : isUmkm ? 'Tambah Pelanggan' : 'Tambah Lead',
           icon: PlusCircle,
           isAction: true,
         },
         {
           id: 'followup' as ActiveTab,
-          label: isContractor ? 'Survey & Follow-up' : 'Follow Up',
+          label: isContractor ? 'Survey & Follow-up' : isUmkm ? 'Follow-up Pelanggan' : 'Follow Up',
           icon: CalendarClock,
           badge: followUpCount > 0 ? followUpCount : undefined,
         },
         {
           id: 'reports' as ActiveTab,
-          label: isContractor ? 'Laporan Proyek' : 'Laporan Performa',
+          label: isContractor ? 'Laporan Proyek' : isUmkm ? 'Laporan Penjualan' : 'Laporan Performa',
           icon: BarChart3,
         },
         {
@@ -101,39 +103,39 @@ export const Sidebar: React.FC<SidebarProps> = ({
         return [
           {
             id: 'dashboard' as ActiveTab,
-            label: isContractor ? 'Dashboard Tim Proyek' : 'Dashboard Tim',
+            label: isContractor ? 'Dashboard Tim Proyek' : isUmkm ? 'Dashboard Tim Sales' : 'Dashboard Tim',
             icon: LayoutDashboard,
           },
           {
             id: 'leads' as ActiveTab,
-            label: isContractor ? 'Prospek Proyek Tim' : 'Lead Anggota Tim',
-            icon: isContractor ? Hammer : Users,
+            label: isContractor ? 'Prospek Proyek Tim' : isUmkm ? 'Pelanggan Tim Sales' : 'Lead Anggota Tim',
+            icon: isContractor ? Hammer : isUmkm ? Store : Users,
           },
           {
             id: 'add_lead_action' as ActiveTab,
-            label: isContractor ? 'Tambah Proyek Tim' : 'Tambah Lead Tim',
+            label: isContractor ? 'Tambah Proyek Tim' : isUmkm ? 'Tambah Pelanggan' : 'Tambah Lead Tim',
             icon: PlusCircle,
             isAction: true,
           },
           {
             id: 'followup' as ActiveTab,
-            label: isContractor ? 'Monitoring Survey Tim' : 'Follow Up Tim',
+            label: isContractor ? 'Monitoring Survey Tim' : isUmkm ? 'Monitoring Follow-up' : 'Follow Up Tim',
             icon: CalendarClock,
             badge: followUpCount > 0 ? followUpCount : undefined,
           },
           {
             id: 'team_performance' as ActiveTab,
-            label: isContractor ? 'Kinerja Estimator & Sales' : 'Kinerja Sales Tim',
+            label: isContractor ? 'Kinerja Estimator & Sales' : isUmkm ? 'Kinerja Tim Penjualan' : 'Kinerja Sales Tim',
             icon: Award,
           },
           {
             id: 'reports' as ActiveTab,
-            label: isContractor ? 'Laporan Proyek Tim' : 'Laporan Tim',
+            label: isContractor ? 'Laporan Proyek Tim' : isUmkm ? 'Laporan Penjualan Tim' : 'Laporan Tim',
             icon: BarChart3,
           },
           {
             id: 'profile' as ActiveTab,
-            label: isContractor ? 'Profil SPV Proyek' : 'Profil Supervisor',
+            label: isContractor ? 'Profil SPV Proyek' : isUmkm ? 'Profil SPV Toko' : 'Profil Supervisor',
             icon: UserCircle2,
           },
         ];
@@ -143,34 +145,34 @@ export const Sidebar: React.FC<SidebarProps> = ({
       return [
         {
           id: 'dashboard' as ActiveTab,
-          label: isContractor ? 'Dashboard Proyek' : 'Dashboard Saya',
+          label: isContractor ? 'Dashboard Proyek' : isUmkm ? 'Dashboard Usaha' : 'Dashboard Saya',
           icon: LayoutDashboard,
         },
         {
           id: 'leads' as ActiveTab,
-          label: isContractor ? 'Prospek Proyek' : 'Semua Lead',
-          icon: isContractor ? Hammer : Users,
+          label: isContractor ? 'Prospek Proyek' : isUmkm ? 'Calon Pelanggan' : 'Semua Lead',
+          icon: isContractor ? Hammer : isUmkm ? Store : Users,
         },
         {
           id: 'add_lead_action' as ActiveTab,
-          label: isContractor ? 'Tambah Proyek' : 'Tambah Lead',
+          label: isContractor ? 'Tambah Proyek' : isUmkm ? 'Tambah Pelanggan' : 'Tambah Lead',
           icon: PlusCircle,
           isAction: true,
         },
         {
           id: 'followup' as ActiveTab,
-          label: isContractor ? 'Survey & Follow-up' : 'Follow Up',
+          label: isContractor ? 'Survey & Follow-up' : isUmkm ? 'Follow-up Pelanggan' : 'Follow Up',
           icon: CalendarClock,
           badge: followUpCount > 0 ? followUpCount : undefined,
         },
         {
           id: 'team_performance' as ActiveTab,
-          label: isContractor ? 'Leaderboard Proyek' : 'Leaderboard Tim',
+          label: isContractor ? 'Leaderboard Proyek' : isUmkm ? 'Leaderboard Sales' : 'Leaderboard Tim',
           icon: Award,
         },
         {
           id: 'reports' as ActiveTab,
-          label: isContractor ? 'Laporan Proyek' : 'Laporan Performa',
+          label: isContractor ? 'Laporan Proyek' : isUmkm ? 'Laporan Penjualan' : 'Laporan Performa',
           icon: BarChart3,
         },
         {
@@ -187,29 +189,29 @@ export const Sidebar: React.FC<SidebarProps> = ({
         return [
           {
             id: 'dashboard' as ActiveTab,
-            label: isContractor ? 'Dashboard Proyek Saya' : 'Dashboard Saya',
+            label: isContractor ? 'Dashboard Proyek Saya' : isUmkm ? 'Dashboard Penjualan' : 'Dashboard Saya',
             icon: LayoutDashboard,
           },
           {
             id: 'leads' as ActiveTab,
-            label: isContractor ? 'Prospek Proyek' : 'Semua Lead',
-            icon: isContractor ? Hammer : Users,
+            label: isContractor ? 'Prospek Proyek' : isUmkm ? 'Calon Pelanggan' : 'Semua Lead',
+            icon: isContractor ? Hammer : isUmkm ? Store : Users,
           },
           {
             id: 'add_lead_action' as ActiveTab,
-            label: isContractor ? 'Tambah Proyek' : 'Tambah Lead',
+            label: isContractor ? 'Tambah Proyek' : isUmkm ? 'Tambah Pelanggan' : 'Tambah Lead',
             icon: PlusCircle,
             isAction: true,
           },
           {
             id: 'followup' as ActiveTab,
-            label: isContractor ? 'Survey & Follow-up' : 'Follow Up',
+            label: isContractor ? 'Survey & Follow-up' : isUmkm ? 'Follow-up Pelanggan' : 'Follow Up',
             icon: CalendarClock,
             badge: followUpCount > 0 ? followUpCount : undefined,
           },
           {
             id: 'reports' as ActiveTab,
-            label: isContractor ? 'Laporan Pipeline Proyek' : 'Laporan Performa',
+            label: isContractor ? 'Laporan Pipeline Proyek' : isUmkm ? 'Laporan Penjualan' : 'Laporan Performa',
             icon: BarChart3,
           },
           {
@@ -223,39 +225,39 @@ export const Sidebar: React.FC<SidebarProps> = ({
         return [
           {
             id: 'dashboard' as ActiveTab,
-            label: isContractor ? 'Dashboard Tim Proyek' : 'Dashboard Tim',
+            label: isContractor ? 'Dashboard Tim Proyek' : isUmkm ? 'Dashboard Tim Sales' : 'Dashboard Tim',
             icon: LayoutDashboard,
           },
           {
             id: 'leads' as ActiveTab,
-            label: isContractor ? 'Prospek Proyek Tim' : 'Lead Anggota Tim',
-            icon: isContractor ? Hammer : Users,
+            label: isContractor ? 'Prospek Proyek Tim' : isUmkm ? 'Pelanggan Tim Sales' : 'Lead Anggota Tim',
+            icon: isContractor ? Hammer : isUmkm ? Store : Users,
           },
           {
             id: 'add_lead_action' as ActiveTab,
-            label: isContractor ? 'Tambah Proyek Tim' : 'Tambah Lead Tim',
+            label: isContractor ? 'Tambah Proyek Tim' : isUmkm ? 'Tambah Pelanggan' : 'Tambah Lead Tim',
             icon: PlusCircle,
             isAction: true,
           },
           {
             id: 'followup' as ActiveTab,
-            label: isContractor ? 'Monitoring Survey Tim' : 'Follow Up Tim',
+            label: isContractor ? 'Monitoring Survey Tim' : isUmkm ? 'Monitoring Follow-up' : 'Follow Up Tim',
             icon: CalendarClock,
             badge: followUpCount > 0 ? followUpCount : undefined,
           },
           {
             id: 'team_performance' as ActiveTab,
-            label: isContractor ? 'Kinerja Estimator & Sales' : 'Kinerja Sales Tim',
+            label: isContractor ? 'Kinerja Estimator & Sales' : isUmkm ? 'Kinerja Tim Penjualan' : 'Kinerja Sales Tim',
             icon: Award,
           },
           {
             id: 'reports' as ActiveTab,
-            label: isContractor ? 'Laporan Pipeline Tim' : 'Laporan Tim',
+            label: isContractor ? 'Laporan Pipeline Tim' : isUmkm ? 'Laporan Penjualan Tim' : 'Laporan Tim',
             icon: BarChart3,
           },
           {
             id: 'profile' as ActiveTab,
-            label: isContractor ? 'Profil SPV Proyek' : 'Profil Supervisor',
+            label: isContractor ? 'Profil SPV Proyek' : isUmkm ? 'Profil SPV Toko' : 'Profil Supervisor',
             icon: UserCircle2,
           },
         ];
@@ -264,32 +266,32 @@ export const Sidebar: React.FC<SidebarProps> = ({
         return [
           {
             id: 'dashboard' as ActiveTab,
-            label: isContractor ? 'Dashboard Direksi Proyek' : 'Dashboard Eksekutif',
+            label: isContractor ? 'Dashboard Direksi Proyek' : isUmkm ? 'Dashboard Owner Bisnis' : 'Dashboard Eksekutif',
             icon: LayoutDashboard,
           },
           {
             id: 'branches' as ActiveTab,
-            label: isContractor ? 'Proyek Multi-Cabang' : 'Kinerja Cabang',
+            label: isContractor ? 'Proyek Multi-Cabang' : isUmkm ? 'Kinerja Multi-Outlet' : 'Kinerja Cabang',
             icon: Building2,
           },
           {
             id: 'teams' as ActiveTab,
-            label: isContractor ? 'Divisi & Tim Konstruksi' : 'Kinerja Tim Unit',
+            label: isContractor ? 'Divisi & Tim Konstruksi' : isUmkm ? 'Kinerja Tim & Toko' : 'Kinerja Tim Unit',
             icon: Users,
           },
           {
             id: 'leads' as ActiveTab,
-            label: isContractor ? 'Pipeline Proyek Nasional' : 'Semua Pipeline Lead',
+            label: isContractor ? 'Pipeline Proyek Nasional' : isUmkm ? 'Semua Pipeline Pelanggan' : 'Semua Pipeline Lead',
             icon: Layers,
           },
           {
             id: 'reports' as ActiveTab,
-            label: isContractor ? 'Laporan Direksi Proyek' : 'Laporan Manajemen',
+            label: isContractor ? 'Laporan Direksi Proyek' : isUmkm ? 'Laporan Owner Bisnis' : 'Laporan Manajemen',
             icon: BarChart3,
           },
           {
             id: 'profile' as ActiveTab,
-            label: isContractor ? 'Profil Project Director' : 'Profil Manager',
+            label: isContractor ? 'Profil Project Director' : isUmkm ? 'Profil Owner / Manager' : 'Profil Manager',
             icon: UserCircle2,
           },
         ];
@@ -298,17 +300,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
         return [
           {
             id: 'dashboard' as ActiveTab,
-            label: isContractor ? 'Dashboard Admin Kontrak' : 'Dashboard Sistem',
+            label: isContractor ? 'Dashboard Admin Kontrak' : isUmkm ? 'Dashboard Admin Toko' : 'Dashboard Sistem',
             icon: LayoutDashboard,
           },
           {
             id: 'users' as ActiveTab,
-            label: isContractor ? 'Manajemen Estimator & Staff' : 'Manajemen Pengguna',
+            label: isContractor ? 'Manajemen Estimator & Staff' : isUmkm ? 'Manajemen Staff & Kasir' : 'Manajemen Pengguna',
             icon: Users,
           },
           {
             id: 'branches' as ActiveTab,
-            label: isContractor ? 'Master Cabang & Wilayah' : 'Master Cabang & Tim',
+            label: isContractor ? 'Master Cabang & Wilayah' : isUmkm ? 'Master Outlet & Toko' : 'Master Cabang & Tim',
             icon: Building2,
           },
           {
@@ -340,11 +342,20 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const getRoleHeaderBadge = () => {
     switch (currentRole) {
       case 'sales':
-        return { text: isContractor ? 'Estimator' : 'Sales', color: 'text-[#00A651] bg-[#E8F7EF]' };
+        return { 
+          text: isContractor ? 'Estimator' : isUmkm ? 'Sales UMKM' : 'Sales', 
+          color: 'text-[#00A651] bg-[#E8F7EF]' 
+        };
       case 'supervisor':
-        return { text: isContractor ? 'SPV Proyek' : 'Supervisor', color: 'text-amber-800 bg-amber-50' };
+        return { 
+          text: isContractor ? 'SPV Proyek' : isUmkm ? 'SPV Toko' : 'Supervisor', 
+          color: 'text-amber-800 bg-amber-50' 
+        };
       case 'manager':
-        return { text: isContractor ? 'Director' : 'Manager', color: 'text-indigo-800 bg-indigo-50' };
+        return { 
+          text: isContractor ? 'Director' : isUmkm ? 'Owner' : 'Manager', 
+          color: 'text-indigo-800 bg-indigo-50' 
+        };
       case 'admin':
         return { text: 'Admin', color: 'text-slate-800 bg-slate-100' };
     }
@@ -358,18 +369,44 @@ export const Sidebar: React.FC<SidebarProps> = ({
       <div className="p-4 border-b border-[#E2E9E4] flex items-center justify-between gap-2">
         <div className="flex items-center gap-2.5">
           <div className={`w-9 h-9 rounded-xl flex items-center justify-center text-white shadow-xs ${
-            isContractor ? 'bg-amber-600' : currentPackage === 'basic' ? 'bg-blue-600' : currentPackage === 'business' ? 'bg-[#00A651]' : 'bg-slate-900 text-emerald-400'
+            isContractor 
+              ? 'bg-amber-600' 
+              : isUmkm
+              ? 'bg-[#00A651]'
+              : currentPackage === 'basic' 
+              ? 'bg-blue-600' 
+              : currentPackage === 'business' 
+              ? 'bg-[#00A651]' 
+              : 'bg-slate-900 text-emerald-400'
           }`}>
-            {isContractor ? <Hammer className="w-4 h-4" /> : <Sparkles className="w-4 h-4" />}
+            {isContractor ? (
+              <Hammer className="w-4 h-4" />
+            ) : isUmkm ? (
+              <Store className="w-4 h-4" />
+            ) : (
+              <Sparkles className="w-4 h-4" />
+            )}
           </div>
           <div>
             <h1 className="text-sm font-extrabold text-[#17221C] tracking-tight leading-tight">
-              {isContractor ? 'Kelola Proyek' : 'Kelola Lead'}
+              {isContractor ? 'Kelola Proyek' : isUmkm ? 'Kelola Usaha' : 'Kelola Lead'}
             </h1>
             <span className={`text-[10px] font-bold tracking-wider uppercase ${
-              isContractor ? 'text-amber-600' : currentPackage === 'basic' ? 'text-blue-600' : currentPackage === 'business' ? 'text-[#00A651]' : 'text-slate-900'
+              isContractor 
+                ? 'text-amber-600' 
+                : isUmkm
+                ? 'text-[#00A651]'
+                : currentPackage === 'basic' 
+                ? 'text-blue-600' 
+                : currentPackage === 'business' 
+                ? 'text-[#00A651]' 
+                : 'text-slate-900'
             }`}>
-              {isContractor ? `Contractor ${pkgConfig.name.split(' ')[0]}` : pkgConfig.name}
+              {isContractor 
+                ? `Contractor ${pkgConfig.name.split(' ')[0]}` 
+                : isUmkm
+                ? `UMKM ${pkgConfig.name.split(' ')[0]}`
+                : pkgConfig.name}
             </span>
           </div>
         </div>
@@ -391,7 +428,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 type="button"
                 onClick={onOpenAddLead}
                 className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-white transition-all my-2 shadow-xs active:scale-[0.98] cursor-pointer ${
-                  isContractor ? 'bg-amber-600 hover:bg-amber-700' : currentPackage === 'basic' ? 'bg-blue-600 hover:bg-blue-700' : 'bg-[#00A651] hover:bg-[#006B3C]'
+                  isContractor 
+                    ? 'bg-amber-600 hover:bg-amber-700' 
+                    : isUmkm
+                    ? 'bg-[#00A651] hover:bg-[#006B3C]'
+                    : currentPackage === 'basic' 
+                    ? 'bg-blue-600 hover:bg-blue-700' 
+                    : 'bg-[#00A651] hover:bg-[#006B3C]'
                 }`}
               >
                 <Icon className="w-4 h-4" />
@@ -411,6 +454,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 isActive
                   ? isContractor
                     ? 'bg-amber-50 text-amber-900 font-bold border-l-2 border-amber-600'
+                    : isUmkm
+                    ? 'bg-[#E8F7EF] text-[#006B3C] font-bold border-l-2 border-[#00A651]'
                     : currentPackage === 'basic'
                     ? 'bg-blue-50 text-blue-800 font-bold border-l-2 border-blue-600'
                     : 'bg-[#E8F7EF] text-[#006B3C] font-bold border-l-2 border-[#00A651]'
@@ -420,7 +465,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
               <div className="flex items-center gap-2.5">
                 <Icon className={`w-4 h-4 ${
                   isActive 
-                    ? isContractor ? 'text-amber-600' : currentPackage === 'basic' ? 'text-blue-600' : 'text-[#00A651]'
+                    ? isContractor 
+                      ? 'text-amber-600' 
+                      : isUmkm
+                      ? 'text-[#00A651]'
+                      : currentPackage === 'basic' 
+                      ? 'text-blue-600' 
+                      : 'text-[#00A651]'
                     : 'text-[#66736B]'
                 }`} />
                 <span>{item.label}</span>
@@ -449,9 +500,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <button
               type="button"
               onClick={() => onOpenLockedFeature(
-                isContractor ? 'Kinerja Estimator & Tim Proyek' : 'Kinerja & Leaderboard Tim',
+                isContractor 
+                  ? 'Kinerja Estimator & Tim Proyek' 
+                  : isUmkm
+                  ? 'Kinerja Tim Penjualan Toko'
+                  : 'Kinerja & Leaderboard Tim',
                 isContractor 
                   ? 'Pantau target kontrak dan SLA survey seluruh tim estimator pada Paket Business & Enterprise.'
+                  : isUmkm
+                  ? 'Pantau pencapaian target penjualan tim kasir/sales toko pada Paket Business & Enterprise.'
                   : 'Pantau capaian target seluruh anggota tim sales dan SLA tindak lanjut pada Paket Business & Enterprise.',
                 'business'
               )}
@@ -459,7 +516,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             >
               <div className="flex items-center gap-2.5">
                 <Award className="w-4 h-4 text-slate-400" />
-                <span>{isContractor ? 'Kinerja Estimator' : 'Kinerja Tim'}</span>
+                <span>{isContractor ? 'Kinerja Estimator' : isUmkm ? 'Kinerja Tim Sales' : 'Kinerja Tim'}</span>
               </div>
               <span className="text-[9px] px-1.5 py-0.2 rounded-md bg-emerald-50 text-emerald-700 font-bold border border-emerald-200 flex items-center gap-1">
                 <Lock className="w-2.5 h-2.5" /> Business
@@ -469,9 +526,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <button
               type="button"
               onClick={() => onOpenLockedFeature(
-                isContractor ? 'Manajemen Proyek Multi-Cabang' : 'Manajemen Multi-Cabang & Organisasi',
+                isContractor 
+                  ? 'Manajemen Proyek Multi-Cabang' 
+                  : isUmkm
+                  ? 'Manajemen Multi-Outlet & Toko'
+                  : 'Manajemen Multi-Cabang & Organisasi',
                 isContractor
                   ? 'Konsolidasi seluruh proyek cabang regional dan dashboard direksi pada Paket Enterprise.'
+                  : isUmkm
+                  ? 'Konsolidasi performa multi-outlet dan cabang toko UMKM pada Paket Enterprise.'
                   : 'Konsolidasi analitik seluruh kantor cabang dan dashboard eksekutif pada Paket Enterprise.',
                 'enterprise'
               )}
@@ -479,7 +542,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             >
               <div className="flex items-center gap-2.5">
                 <Building2 className="w-4 h-4 text-slate-400" />
-                <span>{isContractor ? 'Proyek Cabang' : 'Kinerja Cabang'}</span>
+                <span>{isContractor ? 'Proyek Cabang' : isUmkm ? 'Multi-Outlet' : 'Kinerja Cabang'}</span>
               </div>
               <span className="text-[9px] px-1.5 py-0.2 rounded-md bg-slate-100 text-slate-700 font-bold border border-slate-300 flex items-center gap-1">
                 <Lock className="w-2.5 h-2.5" /> Enterprise
@@ -496,9 +559,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <button
               type="button"
               onClick={() => onOpenLockedFeature(
-                isContractor ? 'Manajemen Proyek Multi-Cabang' : 'Manajemen Multi-Cabang',
+                isContractor 
+                  ? 'Manajemen Proyek Multi-Cabang' 
+                  : isUmkm
+                  ? 'Manajemen Multi-Outlet'
+                  : 'Manajemen Multi-Cabang',
                 isContractor
                   ? 'Konsolidasi analitik proyek cabang regional dan dashboard direksi pada Paket Enterprise.'
+                  : isUmkm
+                  ? 'Konsolidasi performa multi-outlet dan jaringan toko pada Paket Enterprise.'
                   : 'Konsolidasi analitik performa cabang regional dan dashboard direksi pada Paket Enterprise.',
                 'enterprise'
               )}
@@ -506,7 +575,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             >
               <div className="flex items-center gap-2.5">
                 <Building2 className="w-4 h-4 text-slate-400" />
-                <span>{isContractor ? 'Proyek Cabang' : 'Kinerja Cabang'}</span>
+                <span>{isContractor ? 'Proyek Cabang' : isUmkm ? 'Multi-Outlet' : 'Kinerja Cabang'}</span>
               </div>
               <span className="text-[9px] px-1.5 py-0.2 rounded-md bg-slate-100 text-slate-700 font-bold border border-slate-300 flex items-center gap-1">
                 <Lock className="w-2.5 h-2.5" /> Enterprise

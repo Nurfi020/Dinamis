@@ -15,6 +15,7 @@ import {
   Wallet,
   Sparkles,
   Hammer,
+  Store,
   HardHat,
   FileSpreadsheet,
   Building
@@ -52,6 +53,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 }) => {
   const [chartPeriod, setChartPeriod] = useState<'weekly' | 'daily'>('weekly');
   const isContractor = currentIndustry === 'contractor';
+  const isUmkm = currentIndustry === 'umkm';
   const indConfig = DEMO_INDUSTRIES[currentIndustry];
 
   // Dynamic statistics calculated directly from leads
@@ -113,42 +115,62 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     const total = totalLeadsCount || 1;
     return [
       { 
-        status: isContractor ? 'Konsultasi Awal (Cold)' : 'Cold', 
+        status: isContractor 
+          ? 'Konsultasi Awal (Cold)' 
+          : isUmkm 
+          ? 'Prospek Baru (Cold)' 
+          : 'Cold', 
         rawStatus: 'Cold' as LeadStatus,
         count: coldLeads, 
         pct: `${Math.round((coldLeads / total) * 100)}%`, 
         color: '#64748B' 
       },
       { 
-        status: isContractor ? 'Survey & RAB (Warm)' : 'Warm', 
+        status: isContractor 
+          ? 'Survey & RAB (Warm)' 
+          : isUmkm 
+          ? 'Dihubungi & Berminat (Warm)' 
+          : 'Warm', 
         rawStatus: 'Warm' as LeadStatus,
         count: warmLeads, 
         pct: `${Math.round((warmLeads / total) * 100)}%`, 
         color: '#F59E0B' 
       },
       { 
-        status: isContractor ? 'Negosiasi SPK (Hot)' : 'Hot', 
+        status: isContractor 
+          ? 'Negosiasi SPK (Hot)' 
+          : isUmkm 
+          ? 'Penawaran & Promo (Hot)' 
+          : 'Hot', 
         rawStatus: 'Hot' as LeadStatus,
         count: hotLeads, 
         pct: `${Math.round((hotLeads / total) * 100)}%`, 
         color: '#EF4444' 
       },
       { 
-        status: isContractor ? 'SPK Signed (Deal)' : 'Closing', 
+        status: isContractor 
+          ? 'SPK Signed (Deal)' 
+          : isUmkm 
+          ? 'Penjualan Berhasil (Deal)' 
+          : 'Closing', 
         rawStatus: 'Closing' as LeadStatus,
         count: closingLeads, 
         pct: `${Math.round((closingLeads / total) * 100)}%`, 
         color: '#10B981' 
       },
       { 
-        status: isContractor ? 'Proyek Batal / Hold' : 'Tidak Berhasil', 
+        status: isContractor 
+          ? 'Proyek Batal / Hold' 
+          : isUmkm 
+          ? 'Batal / Belum Sesuai' 
+          : 'Tidak Berhasil', 
         rawStatus: 'Tidak Berhasil' as LeadStatus,
         count: lostLeads, 
         pct: `${Math.round((lostLeads / total) * 100)}%`, 
         color: '#9CA3AF' 
       },
     ];
-  }, [totalLeadsCount, coldLeads, warmLeads, hotLeads, closingLeads, lostLeads, isContractor]);
+  }, [totalLeadsCount, coldLeads, warmLeads, hotLeads, closingLeads, lostLeads, isContractor, isUmkm]);
 
   // Weekly lead growth simulation (last 4 weeks)
   const weeklyData = [
@@ -196,18 +218,38 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         <div>
           <div className="flex items-center gap-2">
             <h2 className="text-xl sm:text-2xl font-bold text-[#17221C] tracking-tight">
-              {isContractor ? 'Selamat datang di CRM Kontraktor 👋' : 'Selamat datang 👋'}
+              {isContractor 
+                ? 'Selamat datang di CRM Kontraktor 👋' 
+                : isUmkm
+                ? 'Selamat datang di CRM Usaha & UMKM 👋'
+                : 'Selamat datang 👋'}
             </h2>
             <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold border ${
-              isContractor ? 'bg-amber-50 text-amber-800 border-amber-200' : 'bg-[#E8F7EF] text-[#006B3C] border-[#A7F3D0]'
+              isContractor 
+                ? 'bg-amber-50 text-amber-800 border-amber-200' 
+                : isUmkm
+                ? 'bg-[#E8F7EF] text-[#006B3C] border-[#A7F3D0]'
+                : 'bg-[#E8F7EF] text-[#006B3C] border-[#A7F3D0]'
             }`}>
-              {isContractor ? <Hammer className="w-3 h-3 text-amber-600" /> : <Sparkles className="w-3 h-3 text-[#00A651]" />}
-              {isContractor ? 'Mode Kontraktor • Prospek Proyek' : 'Demo Produk • Data Simulasi'}
+              {isContractor ? (
+                <Hammer className="w-3 h-3 text-amber-600" />
+              ) : isUmkm ? (
+                <Store className="w-3 h-3 text-[#00A651]" />
+              ) : (
+                <Sparkles className="w-3 h-3 text-[#00A651]" />
+              )}
+              {isContractor 
+                ? 'Mode Kontraktor • Prospek Proyek' 
+                : isUmkm
+                ? 'Mode UMKM • Calon Pelanggan'
+                : 'Demo Produk • Data Simulasi'}
             </span>
           </div>
           <p className="text-sm text-[#66736B] mt-1">
             {isContractor 
               ? 'Pantau pipeline survey, estimasi RAB, dan percepat penandatanganan SPK proyek Anda hari ini.'
+              : isUmkm
+              ? 'Pantau prospek pelanggan, percepat follow-up WhatsApp, dan capai target omset penjualan Anda hari ini.'
               : 'Pantau pertumbuhan prospek dan percepat follow up sales Anda hari ini.'}
           </p>
         </div>
@@ -219,7 +261,13 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               isContractor ? 'bg-amber-600 hover:bg-amber-700' : 'bg-[#00A651] hover:bg-[#006B3C]'
             }`}
           >
-            <span>{isContractor ? '+ Tambah Proyek' : '+ Tambah Lead'}</span>
+            <span>
+              {isContractor 
+                ? '+ Tambah Proyek' 
+                : isUmkm 
+                ? '+ Tambah Pelanggan' 
+                : '+ Tambah Lead'}
+            </span>
           </button>
         </div>
       </div>
@@ -235,15 +283,23 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               </div>
               <div>
                 <p className="text-xs font-bold text-[#66736B] uppercase tracking-wider">
-                  {isContractor ? 'Total Pipeline Nilai Kontrak Proyek' : 'Total Potensi Pipeline'}
+                  {isContractor 
+                    ? 'Total Pipeline Nilai Kontrak Proyek' 
+                    : isUmkm
+                    ? 'Total Potensi Pipeline Penjualan'
+                    : 'Total Potensi Pipeline'}
                 </p>
                 <p className="text-[11px] text-[#006B3C] font-semibold">
-                  {isContractor ? 'Estimasi Nilai RAB Proyek Aktif' : 'Prospek Aktif (Cold + Warm + Hot)'}
+                  {isContractor 
+                    ? 'Estimasi Nilai RAB Proyek Aktif' 
+                    : isUmkm
+                    ? 'Estimasi Omset Prospek Aktif'
+                    : 'Prospek Aktif (Cold + Warm + Hot)'}
                 </p>
               </div>
             </div>
             <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-[#E8F7EF] text-[#006B3C] border border-[#A7F3D0]">
-              {coldLeads + warmLeads + hotLeads} {isContractor ? 'Proyek' : 'Lead Aktif'}
+              {coldLeads + warmLeads + hotLeads} {isContractor ? 'Proyek' : isUmkm ? 'Pelanggan Aktif' : 'Lead Aktif'}
             </span>
           </div>
           <div className="mt-4 flex items-baseline justify-between">
@@ -251,7 +307,11 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               {formatRupiah(totalPipelineRevenue)}
             </h3>
             <span className="text-xs font-medium text-[#66736B]">
-              {isContractor ? 'Total Nilai Kontrak' : 'Estimasi Nilai Deal'}
+              {isContractor 
+                ? 'Total Nilai Kontrak' 
+                : isUmkm
+                ? 'Potensi Omset'
+                : 'Estimasi Nilai Deal'}
             </span>
           </div>
         </div>
@@ -265,15 +325,23 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               </div>
               <div>
                 <p className="text-xs font-bold text-[#66736B] uppercase tracking-wider">
-                  {isContractor ? 'Realisasi Deal SPK Ditandatangani' : 'Total Nilai Closing'}
+                  {isContractor 
+                    ? 'Realisasi Deal SPK Ditandatangani' 
+                    : isUmkm
+                    ? 'Total Penjualan Berhasil (Closing)'
+                    : 'Total Nilai Closing'}
                 </p>
                 <p className="text-[11px] text-[#006B3C] font-semibold">
-                  {isContractor ? 'Kontrak Disepakati & DP Masuk' : 'Transaksi Berhasil'}
+                  {isContractor 
+                    ? 'Kontrak Disepakati & DP Masuk' 
+                    : isUmkm
+                    ? 'Transaksi Lunas & Order Diproses'
+                    : 'Transaksi Berhasil'}
                 </p>
               </div>
             </div>
             <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-[#00A651] text-white">
-              {closingLeads} {isContractor ? 'Deal SPK' : 'Deal Sukses'}
+              {closingLeads} {isContractor ? 'Deal SPK' : isUmkm ? 'Transaksi Sukses' : 'Deal Sukses'}
             </span>
           </div>
           <div className="mt-4 flex items-baseline justify-between">
@@ -281,7 +349,11 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               {formatRupiah(totalClosingRevenue)}
             </h3>
             <span className="text-xs font-medium text-[#006B3C] font-bold">
-              {isContractor ? 'Nilai Kontrak Terkunci' : 'Revenue Terkunci'}
+              {isContractor 
+                ? 'Nilai Kontrak Terkunci' 
+                : isUmkm
+                ? 'Omset Masuk'
+                : 'Revenue Terkunci'}
             </span>
           </div>
         </div>
@@ -290,16 +362,16 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       {/* 5 Compact Summary Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
         <StatCard
-          title={isContractor ? 'Total Prospek' : 'Total Lead'}
+          title={isContractor ? 'Total Prospek' : isUmkm ? 'Total Pelanggan' : 'Total Lead'}
           value={totalLeadsCount}
           subtitle="Semua waktu"
-          icon={isContractor ? Hammer : Users}
+          icon={isContractor ? Hammer : isUmkm ? Store : Users}
           iconColor={isContractor ? 'text-amber-600' : 'text-[#00A651]'}
           iconBg={isContractor ? 'bg-amber-50' : 'bg-[#E8F7EF]'}
           onClick={() => onNavigateToTab('leads')}
         />
         <StatCard
-          title={isContractor ? 'Proyek Baru' : 'Lead Baru'}
+          title={isContractor ? 'Proyek Baru' : isUmkm ? 'Pelanggan Baru' : 'Lead Baru'}
           value={newLeadsCount}
           subtitle="7 hari terakhir"
           icon={UserPlus}
@@ -317,7 +389,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           onClick={onFilterFollowUp}
         />
         <StatCard
-          title={isContractor ? 'Negosiasi SPK' : 'Lead Hot'}
+          title={isContractor ? 'Negosiasi SPK' : isUmkm ? 'Prospek Hot' : 'Lead Hot'}
           value={hotLeads}
           subtitle="Peluang tinggi"
           icon={Flame}
@@ -326,7 +398,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           onClick={() => onFilterByStatus('Hot')}
         />
         <StatCard
-          title={isContractor ? 'SPK Signed' : 'Closing'}
+          title={isContractor ? 'SPK Signed' : isUmkm ? 'Penjualan Closing' : 'Closing'}
           value={closingLeads}
           subtitle="Deal sukses"
           icon={CheckCircle2}
@@ -343,12 +415,18 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <div className="flex items-center gap-2">
               <span className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-ping" />
               <h2 className="text-lg font-bold text-[#17221C]">
-                {isContractor ? 'Jadwal Survey & Follow Up Prioritas Hari Ini' : 'Follow Up Prioritas Hari Ini'}
+                {isContractor 
+                  ? 'Jadwal Survey & Follow Up Prioritas Hari Ini' 
+                  : isUmkm
+                  ? 'Follow-up Pelanggan Prioritas Hari Ini'
+                  : 'Follow Up Prioritas Hari Ini'}
               </h2>
             </div>
             <p className="text-xs text-[#66736B] mt-0.5">
               {isContractor 
                 ? 'Calon klien dan jadwal survey site yang memerlukan tindakan hari ini'
+                : isUmkm
+                ? 'Calon pelanggan potensial yang perlu segera dihubungi via WhatsApp hari ini'
                 : 'Calon pelanggan prioritas yang memerlukan tindakan follow up'}
             </p>
           </div>
@@ -366,7 +444,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <CheckCircle2 className="w-8 h-8 text-[#00A651] mx-auto mb-2 opacity-80" />
             <p className="text-sm font-bold text-[#17221C]">Semua Jadwal Selesai!</p>
             <p className="text-xs text-[#66736B] mt-0.5">
-              Tidak ada {isContractor ? 'survey atau follow-up' : 'lead'} yang mendesak hari ini.
+              Tidak ada {isContractor ? 'survey atau follow-up' : isUmkm ? 'follow-up pelanggan' : 'lead'} yang mendesak hari ini.
             </p>
           </div>
         ) : (
@@ -444,7 +522,11 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           <div className="flex items-center justify-between mb-4">
             <div>
               <h2 className="text-base font-bold text-[#17221C]">
-                {isContractor ? 'Perkembangan Prospek Proyek Masuk' : 'Perkembangan Lead Masuk'}
+                {isContractor 
+                  ? 'Perkembangan Prospek Proyek Masuk' 
+                  : isUmkm
+                  ? 'Perkembangan Calon Pelanggan Baru'
+                  : 'Perkembangan Lead Masuk'}
               </h2>
               <p className="text-xs text-[#66736B] mt-0.5">
                 Tren akuisisi prospek baru ({chartPeriod === 'weekly' ? 'Mingguan' : 'Harian'})
@@ -456,7 +538,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 onClick={() => setChartPeriod('weekly')}
                 className={`px-3 py-1.5 rounded-lg font-bold transition-all cursor-pointer ${
                   chartPeriod === 'weekly'
-                    ? isContractor ? 'bg-amber-600 text-white shadow-xs' : 'bg-[#00A651] text-white shadow-xs'
+                    ? isContractor 
+                      ? 'bg-amber-600 text-white shadow-xs' 
+                      : 'bg-[#00A651] text-white shadow-xs'
                     : 'text-[#66736B] hover:text-[#17221C]'
                 }`}
               >
@@ -467,7 +551,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 onClick={() => setChartPeriod('daily')}
                 className={`px-3 py-1.5 rounded-lg font-bold transition-all cursor-pointer ${
                   chartPeriod === 'daily'
-                    ? isContractor ? 'bg-amber-600 text-white shadow-xs' : 'bg-[#00A651] text-white shadow-xs'
+                    ? isContractor 
+                      ? 'bg-amber-600 text-white shadow-xs' 
+                      : 'bg-[#00A651] text-white shadow-xs'
                     : 'text-[#66736B] hover:text-[#17221C]'
                 }`}
               >
@@ -489,7 +575,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                     <div
                       style={{ height: `${heightPct}%` }}
                       className={`w-full rounded-t-xl transition-all duration-500 group-hover:brightness-110 ${
-                        isContractor ? 'bg-gradient-to-t from-amber-600 to-amber-400' : 'bg-gradient-to-t from-[#00A651] to-[#10B981]'
+                        isContractor 
+                          ? 'bg-gradient-to-t from-amber-600 to-amber-400' 
+                          : 'bg-gradient-to-t from-[#00A651] to-[#10B981]'
                       }`}
                     />
                   </div>
@@ -507,10 +595,18 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           <div className="flex items-center justify-between mb-4">
             <div>
               <h2 className="text-base font-bold text-[#17221C]">
-                {isContractor ? 'Distribusi Pipeline Proyek' : 'Distribusi Pipeline'}
+                {isContractor 
+                  ? 'Distribusi Pipeline Proyek' 
+                  : isUmkm
+                  ? 'Distribusi Pipeline Penjualan'
+                  : 'Distribusi Pipeline'}
               </h2>
               <p className="text-xs text-[#66736B] mt-0.5">
-                {isContractor ? 'Tahapan negosiasi SPK proyek saat ini' : 'Komposisi status prospek saat ini'}
+                {isContractor 
+                  ? 'Tahapan negosiasi SPK proyek saat ini' 
+                  : isUmkm
+                  ? 'Komposisi tahapan prospek pelanggan saat ini'
+                  : 'Komposisi status prospek saat ini'}
               </p>
             </div>
           </div>
@@ -529,7 +625,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                     <span className="font-bold text-[#17221C]">{item.status}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="font-bold text-[#17221C]">{item.count} {isContractor ? 'Proyek' : 'Lead'}</span>
+                    <span className="font-bold text-[#17221C]">{item.count} {isContractor ? 'Proyek' : isUmkm ? 'Pelanggan' : 'Lead'}</span>
                     <span className="text-[11px] text-[#66736B] font-mono">({item.pct})</span>
                   </div>
                 </div>
@@ -549,9 +645,15 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       <div className="bg-white border border-[#E2E9E4] rounded-2xl p-5 shadow-sm">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h2 className="text-base font-bold text-[#17221C]">Efektivitas Saluran Akuisisi Klien</h2>
+            <h2 className="text-base font-bold text-[#17221C]">
+              {isUmkm ? 'Efektivitas Kanal Pemasaran UMKM' : 'Efektivitas Saluran Pemasaran'}
+            </h2>
             <p className="text-xs text-[#66736B] mt-0.5">
-              {isContractor ? 'Performa closing SPK berdasarkan sumber kontak proyek' : 'Performa konversi berdasarkan sumber lead'}
+              {isContractor 
+                ? 'Performa closing SPK berdasarkan sumber kontak proyek' 
+                : isUmkm
+                ? 'Performa konversi penjualan dari media sosial & marketplace'
+                : 'Performa konversi berdasarkan sumber lead'}
             </p>
           </div>
           <button
@@ -574,7 +676,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               </div>
               <div>
                 <p className="text-lg font-extrabold text-[#17221C]">{s.leads}</p>
-                <p className="text-[10px] text-[#66736B]">{isContractor ? 'Total Proyek' : 'Total Lead'}</p>
+                <p className="text-[10px] text-[#66736B]">{isContractor ? 'Total Proyek' : isUmkm ? 'Total Pelanggan' : 'Total Lead'}</p>
               </div>
               <div className="pt-2 border-t border-[#E2E9E4] flex items-center justify-between text-[11px]">
                 <span className="text-[#66736B]">{isContractor ? 'SPK:' : 'Closing:'}</span>

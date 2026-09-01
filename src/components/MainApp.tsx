@@ -25,7 +25,7 @@ import {
 } from '../data/mockData';
 import { DEMO_PERSONAS } from '../data/enterpriseDemoData';
 import { DEMO_PACKAGES } from '../data/packageDemoData';
-import { DEMO_INDUSTRIES, CONTRACTOR_DEMO_LEADS } from '../data/contractorDemoData';
+import { DEMO_INDUSTRIES, CONTRACTOR_DEMO_LEADS, UMKM_DEMO_LEADS } from '../data/contractorDemoData';
 import { leadService, followUpService, profileService } from '../services/api';
 import { Sidebar } from './layout/Sidebar';
 import { BottomNav } from './layout/BottomNav';
@@ -103,7 +103,7 @@ export function MainApp({
   // DEMO PACKAGE STATE (Basic / Business / Enterprise)
   const [currentPackage, setCurrentPackage] = useState<DemoPackage>('enterprise');
 
-  // DEMO INDUSTRY STATE (General / Contractor)
+  // DEMO INDUSTRY STATE (General / UMKM / Contractor)
   const [currentIndustry, setCurrentIndustry] = useState<DemoIndustry>('general');
 
   // ENTERPRISE DEMO ROLE & PERSONA STATE
@@ -176,10 +176,12 @@ export function MainApp({
       }
 
       const storedInd = localStorage.getItem('kelola_lead_demo_industry_v1') as DemoIndustry;
-      if (storedInd && (storedInd === 'general' || storedInd === 'contractor')) {
+      if (storedInd && (storedInd === 'general' || storedInd === 'umkm' || storedInd === 'contractor')) {
         setCurrentIndustry(storedInd);
         if (storedInd === 'contractor') {
           setLeads(CONTRACTOR_DEMO_LEADS);
+        } else if (storedInd === 'umkm') {
+          setLeads(UMKM_DEMO_LEADS);
         }
       }
     }
@@ -231,6 +233,8 @@ export function MainApp({
 
     if (newInd === 'contractor') {
       setLeads(CONTRACTOR_DEMO_LEADS);
+    } else if (newInd === 'umkm') {
+      setLeads(UMKM_DEMO_LEADS);
     } else {
       loadData();
     }
@@ -382,7 +386,15 @@ export function MainApp({
       });
       // Replace with real database record
       setLeads((prev) => prev.map((l) => (l.id === tempId ? created : l)));
-      addToast('success', currentIndustry === 'contractor' ? 'Prospek Proyek Berhasil Ditambahkan' : 'Lead Baru Berhasil Ditambahkan', `${newLead.name} telah masuk ke daftar prospek.`);
+      addToast(
+        'success', 
+        currentIndustry === 'contractor' 
+          ? 'Prospek Proyek Berhasil Ditambahkan' 
+          : currentIndustry === 'umkm'
+          ? 'Calon Pelanggan Berhasil Ditambahkan'
+          : 'Lead Baru Berhasil Ditambahkan', 
+        `${newLead.name} telah masuk ke daftar prospek.`
+      );
     } catch {
       addToast('success', 'Disimpan Lokal', `${newLead.name} berhasil ditambahkan (Mode Offline).`);
     }
@@ -475,7 +487,15 @@ export function MainApp({
       };
       setProfile(updatedProfile);
       saveStoredProfile(updatedProfile);
-      addToast('success', currentIndustry === 'contractor' ? '🎉 DEAL SPK DITANDATANGANI!' : '🎉 DEAL CLOSING BERHASIL!', 'Selamat! Target omset bertambah.');
+      addToast(
+        'success', 
+        currentIndustry === 'contractor' 
+          ? '🎉 DEAL SPK DITANDATANGANI!' 
+          : currentIndustry === 'umkm'
+          ? '🎉 PENJUALAN BERHASIL (CLOSING)!'
+          : '🎉 DEAL CLOSING BERHASIL!', 
+        'Selamat! Target omset penjualan bertambah.'
+      );
     } else {
       addToast('success', 'Aktivitas Dicatat', 'Riwayat tindak lanjut prospek berhasil diperbarui.');
     }
@@ -542,6 +562,7 @@ export function MainApp({
   // Header title & subtitle dynamically tailored to active tab, active role, active package, and active industry
   const getHeaderInfo = () => {
     const isContractor = currentIndustry === 'contractor';
+    const isUmkm = currentIndustry === 'umkm';
 
     if (selectedLead && activeTab === 'leads') {
       return {
@@ -553,97 +574,163 @@ export function MainApp({
       case 'dashboard':
         if (currentPackage === 'basic') {
           return {
-            title: isContractor ? 'Dashboard Proyek Kontraktor' : 'Dashboard Sales',
+            title: isContractor 
+              ? 'Dashboard Proyek Kontraktor' 
+              : isUmkm
+              ? 'Dashboard Usaha & Penjualan'
+              : 'Dashboard Sales',
             subtitle: isContractor 
               ? 'Ringkasan prospek proyek, estimasi RAB, dan jadwal survey hari ini'
+              : isUmkm
+              ? 'Ringkasan prospek pelanggan, estimasi omset, dan jadwal follow-up hari ini'
               : 'Ringkasan aktivitas lead dan follow-up bisnis Anda hari ini',
           };
         }
         if (currentPackage === 'business') {
           return {
             title: currentRole === 'supervisor' 
-              ? (isContractor ? 'Dashboard Tim Kontraktor' : 'Dashboard Tim Penjualan')
-              : (isContractor ? 'Dashboard Project Sales Pro' : 'Dashboard Sales Pro'),
+              ? (isContractor ? 'Dashboard Tim Kontraktor' : isUmkm ? 'Dashboard Tim Penjualan UMKM' : 'Dashboard Tim Penjualan')
+              : (isContractor ? 'Dashboard Project Sales Pro' : isUmkm ? 'Dashboard Sales UMKM Pro' : 'Dashboard Sales Pro'),
             subtitle: isContractor
               ? 'Monitoring target kontrak proyek, performa estimator, dan survey prioritas'
+              : isUmkm
+              ? 'Monitoring target omset toko, performa tim sales, dan follow-up pelanggan'
               : 'Monitoring target closing, performa tim, dan prospek prioritas',
           };
         }
         // Enterprise
         if (currentRole === 'supervisor') {
           return {
-            title: isContractor ? 'Dashboard Tim Proyek' : 'Dashboard Tim',
+            title: isContractor 
+              ? 'Dashboard Tim Proyek' 
+              : isUmkm 
+              ? 'Dashboard Tim Sales & Outlet' 
+              : 'Dashboard Tim',
             subtitle: isContractor
               ? `Monitoring progres tender, survey & pipeline ${currentPersona.team || 'Estimator'}`
+              : isUmkm
+              ? `Monitoring kinerja tim & target outlet ${currentPersona.team || 'Sales'}`
               : `Monitoring kinerja tim & pipeline ${currentPersona.team || 'Sales'}`,
           };
         }
         if (currentRole === 'manager') {
           return {
-            title: isContractor ? 'Dashboard Direksi Proyek' : 'Dashboard Eksekutif',
+            title: isContractor 
+              ? 'Dashboard Direksi Proyek' 
+              : isUmkm
+              ? 'Dashboard Owner & Eksekutif Usaha'
+              : 'Dashboard Eksekutif',
             subtitle: isContractor
               ? `Konsolidasi nilai kontrak proyek seluruh cabang regional ${currentPersona.branch}`
+              : isUmkm
+              ? `Konsolidasi kinerja penjualan seluruh outlet jaringan usaha ${currentPersona.branch}`
               : `Konsolidasi kinerja cabang & target korporasi ${currentPersona.branch}`,
           };
         }
         if (currentRole === 'admin') {
           return {
-            title: isContractor ? 'Dashboard Admin Kontrak & Sistem' : 'Dashboard Administrator',
+            title: isContractor 
+              ? 'Dashboard Admin Kontrak & Sistem' 
+              : isUmkm
+              ? 'Dashboard Administrator Usaha'
+              : 'Dashboard Administrator',
             subtitle: 'Status operasional sistem, manajemen lisensi, dan log keamanan',
           };
         }
         return {
-          title: isContractor ? 'Dashboard Proyek Enterprise' : 'Dashboard Sales Enterprise',
+          title: isContractor 
+            ? 'Dashboard Proyek Enterprise' 
+            : isUmkm
+            ? 'Dashboard Usaha Enterprise'
+            : 'Dashboard Sales Enterprise',
           subtitle: isContractor
             ? 'Ringkasan pipeline proyek strategis dan pencapaian target kontrak korporasi'
+            : isUmkm
+            ? 'Ringkasan pipeline penjualan dan pencapaian target omset korporasi'
             : 'Ringkasan aktivitas lead dan pencapaian target closing korporasi',
         };
 
       case 'leads':
         return {
-          title: isContractor ? 'Daftar Prospek Proyek' : (currentRole === 'supervisor' ? 'Daftar Lead Tim' : currentRole === 'manager' ? 'Semua Pipeline Organisasi' : 'Daftar Calon Pelanggan'),
+          title: isContractor 
+            ? 'Daftar Prospek Proyek' 
+            : isUmkm
+            ? 'Daftar Calon Pelanggan'
+            : (currentRole === 'supervisor' ? 'Daftar Lead Tim' : currentRole === 'manager' ? 'Semua Pipeline Organisasi' : 'Daftar Calon Pelanggan'),
           subtitle: isContractor 
             ? 'Kelola calon klien, lokasi pekerjaan, dan estimasi nilai RAB proyek'
+            : isUmkm
+            ? 'Kelola calon pelanggan, kebutuhan produk, dan estimasi nilai transaksi'
             : 'Kelola semua calon pelanggan dan status prospek penjualan',
         };
 
       case 'followup':
         return {
-          title: isContractor ? 'Jadwal Survey & Follow Up' : (currentRole === 'supervisor' ? 'Monitoring Follow Up Tim' : 'Jadwal Follow Up'),
+          title: isContractor 
+            ? 'Jadwal Survey & Follow Up' 
+            : isUmkm
+            ? 'Follow-up Calon Pelanggan'
+            : (currentRole === 'supervisor' ? 'Monitoring Follow Up Tim' : 'Jadwal Follow Up'),
           subtitle: isContractor
             ? 'Pantau jadwal survey site lokasi, pengiriman RAB, dan negosiasi SPK'
+            : isUmkm
+            ? 'Pantau calon pelanggan yang terlambat, jadwal hari ini, dan follow-up WhatsApp'
             : 'Pantau lead yang terlambat, hari ini, dan jadwal mendatang',
         };
 
       case 'team_performance':
         return {
-          title: isContractor ? 'Kinerja & Leaderboard Estimator' : 'Kinerja & Leaderboard Tim',
+          title: isContractor 
+            ? 'Kinerja & Leaderboard Estimator' 
+            : isUmkm
+            ? 'Kinerja & Leaderboard Tim Sales'
+            : 'Kinerja & Leaderboard Tim',
           subtitle: isContractor
             ? 'Evaluasi pencapaian target deal SPK dan rasio konversi per sales estimator'
+            : isUmkm
+            ? 'Evaluasi pencapaian target omset dan rasio closing per sales staff'
             : 'Evaluasi pencapaian target dan rasio konversi per sales representative',
         };
 
       case 'branches':
         return {
-          title: isContractor ? 'Kinerja Proyek Kantor Cabang' : 'Kinerja Kantor Cabang',
+          title: isContractor 
+            ? 'Kinerja Proyek Kantor Cabang' 
+            : isUmkm
+            ? 'Kinerja Multi-Outlet & Toko'
+            : 'Kinerja Kantor Cabang',
           subtitle: isContractor
             ? 'Komparasi nilai kontrak proyek Divisi Jakarta, Bandung, dan Surabaya'
+            : isUmkm
+            ? 'Komparasi omset penjualan Outlet Jakarta, Bandung, dan Surabaya'
             : 'Komparasi performa KC Jakarta, KC Bandung, dan KC Surabaya',
         };
 
       case 'teams':
         return {
-          title: isContractor ? 'Kinerja Divisi Proyek Konstruksi' : 'Kinerja Unit Tim Sales',
+          title: isContractor 
+            ? 'Kinerja Divisi Proyek Konstruksi' 
+            : isUmkm
+            ? 'Kinerja Tim & Toko Penjualan'
+            : 'Kinerja Unit Tim Sales',
           subtitle: isContractor
             ? 'Produktivitas Tim Estimator, Tim Survey, dan Regional Commercial'
+            : isUmkm
+            ? 'Produktivitas Tim Toko Retail, Tim Grosir, dan Reseller Network'
             : 'Produktivitas Sales Team Alpha, Team Beta, dan Regional Commercial',
         };
 
       case 'users':
         return {
-          title: isContractor ? 'Manajemen Estimator & Staff' : 'Manajemen Pengguna & Role',
+          title: isContractor 
+            ? 'Manajemen Estimator & Staff' 
+            : isUmkm
+            ? 'Manajemen Staff & Kasir Toko'
+            : 'Manajemen Pengguna & Role',
           subtitle: isContractor
             ? 'Daftar estimator proyek, project supervisor, branch director, dan admin'
+            : isUmkm
+            ? 'Daftar staff penjualan, supervisor toko, owner bisnis, dan admin'
             : 'Daftar staf sales, supervisor tim, branch manager, dan administrator',
         };
 
@@ -661,9 +748,15 @@ export function MainApp({
 
       case 'reports':
         return {
-          title: isContractor ? 'Laporan Pipeline Proyek Konstruksi' : (currentRole === 'manager' ? 'Laporan Kinerja Manajemen' : currentRole === 'supervisor' ? 'Laporan Performa Tim' : 'Laporan Performa Penjualan'),
+          title: isContractor 
+            ? 'Laporan Pipeline Proyek Konstruksi' 
+            : isUmkm
+            ? 'Laporan Penjualan & Konversi UMKM'
+            : (currentRole === 'manager' ? 'Laporan Kinerja Manajemen' : currentRole === 'supervisor' ? 'Laporan Performa Tim' : 'Laporan Performa Penjualan'),
           subtitle: isContractor
             ? 'Analisis konversi survey ke SPK, efektivitas sumber proyek, dan closing'
+            : isUmkm
+            ? 'Analisis konversi calon pelanggan, efektivitas kanal promosi, dan omset closing'
             : 'Analisis konversi lead, efektivitas saluran, dan tingkat closing',
         };
 

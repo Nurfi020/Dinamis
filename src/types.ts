@@ -232,7 +232,7 @@ export interface DemoPackageConfig {
   features: string[];
 }
 
-export type DemoIndustry = 'general' | 'contractor';
+export type DemoIndustry = 'general' | 'umkm' | 'contractor';
 
 export interface DemoIndustryConfig {
   id: DemoIndustry;
