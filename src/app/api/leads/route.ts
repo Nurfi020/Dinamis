@@ -2,9 +2,11 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { createLeadSchema } from '@/lib/validations/lead';
 import { cleanPhoneNumber } from '@/utils/helpers';
+import { getCurrentUser } from '@/lib/auth/userAuth';
 
 export async function GET(request: Request) {
   try {
+    const currentUser = await getCurrentUser(request);
     const { searchParams } = new URL(request.url);
     const search = searchParams.get('search') || '';
     const status = searchParams.get('status') || 'all';
@@ -14,9 +16,10 @@ export async function GET(request: Request) {
     const period = searchParams.get('period') || 'all';
     const sortBy = searchParams.get('sortBy') || 'latest';
 
-    // Base where clause
+    // Strict Data Isolation: only retrieve leads owned by the authenticated user
     const where: any = {
       isDeleted: false,
+      salesId: currentUser.id,
     };
 
     if (status !== 'all') {
@@ -38,10 +41,14 @@ export async function GET(request: Request) {
     }
 
     if (search.trim()) {
-      where.OR = [
-        { name: { contains: search, mode: 'insensitive' } },
-        { phone: { contains: search } },
-        { city: { contains: search, mode: 'insensitive' } },
+      where.AND = [
+        {
+          OR: [
+            { name: { contains: search, mode: 'insensitive' } },
+            { phone: { contains: search } },
+            { city: { contains: search, mode: 'insensitive' } },
+          ],
+        },
       ];
     }
 
@@ -132,20 +139,9 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
+    const currentUser = await getCurrentUser(request);
     const body = await request.json();
     const validatedData = createLeadSchema.parse(body);
-
-    // Get default sales user
-    let user = await prisma.user.findFirst();
-    if (!user) {
-      user = await prisma.user.create({
-        data: {
-          name: 'Budi Sales',
-          email: 'budi.sales@perusahaan.co.id',
-          phone: '081288991234',
-        },
-      });
-    }
 
     // Resolve product ID (by name or ID)
     let product = await prisma.product.findFirst({
@@ -170,9 +166,10 @@ export async function POST(request: Request) {
     const cleanedPhone = cleanPhoneNumber(validatedData.phone);
     const todayStr = new Date().toISOString().split('T')[0];
 
+    // Ownership guaranteed: salesId bound to authenticated user
     const newLead = await prisma.lead.create({
       data: {
-        salesId: user.id,
+        salesId: currentUser.id,
         name: validatedData.name.trim(),
         phone: cleanedPhone,
         city: validatedData.city,

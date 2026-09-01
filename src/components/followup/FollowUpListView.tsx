@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React, { useState } from 'react';
 import { 
@@ -92,7 +92,7 @@ export const FollowUpListView: React.FC<FollowUpListViewProps> = ({
               </p>
               {lead.initialNotes && (
                 <p className="text-xs text-[#66736B] italic mt-1 line-clamp-1 bg-[#F7F9F8] px-2 py-0.5 rounded-lg inline-block border border-[#E2E9E4]">
-                  "{lead.initialNotes}"
+                  &quot;{lead.initialNotes}&quot;
                 </p>
               )}
             </div>
@@ -315,13 +315,46 @@ export const FollowUpListView: React.FC<FollowUpListViewProps> = ({
         </div>
       )}
 
-      {/* Empty State when no follow-ups */}
-      {activeFollowUps.length === 0 && (
+      {/* Empty States for specific tabs */}
+      {activeGroup === 'today' && todayLeads.length === 0 && (
+        <div className="bg-white border border-[#E2E9E4] rounded-2xl p-8 text-center shadow-sm">
+          <Clock className="w-8 h-8 text-amber-500 mx-auto mb-2" />
+          <h4 className="text-sm font-bold text-[#17221C] mb-1">Tidak ada follow up untuk hari ini</h4>
+          <p className="text-xs text-[#66736B]">Semua jadwal follow up hari ini sudah selesai atau dijadwalkan di hari lain.</p>
+        </div>
+      )}
+
+      {activeGroup === 'overdue' && overdueLeads.length === 0 && (
+        <div className="bg-white border border-[#E2E9E4] rounded-2xl p-8 text-center shadow-sm">
+          <CheckCircle2 className="w-8 h-8 text-[#00A651] mx-auto mb-2" />
+          <h4 className="text-sm font-bold text-[#17221C] mb-1">Tidak ada follow up yang terlambat</h4>
+          <p className="text-xs text-[#66736B]">Luar biasa! Tidak ada lead yang melewati batas jadwal follow up.</p>
+        </div>
+      )}
+
+      {activeGroup === 'tomorrow' && tomorrowLeads.length === 0 && (
+        <div className="bg-white border border-[#E2E9E4] rounded-2xl p-8 text-center shadow-sm">
+          <Calendar className="w-8 h-8 text-[#006B3C] mx-auto mb-2" />
+          <h4 className="text-sm font-bold text-[#17221C] mb-1">Tidak ada follow up untuk besok</h4>
+          <p className="text-xs text-[#66736B]">Belum ada calon pelanggan yang dijadwalkan untuk esok hari.</p>
+        </div>
+      )}
+
+      {activeGroup === 'upcoming' && upcomingLeads.length === 0 && (
+        <div className="bg-white border border-[#E2E9E4] rounded-2xl p-8 text-center shadow-sm">
+          <CalendarClock className="w-8 h-8 text-emerald-600 mx-auto mb-2" />
+          <h4 className="text-sm font-bold text-[#17221C] mb-1">Tidak ada follow up mendatang</h4>
+          <p className="text-xs text-[#66736B]">Belum ada jadwal follow up untuk beberapa hari ke depan.</p>
+        </div>
+      )}
+
+      {/* Empty State when no active follow-ups at all */}
+      {activeFollowUps.length === 0 && activeGroup === 'all' && (
         <div className="bg-white border border-[#E2E9E4] rounded-2xl p-10 text-center shadow-sm">
           <div className="w-14 h-14 rounded-2xl bg-[#E8F7EF] text-[#00A651] border border-[#A7F3D0] flex items-center justify-center mx-auto mb-3 shadow-xs text-2xl">
             🎉
           </div>
-          <h4 className="text-base font-bold text-[#17221C] mb-1">Tidak ada follow up hari ini 🎉</h4>
+          <h4 className="text-base font-bold text-[#17221C] mb-1">Tidak ada jadwal follow up aktif 🎉</h4>
           <p className="text-sm text-[#66736B] mb-5">Semua follow up Anda sudah selesai. Kerja luar biasa!</p>
           <button
             type="button"

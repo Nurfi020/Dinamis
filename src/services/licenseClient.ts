@@ -13,6 +13,9 @@ export interface VerificationResult {
   offlineExpired?: boolean;
 }
 
+// TODO: Re-enable authentication before public production release.
+const AUTH_BYPASS_ENABLED = true;
+
 export class LicenseClient {
   /**
    * Get stored activation state from localStorage
@@ -116,6 +119,27 @@ export class LicenseClient {
    * Verify license with server or offline 7-day grace period
    */
   public static async verify(): Promise<VerificationResult> {
+    if (AUTH_BYPASS_ENABLED) {
+      return {
+        valid: true,
+        isOffline: false,
+        license: {
+          id: 'dev-bypass-license',
+          plan: 'lifetime',
+          status: 'active',
+          productCode: 'KEL0LA-LEAD',
+          licenseKeyLast4: '8888',
+          fullKeyMasked: 'KLDN-LIFE-****-****-8888',
+          activatedAt: new Date().toISOString(),
+          lastVerifiedAt: new Date().toISOString(),
+          expiresAt: null,
+          deviceName: 'Browser Device',
+          browser: 'Desktop Browser',
+          operatingSystem: 'Windows/MacOS/Linux',
+        },
+      };
+    }
+
     const stored = this.getStoredState();
     if (!stored || !stored.token || !stored.deviceId) {
       return {

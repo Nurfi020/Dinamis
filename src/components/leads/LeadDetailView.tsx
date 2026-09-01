@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React, { useState } from 'react';
 import { 
@@ -19,16 +19,18 @@ import {
   FileText,
   RotateCcw,
   History,
-  AlertTriangle
+  AlertTriangle,
+  Trash2
 } from 'lucide-react';
 import { Lead, LeadStatus, FollowUpLog } from '../../types';
 import { StatusBadge } from '../common/StatusBadge';
 import { SourceBadge } from '../common/SourceBadge';
+import { ConfirmModal } from '../common/ConfirmModal';
 import { 
   formatIndonesianDate, 
   formatFullIndonesianDate, 
   formatDisplayPhone, 
-  generateWhatsAppUrl,
+  generateWhatsAppUrl, 
   isDateOverdue,
   isDateToday
 } from '../../utils/helpers';
@@ -39,6 +41,7 @@ interface LeadDetailViewProps {
   onOpenLogFollowUp: () => void;
   onQuickStatusChange: (leadId: string, newStatus: LeadStatus) => void;
   onEditLead?: (lead: Lead) => void;
+  onDeleteLead?: (leadId: string) => void;
 }
 
 export const LeadDetailView: React.FC<LeadDetailViewProps> = ({
@@ -47,8 +50,10 @@ export const LeadDetailView: React.FC<LeadDetailViewProps> = ({
   onOpenLogFollowUp,
   onQuickStatusChange,
   onEditLead,
+  onDeleteLead,
 }) => {
   const [showStatusPicker, setShowStatusPicker] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const waUrl = generateWhatsAppUrl(lead.phone, lead.name, lead.product);
   const isToday = isDateToday(lead.nextFollowUpDate);
   const isOverdue = isDateOverdue(lead.nextFollowUpDate);
@@ -83,6 +88,17 @@ export const LeadDetailView: React.FC<LeadDetailViewProps> = ({
             >
               <Edit3 className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">Edit Data</span>
+            </button>
+          )}
+          {onDeleteLead && (
+            <button
+              type="button"
+              onClick={() => setIsDeleteModalOpen(true)}
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white hover:bg-rose-50 text-rose-600 hover:text-rose-700 border border-[#E2E9E4] hover:border-rose-200 text-xs font-semibold transition-colors cursor-pointer"
+              title="Hapus Lead"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Hapus</span>
             </button>
           )}
         </div>
@@ -331,7 +347,7 @@ export const LeadDetailView: React.FC<LeadDetailViewProps> = ({
                   Catatan Awal:
                 </span>
                 <div className="p-3 bg-[#F7F9F8] rounded-xl border border-[#E2E9E4] text-xs text-[#17221C] leading-relaxed italic">
-                  "{lead.initialNotes}"
+                  &quot;{lead.initialNotes}&quot;
                 </div>
               </div>
             )}
@@ -362,7 +378,7 @@ export const LeadDetailView: React.FC<LeadDetailViewProps> = ({
             <div className="py-12 text-center text-xs text-[#66736B]">
               <Clock className="w-8 h-8 text-[#00A651] mx-auto mb-2" />
               <p className="font-bold text-[#17221C] mb-1">Belum ada riwayat follow up</p>
-              <p>Klik tombol "+ Catat Follow Up" di atas untuk menambahkan hasil interaksi pertama.</p>
+              <p>Klik tombol &quot;+ Catat Follow Up&quot; di atas untuk menambahkan hasil interaksi pertama.</p>
             </div>
           ) : (
             <div className="relative pl-6 space-y-6 before:absolute before:left-2.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-[#E2E9E4]">
@@ -441,6 +457,22 @@ export const LeadDetailView: React.FC<LeadDetailViewProps> = ({
           )}
         </div>
       </div>
+
+      {/* Delete Lead Confirmation Modal */}
+      <ConfirmModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={() => {
+          if (onDeleteLead) {
+            onDeleteLead(lead.id);
+          }
+        }}
+        title="Hapus Calon Pelanggan?"
+        message={`Apakah Anda yakin ingin menghapus lead "${lead.name}"? Data ini akan dihapus dari sistem dan tidak dapat dikembalikan.`}
+        confirmText="Hapus Permanen"
+        cancelText="Batal"
+        isDestructive={true}
+      />
     </div>
   );
 };

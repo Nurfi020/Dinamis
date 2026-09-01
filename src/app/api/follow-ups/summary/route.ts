@@ -1,11 +1,15 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { isDateOverdue, isDateToday, isDateUpcoming } from '@/utils/helpers';
+import { getCurrentUser } from '@/lib/auth/userAuth';
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    const currentUser = await getCurrentUser(request);
+
     const leads = await prisma.lead.findMany({
       where: {
+        salesId: currentUser.id,
         isDeleted: false,
         status: { notIn: ['Closing', 'Tidak Berhasil'] },
         nextFollowUpDate: { not: null },

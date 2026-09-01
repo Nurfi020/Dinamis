@@ -1,46 +1,69 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getCurrentUser } from '@/lib/auth/userAuth';
+import { PRODUCTS_LIST } from '@/data/mockData';
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    const currentUser = await getCurrentUser(request);
+
+    // Strict Data Isolation: only retrieve leads owned by the authenticated user
     const leads = await prisma.lead.findMany({
-      where: { isDeleted: false },
+      where: { 
+        salesId: currentUser.id,
+        isDeleted: false 
+      },
       include: { product: true },
     });
 
-    const totalLeads = leads.length > 0 ? leads.length + 228 : 248;
-    const coldCount = leads.filter((l) => l.status === 'Cold').length + 115;
-    const warmCount = leads.filter((l) => l.status === 'Warm').length + 61;
-    const hotCount = leads.filter((l) => l.status === 'Hot').length + 23;
-    const closingCount = leads.filter((l) => l.status === 'Closing').length + 9;
-    const failedCount = leads.filter((l) => l.status === 'Tidak Berhasil').length + 17;
+    const totalLeads = leads.length;
+    const coldCount = leads.filter((l) => l.status === 'Cold').length;
+    const warmCount = leads.filter((l) => l.status === 'Warm').length;
+    const hotCount = leads.filter((l) => l.status === 'Hot').length;
+    const closingCount = leads.filter((l) => l.status === 'Closing').length;
+    const failedCount = leads.filter((l) => l.status === 'Tidak Berhasil').length;
 
-    const closingRate = ((closingCount / totalLeads) * 100).toFixed(2).replace('.', ',');
+    const closingRate = totalLeads > 0 
+      ? ((closingCount / totalLeads) * 100).toFixed(2).replace('.', ',')
+      : '0,00';
 
-    const sourceStats = [
-      { source: 'WhatsApp', leads: 80, closing: 8, rate: '10.0%' },
-      { source: 'Facebook', leads: 60, closing: 3, rate: '5.0%' },
-      { source: 'Instagram', leads: 45, closing: 2, rate: '4.4%' },
-      { source: 'Referral', leads: 30, closing: 1, rate: '3.3%' },
-      { source: 'Website', leads: 20, closing: 0, rate: '0.0%' },
-      { source: 'TikTok', leads: 13, closing: 0, rate: '0.0%' },
-    ];
+    const sources = ['WhatsApp', 'Instagram', 'Facebook', 'Website', 'Referral', 'TikTok', 'Lainnya'];
+    const sourceStats = sources.map((s) => {
+      const sLeads = leads.filter((l) => l.source === s);
+      const sClosing = sLeads.filter((l) => l.status === 'Closing').length;
+      const rate = sLeads.length > 0 ? (sClosing / sLeads.length) * 100 : 0;
+      return {
+        source: s,
+        leads: sLeads.length,
+        closing: sClosing,
+        rate: `${rate.toFixed(1).replace('.', ',')}%`,
+      };
+    }).sort((a, b) => b.leads - a.leads);
 
-    const productStats = [
-      { name: 'Produk A — Starter Plan', count: 110, closing: 7, pct: '44%' },
-      { name: 'Produk B — Pro Business', count: 85, closing: 4, pct: '34%' },
-      { name: 'Produk C — Enterprise Suite', count: 42, closing: 3, pct: '17%' },
-      { name: 'Produk D — Custom Solution', count: 11, closing: 0, pct: '5%' },
-    ];
+    const productStats = PRODUCTS_LIST.map((prod) => {
+      const pLeads = leads.filter((l) => (l.product?.name || '').startsWith(prod.split('—')[0].trim()));
+      const pClosing = pLeads.filter((l) => l.status === 'Closing').length;
+      const pct = totalLeads > 0 ? Math.round((pLeads.length / totalLeads) * 100) : 0;
+      return {
+        name: prod,
+        count: pLeads.length,
+        closing: pClosing,
+        pct: `${pct}%`,
+      };
+    }).sort((a, b) => b.count - a.count);
 
-    const cityStats = [
-      { city: 'Jakarta', leads: 92, closing: 6, rate: '6.5%' },
-      { city: 'Bandung', leads: 48, closing: 3, rate: '6.2%' },
-      { city: 'Surabaya', leads: 42, closing: 2, rate: '4.8%' },
-      { city: 'Semarang', leads: 28, closing: 1, rate: '3.6%' },
-      { city: 'Yogyakarta', leads: 22, closing: 1, rate: '4.5%' },
-      { city: 'Lainnya', leads: 16, closing: 1, rate: '6.2%' },
-    ];
+    const cities = Array.from(new Set(leads.map((l) => l.city)));
+    const cityStats = cities.map((c) => {
+      const cLeads = leads.filter((l) => l.city === c);
+      const cClosing = cLeads.filter((l) => l.status === 'Closing').length;
+      const rate = cLeads.length > 0 ? (cClosing / cLeads.length) * 100 : 0;
+      return {
+        city: c,
+        leads: cLeads.length,
+        closing: cClosing,
+        rate: `${rate.toFixed(1).replace('.', ',')}%`,
+      };
+    }).sort((a, b) => b.leads - a.leads);
 
     return NextResponse.json({
       success: true,

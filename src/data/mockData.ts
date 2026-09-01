@@ -1,10 +1,11 @@
 import { Lead, UserProfile } from '../types';
 
+// TODO: Re-enable authentication before public production release.
 export const INITIAL_USER_PROFILE: UserProfile = {
   name: 'Budi Sales',
   email: 'budi.sales@perusahaan.co.id',
   phone: '081288991234',
-  role: 'Senior Sales Executive',
+  role: 'Sales',
   avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
   monthlyTarget: 20,
   closingCount: 14,

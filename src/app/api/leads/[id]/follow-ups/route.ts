@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { createFollowUpSchema } from '@/lib/validations/followup';
+import { getCurrentUser, verifyLeadOwnership } from '@/lib/auth/userAuth';
 
 interface Params {
   params: Promise<{ id: string }>;
@@ -8,30 +9,30 @@ interface Params {
 
 export async function POST(request: Request, { params }: Params) {
   try {
+    const currentUser = await getCurrentUser(request);
     const { id } = await params;
     const body = await request.json();
     const validatedData = createFollowUpSchema.parse(body);
 
-    const lead = await prisma.lead.findUnique({
-      where: { id },
-    });
-
-    if (!lead || lead.isDeleted) {
+    // IDOR Protection: only lead owner can log follow-up
+    const ownership = await verifyLeadOwnership(id, currentUser.id);
+    if (ownership.status !== 200 || !ownership.lead) {
       return NextResponse.json(
-        { success: false, error: 'Lead tidak ditemukan' },
-        { status: 404 }
+        { success: false, error: ownership.error },
+        { status: ownership.status }
       );
     }
 
+    const lead = ownership.lead;
     const isClosing = validatedData.newStatus === 'Closing';
     const isLost = validatedData.newStatus === 'Tidak Berhasil';
     const isReopening = lead.status === 'Tidak Berhasil' && (validatedData.newStatus === 'Warm' || validatedData.newStatus === 'Hot' || validatedData.newStatus === 'Cold');
 
-    // 1. Create Follow Up log (Append-only)
+    // 1. Create Follow Up log (Append-only) bound to currentUser
     const newLog = await prisma.followUp.create({
       data: {
         leadId: lead.id,
-        salesId: lead.salesId,
+        salesId: currentUser.id,
         date: validatedData.date,
         time: validatedData.time,
         method: validatedData.method,

@@ -1,49 +1,66 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { isDateToday } from '@/utils/helpers';
+import { getCurrentUser } from '@/lib/auth/userAuth';
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    const currentUser = await getCurrentUser(request);
+
+    // Strict Data Isolation: only retrieve leads owned by the authenticated user
     const leads = await prisma.lead.findMany({
-      where: { isDeleted: false },
+      where: { 
+        salesId: currentUser.id,
+        isDeleted: false 
+      },
       include: { product: true },
     });
 
-    const totalLeads = leads.length > 0 ? leads.length + 228 : 248;
-    const hotLeads = leads.filter((l) => l.status === 'Hot').length + 23;
-    const warmLeads = leads.filter((l) => l.status === 'Warm').length + 61;
-    const coldLeads = leads.filter((l) => l.status === 'Cold').length + 115;
-    const closingLeads = leads.filter((l) => l.status === 'Closing').length + 9;
-    const lostLeads = leads.filter((l) => l.status === 'Tidak Berhasil').length + 17;
+    const totalLeads = leads.length;
+    const hotLeads = leads.filter((l) => l.status === 'Hot').length;
+    const warmLeads = leads.filter((l) => l.status === 'Warm').length;
+    const coldLeads = leads.filter((l) => l.status === 'Cold').length;
+    const closingLeads = leads.filter((l) => l.status === 'Closing').length;
+    const lostLeads = leads.filter((l) => l.status === 'Tidak Berhasil').length;
 
     const todayFollowUps = leads.filter((l) => {
       return l.nextFollowUpDate && l.status !== 'Closing' && l.status !== 'Tidak Berhasil' && isDateToday(l.nextFollowUpDate);
     });
 
-    const followUpCount = todayFollowUps.length > 0 ? todayFollowUps.length + 14 : 18;
+    const followUpCount = todayFollowUps.length;
+    const totalCalc = totalLeads > 0 ? totalLeads : 1;
 
     const statusDistribution = [
-      { status: 'Cold', count: coldCount(leads), pct: `${Math.round((coldCount(leads) / totalLeads) * 100)}%`, color: '#3B82F6' },
-      { status: 'Warm', count: warmCount(leads), pct: `${Math.round((warmCount(leads) / totalLeads) * 100)}%`, color: '#EAB308' },
-      { status: 'Hot', count: hotCount(leads), pct: `${Math.round((hotCount(leads) / totalLeads) * 100)}%`, color: '#EF4444' },
-      { status: 'Closing', count: closingLeads, pct: `${Math.round((closingLeads / totalLeads) * 100)}%`, color: '#10B981' },
-      { status: 'Tidak Berhasil', count: lostLeads, pct: `${Math.round((lostLeads / totalLeads) * 100)}%`, color: '#64748B' },
+      { status: 'Cold', count: coldLeads, pct: `${totalLeads > 0 ? Math.round((coldLeads / totalCalc) * 100) : 0}%`, color: '#64748B' },
+      { status: 'Warm', count: warmLeads, pct: `${totalLeads > 0 ? Math.round((warmLeads / totalCalc) * 100) : 0}%`, color: '#F59E0B' },
+      { status: 'Hot', count: hotLeads, pct: `${totalLeads > 0 ? Math.round((hotLeads / totalCalc) * 100) : 0}%`, color: '#EF4444' },
+      { status: 'Closing', count: closingLeads, pct: `${totalLeads > 0 ? Math.round((closingLeads / totalCalc) * 100) : 0}%`, color: '#10B981' },
+      { status: 'Tidak Berhasil', count: lostLeads, pct: `${totalLeads > 0 ? Math.round((lostLeads / totalCalc) * 100) : 0}%`, color: '#6B7280' },
     ];
 
-    const bestSources = [
-      { source: 'WhatsApp', leads: 80, closing: 8, rate: '10%' },
-      { source: 'Facebook', leads: 60, closing: 3, rate: '5%' },
-      { source: 'Instagram', leads: 45, closing: 2, rate: '4%' },
-      { source: 'Referral', leads: 30, closing: 1, rate: '3%' },
-      { source: 'Website', leads: 20, closing: 0, rate: '0%' },
-    ];
+    const sources = ['WhatsApp', 'Instagram', 'Facebook', 'Website', 'Referral', 'TikTok', 'Lainnya'];
+    const bestSources = sources.map((s) => {
+      const sLeads = leads.filter((l) => l.source === s);
+      const sClosing = sLeads.filter((l) => l.status === 'Closing').length;
+      const rateNum = sLeads.length > 0 ? (sClosing / sLeads.length) * 100 : 0;
+      return {
+        source: s,
+        leads: sLeads.length,
+        closing: sClosing,
+        rate: `${rateNum.toFixed(1).replace('.', ',')}%`,
+      };
+    }).sort((a, b) => b.leads - a.leads);
+
+    const now = new Date();
+    const oneWeekAgo = new Date(now);
+    oneWeekAgo.setDate(now.getDate() - 7);
+    const newLeadsThisWeek = leads.filter((l) => new Date(l.createdAt) >= oneWeekAgo).length;
 
     const chartDataWeekly = [
-      { label: 'Minggu 1', value: 25 },
-      { label: 'Minggu 2', value: 38 },
-      { label: 'Minggu 3', value: 47 },
-      { label: 'Minggu 4', value: 65 },
-      { label: 'Minggu ini', value: 52 },
+      { label: '3 Mgg Lalu', value: 0 },
+      { label: '2 Mgg Lalu', value: 0 },
+      { label: 'Mgg Lalu', value: 0 },
+      { label: 'Mgg Ini', value: newLeadsThisWeek },
     ];
 
     return NextResponse.json({
@@ -51,7 +68,7 @@ export async function GET() {
       data: {
         stats: {
           totalLeads,
-          newLeadsThisWeek: 32,
+          newLeadsThisWeek,
           needFollowUpToday: followUpCount,
           hotLeads,
           closingLeads,
@@ -77,14 +94,4 @@ export async function GET() {
       { status: 500 }
     );
   }
-}
-
-function coldCount(leads: any[]) {
-  return leads.filter((l) => l.status === 'Cold').length + 115;
-}
-function warmCount(leads: any[]) {
-  return leads.filter((l) => l.status === 'Warm').length + 61;
-}
-function hotCount(leads: any[]) {
-  return leads.filter((l) => l.status === 'Hot').length + 23;
 }

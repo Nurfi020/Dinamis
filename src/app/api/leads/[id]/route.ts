@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { updateLeadSchema } from '@/lib/validations/lead';
 import { cleanPhoneNumber } from '@/utils/helpers';
+import { getCurrentUser, verifyLeadOwnership } from '@/lib/auth/userAuth';
 
 interface Params {
   params: Promise<{ id: string }>;
@@ -9,24 +10,19 @@ interface Params {
 
 export async function GET(request: Request, { params }: Params) {
   try {
+    const currentUser = await getCurrentUser(request);
     const { id } = await params;
 
-    const lead = await prisma.lead.findUnique({
-      where: { id },
-      include: {
-        product: true,
-        followUps: {
-          orderBy: { createdAt: 'desc' },
-        },
-      },
-    });
-
-    if (!lead || lead.isDeleted) {
+    // IDOR Protection: verify that the lead exists and belongs to the authenticated user
+    const ownership = await verifyLeadOwnership(id, currentUser.id);
+    if (ownership.status !== 200 || !ownership.lead) {
       return NextResponse.json(
-        { success: false, error: 'Lead tidak ditemukan' },
-        { status: 404 }
+        { success: false, error: ownership.error },
+        { status: ownership.status }
       );
     }
+
+    const lead = ownership.lead;
 
     return NextResponse.json({
       success: true,
@@ -76,14 +72,27 @@ export async function GET(request: Request, { params }: Params) {
 
 export async function PUT(request: Request, { params }: Params) {
   try {
+    const currentUser = await getCurrentUser(request);
     const { id } = await params;
     const body = await request.json();
     const validatedData = updateLeadSchema.parse(body);
+
+    // IDOR Protection: ensure target lead is owned by currentUser
+    const ownership = await verifyLeadOwnership(id, currentUser.id);
+    if (ownership.status !== 200 || !ownership.lead) {
+      return NextResponse.json(
+        { success: false, error: ownership.error },
+        { status: ownership.status }
+      );
+    }
 
     const updatePayload: any = { ...validatedData };
     if (validatedData.phone) {
       updatePayload.phone = cleanPhoneNumber(validatedData.phone);
     }
+
+    // Explicitly prevent tampering with salesId
+    delete updatePayload.salesId;
 
     const updatedLead = await prisma.lead.update({
       where: { id },
@@ -118,6 +127,12 @@ export async function PUT(request: Request, { params }: Params) {
     });
   } catch (error: any) {
     console.error('Error updating lead:', error);
+    if (error.errors) {
+      return NextResponse.json(
+        { success: false, error: error.errors[0]?.message || 'Data update tidak valid' },
+        { status: 400 }
+      );
+    }
     return NextResponse.json(
       { success: false, error: 'Gagal memperbarui lead' },
       { status: 500 }
@@ -127,9 +142,19 @@ export async function PUT(request: Request, { params }: Params) {
 
 export async function DELETE(request: Request, { params }: Params) {
   try {
+    const currentUser = await getCurrentUser(request);
     const { id } = await params;
 
-    // Soft delete according to Section 7 in 04-database.md
+    // IDOR Protection: only owner can delete lead
+    const ownership = await verifyLeadOwnership(id, currentUser.id);
+    if (ownership.status !== 200 || !ownership.lead) {
+      return NextResponse.json(
+        { success: false, error: ownership.error },
+        { status: ownership.status }
+      );
+    }
+
+    // Soft delete
     await prisma.lead.update({
       where: { id },
       data: { isDeleted: true },

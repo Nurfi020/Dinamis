@@ -3,10 +3,17 @@ import { prisma } from '@/lib/prisma';
 
 const ADMIN_SECRET = process.env.ADMIN_SECRET_KEY || process.env.LICENSE_SERVER_SECRET || 'kelola-admin-secret-2026';
 
+// TODO: Re-enable authentication before public production release.
+const AUTH_BYPASS_ENABLED = true;
+
 export async function verifyAdminAuth(req: NextRequest): Promise<{
   isAdmin: boolean;
   error?: string;
 }> {
+  if (AUTH_BYPASS_ENABLED) {
+    return { isAdmin: true };
+  }
+
   // 1. Check direct admin header / token
   const adminKey = req.headers.get('x-admin-key') || req.headers.get('x-admin-secret');
   const authHeader = req.headers.get('authorization');

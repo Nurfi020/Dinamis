@@ -1,27 +1,16 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { updateProfileSchema } from '@/lib/validations/profile';
+import { getCurrentUser } from '@/lib/auth/userAuth';
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    let user = await prisma.user.findFirst();
+    const currentUser = await getCurrentUser(request);
 
-    if (!user) {
-      user = await prisma.user.create({
-        data: {
-          name: 'Budi Sales',
-          email: 'budi.sales@perusahaan.co.id',
-          phone: '081288991234',
-          role: 'Senior Sales Executive',
-          monthlyTarget: 20,
-        },
-      });
-    }
-
-    // Count actual closing count
+    // Count actual closing count specifically for this authenticated sales user
     const closingCount = await prisma.lead.count({
       where: {
-        salesId: user.id,
+        salesId: currentUser.id,
         status: 'Closing',
         isDeleted: false,
       },
@@ -30,13 +19,13 @@ export async function GET() {
     return NextResponse.json({
       success: true,
       data: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        phone: user.phone,
-        role: user.role,
-        avatarUrl: user.avatarUrl,
-        monthlyTarget: user.monthlyTarget,
+        id: currentUser.id,
+        name: currentUser.name,
+        email: currentUser.email,
+        phone: currentUser.phone,
+        role: currentUser.role,
+        avatarUrl: currentUser.avatarUrl,
+        monthlyTarget: currentUser.monthlyTarget,
         closingCount: closingCount,
       },
     });
@@ -51,19 +40,12 @@ export async function GET() {
 
 export async function PUT(request: Request) {
   try {
+    const currentUser = await getCurrentUser(request);
     const body = await request.json();
     const validatedData = updateProfileSchema.parse(body);
 
-    let user = await prisma.user.findFirst();
-    if (!user) {
-      return NextResponse.json(
-        { success: false, error: 'User tidak ditemukan' },
-        { status: 404 }
-      );
-    }
-
     const updatedUser = await prisma.user.update({
-      where: { id: user.id },
+      where: { id: currentUser.id },
       data: validatedData,
     });
 

@@ -4,6 +4,6 @@ import React from 'react';
 import { MainApp } from '@/components/MainApp';
 
 // TODO: Re-enable authentication before public production release.
-export default function HomePage() {
-  return <MainApp initialTab="dashboard" />;
+export default function LeadListPage() {
+  return <MainApp initialTab="leads" />;
 }

@@ -17,13 +17,13 @@ export async function POST() {
     await prisma.product.deleteMany({});
     await prisma.user.deleteMany({});
 
-    // Create User
+// TODO: Re-enable authentication before public production release.
     const salesUser = await prisma.user.create({
       data: {
         name: 'Budi Sales',
         email: 'budi.sales@perusahaan.co.id',
         phone: '081288991234',
-        role: 'Senior Sales Executive',
+        role: 'Sales',
         monthlyTarget: 20,
         avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
       },
