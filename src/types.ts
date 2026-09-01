@@ -208,3 +208,26 @@ export interface DevModeInfo {
   environment?: string;
   host?: string;
 }
+
+export type DemoPackage = 'basic' | 'business' | 'enterprise';
+
+export interface DemoPackageConfig {
+  id: DemoPackage;
+  name: string;
+  tagline: string;
+  badge?: string;
+  targetAudience: string;
+  colorTheme: {
+    name: string;
+    primary: string;
+    dark: string;
+    light: string;
+    border: string;
+    badgeBg: string;
+    badgeText: string;
+    pillActive: string;
+  };
+  allowedRoles: DemoRole[];
+  availableTabs: ActiveTab[];
+  features: string[];
+}

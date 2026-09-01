@@ -10,7 +10,8 @@ import {
   LicenseInfo, 
   DevModeInfo,
   DemoRole,
-  DemoPersona
+  DemoPersona,
+  DemoPackage
 } from '../types';
 import { 
   getStoredLeads, 
@@ -22,6 +23,7 @@ import {
   INITIAL_LEADS 
 } from '../data/mockData';
 import { DEMO_PERSONAS } from '../data/enterpriseDemoData';
+import { DEMO_PACKAGES } from '../data/packageDemoData';
 import { leadService, followUpService, profileService } from '../services/api';
 import { Sidebar } from './layout/Sidebar';
 import { BottomNav } from './layout/BottomNav';
@@ -46,6 +48,7 @@ import { ReportsView } from './reports/ReportsView';
 import { ProfileView } from './profile/ProfileView';
 import { HelpGuideModal } from './common/HelpGuideModal';
 import { ToastContainer, ToastMessage } from './common/Toast';
+import { LockedFeatureModal } from './common/LockedFeatureModal';
 import { ActivateView } from './license/ActivateView';
 import { LicenseClient } from '../services/licenseClient';
 import { DevModeClient } from '../services/devModeClient';
@@ -95,9 +98,25 @@ export function MainApp({
   const [isClient, setIsClient] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
+  // DEMO PACKAGE STATE (Basic / Business / Enterprise)
+  const [currentPackage, setCurrentPackage] = useState<DemoPackage>('enterprise');
+
   // ENTERPRISE DEMO ROLE & PERSONA STATE
   const [currentRole, setCurrentRole] = useState<DemoRole>('sales');
   const [currentPersona, setCurrentPersona] = useState<DemoPersona>(DEMO_PERSONAS.sales);
+
+  // Locked Feature Modal State
+  const [lockedModal, setLockedModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    description: string;
+    requiredPackage: DemoPackage;
+  }>({
+    isOpen: false,
+    title: '',
+    description: '',
+    requiredPackage: 'enterprise',
+  });
 
   // License & Dev Mode state (bypassed if AUTH_BYPASS_ENABLED is true)
   const [isLicenseChecking, setIsLicenseChecking] = useState(!AUTH_BYPASS_ENABLED);
@@ -143,6 +162,16 @@ export function MainApp({
     }
   }, [initialOpenAddModal]);
 
+  // Load stored demo package preference from isolated key on mount
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const storedPkg = localStorage.getItem('kelola_lead_demo_package_v1') as DemoPackage;
+      if (storedPkg && (storedPkg === 'basic' || storedPkg === 'business' || storedPkg === 'enterprise')) {
+        setCurrentPackage(storedPkg);
+      }
+    }
+  }, []);
+
   const addToast = (type: 'success' | 'error' | 'info', title: string, message?: string) => {
     const id = Date.now().toString();
     setToasts((prev) => [...prev, { id, type, title, message }]);
@@ -155,6 +184,31 @@ export function MainApp({
     setToasts((prev) => prev.filter((t) => t.id !== id));
   };
 
+  // Package Switcher Handler
+  const handleSwitchPackage = (newPkg: DemoPackage) => {
+    setCurrentPackage(newPkg);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('kelola_lead_demo_package_v1', newPkg);
+    }
+
+    // Role adaptation based on package tier
+    if (newPkg === 'basic' && currentRole !== 'sales') {
+      setCurrentRole('sales');
+      setCurrentPersona(DEMO_PERSONAS.sales);
+    } else if (newPkg === 'business' && (currentRole === 'manager' || currentRole === 'admin')) {
+      setCurrentRole('supervisor');
+      setCurrentPersona(DEMO_PERSONAS.supervisor);
+    }
+
+    setSelectedLeadId(null);
+    setActiveTab('dashboard');
+    addToast(
+      'info',
+      `Beralih ke Demo: ${DEMO_PACKAGES[newPkg].name}`,
+      DEMO_PACKAGES[newPkg].tagline
+    );
+  };
+
   // Role Switcher Handler (Instant Simulated State)
   const handleSwitchRole = (role: DemoRole) => {
     const targetPersona = DEMO_PERSONAS[role];
@@ -163,6 +217,16 @@ export function MainApp({
     setSelectedLeadId(null);
     setActiveTab('dashboard');
     addToast('info', `Beralih ke ${role.toUpperCase()} Portal`, `Akun aktif: ${targetPersona.name} (${targetPersona.title})`);
+  };
+
+  // Locked feature trigger handler
+  const handleOpenLockedFeature = (title: string, description: string, reqPkg: DemoPackage = 'enterprise') => {
+    setLockedModal({
+      isOpen: true,
+      title,
+      description,
+      requiredPackage: reqPkg,
+    });
   };
 
   // Fetch from backend API with fallback to local storage
@@ -440,7 +504,7 @@ export function MainApp({
     }
   };
 
-  // Header title & subtitle dynamically tailored to active tab and active role
+  // Header title & subtitle dynamically tailored to active tab, active role, and active package
   const getHeaderInfo = () => {
     if (selectedLead && activeTab === 'leads') {
       return {
@@ -450,6 +514,19 @@ export function MainApp({
     }
     switch (activeTab) {
       case 'dashboard':
+        if (currentPackage === 'basic') {
+          return {
+            title: 'Dashboard Sales',
+            subtitle: 'Ringkasan aktivitas lead dan follow-up bisnis Anda hari ini',
+          };
+        }
+        if (currentPackage === 'business') {
+          return {
+            title: currentRole === 'supervisor' ? 'Dashboard Tim Penjualan' : 'Dashboard Sales Pro',
+            subtitle: 'Monitoring target closing, performa tim, dan prospek prioritas',
+          };
+        }
+        // Enterprise
         if (currentRole === 'supervisor') {
           return {
             title: 'Dashboard Tim',
@@ -469,14 +546,14 @@ export function MainApp({
           };
         }
         return {
-          title: 'Dashboard Sales',
-          subtitle: 'Ringkasan aktivitas lead dan pencapaian target closing Anda',
+          title: 'Dashboard Sales Enterprise',
+          subtitle: 'Ringkasan aktivitas lead dan pencapaian target closing korporasi',
         };
 
       case 'leads':
         return {
           title: currentRole === 'supervisor' ? 'Daftar Lead Tim' : currentRole === 'manager' ? 'Semua Pipeline Organisasi' : 'Daftar Calon Pelanggan',
-          subtitle: 'Kelola semua calon pelanggan dan status prospek perbankan',
+          subtitle: 'Kelola semua calon pelanggan dan status prospek penjualan',
         };
 
       case 'followup':
@@ -590,6 +667,8 @@ export function MainApp({
         onOpenHelp={() => setIsHelpOpen(true)}
         currentRole={currentRole}
         currentPersona={currentPersona}
+        currentPackage={currentPackage}
+        onOpenLockedFeature={handleOpenLockedFeature}
         devModeInfo={devModeInfo}
       />
 
@@ -602,7 +681,10 @@ export function MainApp({
           profile={profile}
           currentRole={currentRole}
           currentPersona={currentPersona}
+          currentPackage={currentPackage}
           onSwitchRole={handleSwitchRole}
+          onSwitchPackage={handleSwitchPackage}
+          onOpenLockedFeature={handleOpenLockedFeature}
           devModeInfo={devModeInfo}
           onOpenProfile={() => {
             setSelectedLeadId(null);
@@ -817,6 +899,16 @@ export function MainApp({
       <HelpGuideModal
         isOpen={isHelpOpen}
         onClose={() => setIsHelpOpen(false)}
+      />
+
+      {/* Locked Feature Gate Modal */}
+      <LockedFeatureModal
+        isOpen={lockedModal.isOpen}
+        onClose={() => setLockedModal((prev) => ({ ...prev, isOpen: false }))}
+        featureTitle={lockedModal.title}
+        featureDescription={lockedModal.description}
+        requiredPackage={lockedModal.requiredPackage}
+        onUpgradeToPackage={handleSwitchPackage}
       />
 
       {/* 5. Toasts Container */}

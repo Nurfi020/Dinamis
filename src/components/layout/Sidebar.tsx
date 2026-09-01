@@ -17,9 +17,11 @@ import {
   Activity,
   Settings,
   Briefcase,
-  ShieldCheck
+  ShieldCheck,
+  Lock
 } from 'lucide-react';
-import { ActiveTab, DevModeInfo, DemoRole, DemoPersona } from '../../types';
+import { ActiveTab, DevModeInfo, DemoRole, DemoPersona, DemoPackage } from '../../types';
+import { DEMO_PACKAGES } from '../../data/packageDemoData';
 
 interface SidebarProps {
   activeTab: ActiveTab;
@@ -29,6 +31,8 @@ interface SidebarProps {
   onOpenHelp: () => void;
   currentRole: DemoRole;
   currentPersona: DemoPersona;
+  currentPackage: DemoPackage;
+  onOpenLockedFeature: (title: string, desc: string, reqPkg: DemoPackage) => void;
   devModeInfo?: DevModeInfo | null;
 }
 
@@ -40,10 +44,139 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onOpenHelp,
   currentRole,
   currentPersona,
+  currentPackage,
+  onOpenLockedFeature,
   devModeInfo,
 }) => {
-  // Navigation matrix dynamically tailored to active demo role
+  const pkgConfig = DEMO_PACKAGES[currentPackage];
+
+  // Navigation matrix dynamically tailored to active demo role and active package
   const getNavItems = () => {
+    // When in Basic package: Focus on Solo Sales
+    if (currentPackage === 'basic') {
+      return [
+        {
+          id: 'dashboard' as ActiveTab,
+          label: 'Dashboard Saya',
+          icon: LayoutDashboard,
+        },
+        {
+          id: 'leads' as ActiveTab,
+          label: 'Semua Lead',
+          icon: Users,
+        },
+        {
+          id: 'add_lead_action' as ActiveTab,
+          label: 'Tambah Lead',
+          icon: PlusCircle,
+          isAction: true,
+        },
+        {
+          id: 'followup' as ActiveTab,
+          label: 'Follow Up',
+          icon: CalendarClock,
+          badge: followUpCount > 0 ? followUpCount : undefined,
+        },
+        {
+          id: 'reports' as ActiveTab,
+          label: 'Laporan Performa',
+          icon: BarChart3,
+        },
+        {
+          id: 'profile' as ActiveTab,
+          label: 'Pengaturan & Profil',
+          icon: UserCircle2,
+        },
+      ];
+    }
+
+    // When in Business package: Focus on Sales & Supervisor teams
+    if (currentPackage === 'business') {
+      if (currentRole === 'supervisor') {
+        return [
+          {
+            id: 'dashboard' as ActiveTab,
+            label: 'Dashboard Tim',
+            icon: LayoutDashboard,
+          },
+          {
+            id: 'leads' as ActiveTab,
+            label: 'Lead Anggota Tim',
+            icon: Users,
+          },
+          {
+            id: 'add_lead_action' as ActiveTab,
+            label: 'Tambah Lead Tim',
+            icon: PlusCircle,
+            isAction: true,
+          },
+          {
+            id: 'followup' as ActiveTab,
+            label: 'Follow Up Tim',
+            icon: CalendarClock,
+            badge: followUpCount > 0 ? followUpCount : undefined,
+          },
+          {
+            id: 'team_performance' as ActiveTab,
+            label: 'Kinerja Sales Tim',
+            icon: Award,
+          },
+          {
+            id: 'reports' as ActiveTab,
+            label: 'Laporan Tim',
+            icon: BarChart3,
+          },
+          {
+            id: 'profile' as ActiveTab,
+            label: 'Profil Supervisor',
+            icon: UserCircle2,
+          },
+        ];
+      }
+
+      // Sales in Business
+      return [
+        {
+          id: 'dashboard' as ActiveTab,
+          label: 'Dashboard Saya',
+          icon: LayoutDashboard,
+        },
+        {
+          id: 'leads' as ActiveTab,
+          label: 'Semua Lead',
+          icon: Users,
+        },
+        {
+          id: 'add_lead_action' as ActiveTab,
+          label: 'Tambah Lead',
+          icon: PlusCircle,
+          isAction: true,
+        },
+        {
+          id: 'followup' as ActiveTab,
+          label: 'Follow Up',
+          icon: CalendarClock,
+          badge: followUpCount > 0 ? followUpCount : undefined,
+        },
+        {
+          id: 'team_performance' as ActiveTab,
+          label: 'Leaderboard Tim',
+          icon: Award,
+        },
+        {
+          id: 'reports' as ActiveTab,
+          label: 'Laporan Performa',
+          icon: BarChart3,
+        },
+        {
+          id: 'profile' as ActiveTab,
+          label: 'Pengaturan & Profil',
+          icon: UserCircle2,
+        },
+      ];
+    }
+
+    // When in Enterprise package: Full 4 Roles Matrix
     switch (currentRole) {
       case 'sales':
         return [
@@ -202,13 +335,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const getRoleHeaderBadge = () => {
     switch (currentRole) {
       case 'sales':
-        return { text: 'Sales Portal', color: 'text-[#00A651] bg-[#E8F7EF]' };
+        return { text: 'Sales', color: 'text-[#00A651] bg-[#E8F7EF]' };
       case 'supervisor':
-        return { text: 'Supervisor Portal', color: 'text-amber-800 bg-amber-50' };
+        return { text: 'Supervisor', color: 'text-amber-800 bg-amber-50' };
       case 'manager':
-        return { text: 'Management Portal', color: 'text-indigo-800 bg-indigo-50' };
+        return { text: 'Manager', color: 'text-indigo-800 bg-indigo-50' };
       case 'admin':
-        return { text: 'Admin Portal', color: 'text-slate-800 bg-slate-100' };
+        return { text: 'Admin', color: 'text-slate-800 bg-slate-100' };
     }
   };
 
@@ -217,17 +350,21 @@ export const Sidebar: React.FC<SidebarProps> = ({
   return (
     <aside className="hidden md:flex flex-col w-64 bg-white border-r border-[#E2E9E4] h-screen sticky top-0 shrink-0 z-30 select-none">
       {/* Brand Header */}
-      <div className="p-5 border-b border-[#E2E9E4] flex items-center justify-between gap-2">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-[#00A651] flex items-center justify-center text-white shadow-sm">
-            <Sparkles className="w-5 h-5" />
+      <div className="p-4 border-b border-[#E2E9E4] flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2.5">
+          <div className={`w-9 h-9 rounded-xl flex items-center justify-center text-white shadow-xs ${
+            currentPackage === 'basic' ? 'bg-blue-600' : currentPackage === 'business' ? 'bg-[#00A651]' : 'bg-slate-900 text-emerald-400'
+          }`}>
+            <Sparkles className="w-4 h-4" />
           </div>
           <div>
-            <h1 className="text-base font-extrabold text-[#17221C] tracking-tight leading-tight">
+            <h1 className="text-sm font-extrabold text-[#17221C] tracking-tight leading-tight">
               Kelola Lead
             </h1>
-            <span className="text-xs font-bold text-[#00A651] tracking-wider uppercase">
-              Enterprise CRM
+            <span className={`text-[10px] font-bold tracking-wider uppercase ${
+              currentPackage === 'basic' ? 'text-blue-600' : currentPackage === 'business' ? 'text-[#00A651]' : 'text-slate-900'
+            }`}>
+              {pkgConfig.name}
             </span>
           </div>
         </div>
@@ -238,7 +375,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       </div>
 
       {/* Navigation Links */}
-      <div className="flex-1 px-3 py-4 space-y-1.5 overflow-y-auto">
+      <div className="flex-1 px-3 py-3 space-y-1 overflow-y-auto">
         {navItems.map((item) => {
           const Icon = item.icon;
           
@@ -248,7 +385,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 key={item.id}
                 type="button"
                 onClick={onOpenAddLead}
-                className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold text-white bg-[#00A651] hover:bg-[#006B3C] transition-all duration-150 my-2.5 shadow-sm active:scale-[0.98] cursor-pointer"
+                className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-white transition-all my-2 shadow-xs active:scale-[0.98] cursor-pointer ${
+                  currentPackage === 'basic' ? 'bg-blue-600 hover:bg-blue-700' : 'bg-[#00A651] hover:bg-[#006B3C]'
+                }`}
               >
                 <Icon className="w-4 h-4" />
                 <span>+ Tambah Lead</span>
@@ -263,19 +402,25 @@ export const Sidebar: React.FC<SidebarProps> = ({
               key={item.id}
               type="button"
               onClick={() => setActiveTab(item.id as ActiveTab)}
-              className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-150 cursor-pointer ${
+              className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition-all duration-150 cursor-pointer ${
                 isActive
-                  ? 'bg-[#E8F7EF] text-[#006B3C] font-bold'
+                  ? currentPackage === 'basic'
+                    ? 'bg-blue-50 text-blue-800 font-bold border-l-2 border-blue-600'
+                    : 'bg-[#E8F7EF] text-[#006B3C] font-bold border-l-2 border-[#00A651]'
                   : 'text-[#66736B] hover:text-[#17221C] hover:bg-[#F4FBF7]'
               }`}
             >
-              <div className="flex items-center gap-3">
-                <Icon className={`w-4 h-4 ${isActive ? 'text-[#00A651]' : 'text-[#66736B]'}`} />
+              <div className="flex items-center gap-2.5">
+                <Icon className={`w-4 h-4 ${
+                  isActive 
+                    ? currentPackage === 'basic' ? 'text-blue-600' : 'text-[#00A651]'
+                    : 'text-[#66736B]'
+                }`} />
                 <span>{item.label}</span>
               </div>
               {item.badge !== undefined && (
                 <span
-                  className={`text-xs px-2 py-0.5 rounded-full font-bold ${
+                  className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
                     isActive
                       ? 'bg-[#00A651] text-white'
                       : 'bg-rose-500 text-white'
@@ -287,13 +432,100 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </button>
           );
         })}
+
+        {/* LOCKED FEATURE TEASERS IN BASIC / BUSINESS */}
+        {currentPackage === 'basic' && (
+          <div className="pt-3 border-t border-[#E2E9E4] mt-2 space-y-1">
+            <div className="px-3 text-[9px] font-extrabold uppercase text-[#94A3B8] tracking-wider">
+              Tersedia di Paket Atas
+            </div>
+            <button
+              type="button"
+              onClick={() => onOpenLockedFeature(
+                'Kinerja & Leaderboard Tim',
+                'Pantau capaian target seluruh anggota tim sales dan SLA tindak lanjut pada Paket Business & Enterprise.',
+                'business'
+              )}
+              className="w-full flex items-center justify-between px-3 py-1.5 rounded-xl text-xs font-medium text-slate-400 hover:bg-slate-50 transition-colors text-left cursor-pointer"
+            >
+              <div className="flex items-center gap-2.5">
+                <Award className="w-4 h-4 text-slate-400" />
+                <span>Kinerja Tim</span>
+              </div>
+              <span className="text-[9px] px-1.5 py-0.2 rounded-md bg-emerald-50 text-emerald-700 font-bold border border-emerald-200 flex items-center gap-1">
+                <Lock className="w-2.5 h-2.5" /> Business
+              </span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => onOpenLockedFeature(
+                'Manajemen Multi-Cabang & Organisasi',
+                'Konsolidasi analitik seluruh kantor cabang dan dashboard eksekutif pada Paket Enterprise.',
+                'enterprise'
+              )}
+              className="w-full flex items-center justify-between px-3 py-1.5 rounded-xl text-xs font-medium text-slate-400 hover:bg-slate-50 transition-colors text-left cursor-pointer"
+            >
+              <div className="flex items-center gap-2.5">
+                <Building2 className="w-4 h-4 text-slate-400" />
+                <span>Kinerja Cabang</span>
+              </div>
+              <span className="text-[9px] px-1.5 py-0.2 rounded-md bg-slate-100 text-slate-700 font-bold border border-slate-300 flex items-center gap-1">
+                <Lock className="w-2.5 h-2.5" /> Enterprise
+              </span>
+            </button>
+          </div>
+        )}
+
+        {currentPackage === 'business' && (
+          <div className="pt-3 border-t border-[#E2E9E4] mt-2 space-y-1">
+            <div className="px-3 text-[9px] font-extrabold uppercase text-[#94A3B8] tracking-wider">
+              Tersedia di Enterprise
+            </div>
+            <button
+              type="button"
+              onClick={() => onOpenLockedFeature(
+                'Manajemen Multi-Cabang',
+                'Konsolidasi analitik performa cabang regional dan dashboard direksi pada Paket Enterprise.',
+                'enterprise'
+              )}
+              className="w-full flex items-center justify-between px-3 py-1.5 rounded-xl text-xs font-medium text-slate-400 hover:bg-slate-50 transition-colors text-left cursor-pointer"
+            >
+              <div className="flex items-center gap-2.5">
+                <Building2 className="w-4 h-4 text-slate-400" />
+                <span>Kinerja Cabang</span>
+              </div>
+              <span className="text-[9px] px-1.5 py-0.2 rounded-md bg-slate-100 text-slate-700 font-bold border border-slate-300 flex items-center gap-1">
+                <Lock className="w-2.5 h-2.5" /> Enterprise
+              </span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => onOpenLockedFeature(
+                'Audit & Activity Trail',
+                'Rekam jejak keamanan dan log perubahan data seluruh organisasi pada Paket Enterprise.',
+                'enterprise'
+              )}
+              className="w-full flex items-center justify-between px-3 py-1.5 rounded-xl text-xs font-medium text-slate-400 hover:bg-slate-50 transition-colors text-left cursor-pointer"
+            >
+              <div className="flex items-center gap-2.5">
+                <Activity className="w-4 h-4 text-slate-400" />
+                <span>Audit & Log</span>
+              </div>
+              <span className="text-[9px] px-1.5 py-0.2 rounded-md bg-slate-100 text-slate-700 font-bold border border-slate-300 flex items-center gap-1">
+                <Lock className="w-2.5 h-2.5" /> Enterprise
+              </span>
+            </button>
+          </div>
+        )}
       </div>
 
-      {/* Footer / User Profile Context & Status */}
+      {/* Footer / Package & Persona Context */}
       <div className="p-3 border-t border-[#E2E9E4] space-y-2">
         <div className="p-2.5 rounded-xl bg-[#F7F9F8] border border-[#E2E9E4] text-xs">
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-[#00A651] text-white font-bold text-xs flex items-center justify-center">
+            <div className="w-7 h-7 rounded-lg bg-[#00A651] text-white font-bold text-xs flex items-center justify-center shrink-0">
               {currentPersona.name.split(' ').map((n) => n[0]).join('').slice(0, 2)}
             </div>
             <div className="min-w-0 flex-1">
@@ -306,10 +538,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
         <button
           type="button"
           onClick={onOpenHelp}
-          className="w-full flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs font-semibold text-[#66736B] hover:text-[#17221C] hover:bg-[#F4FBF7] transition-colors cursor-pointer"
+          className="w-full flex items-center gap-2.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-[#66736B] hover:text-[#17221C] hover:bg-[#F4FBF7] transition-colors cursor-pointer"
         >
           <HelpCircle className="w-4 h-4 text-[#00A651]" />
-          <span>Panduan Enterprise Demo</span>
+          <span>Panduan Demo</span>
         </button>
       </div>
     </aside>
