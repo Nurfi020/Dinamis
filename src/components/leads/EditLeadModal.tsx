@@ -6,7 +6,6 @@ import {
   Phone, 
   MapPin, 
   Package, 
-  Check, 
   Sparkles, 
   AlertCircle,
   MessageCircle,
@@ -40,6 +39,7 @@ export const EditLeadModal: React.FC<EditLeadModalProps> = ({
   const [source, setSource] = useState<LeadSource>(lead.source);
   const [product, setProduct] = useState(lead.product);
   const [status, setStatus] = useState<LeadStatus>(lead.status);
+  const [value, setValue] = useState<string>(lead.value?.toString() || '25000000');
   const [notes, setNotes] = useState(lead.initialNotes || '');
   const [nextFollowUpDate, setNextFollowUpDate] = useState(lead.nextFollowUpDate || '');
   const [nextFollowUpTime, setNextFollowUpTime] = useState(lead.nextFollowUpTime || '10:00');
@@ -53,6 +53,7 @@ export const EditLeadModal: React.FC<EditLeadModalProps> = ({
       setSource(lead.source);
       setProduct(lead.product);
       setStatus(lead.status);
+      setValue(lead.value?.toString() || '25000000');
       setNotes(lead.initialNotes || '');
       setNextFollowUpDate(lead.nextFollowUpDate || '');
       setNextFollowUpTime(lead.nextFollowUpTime || '10:00');
@@ -100,9 +101,10 @@ export const EditLeadModal: React.FC<EditLeadModalProps> = ({
       source,
       product,
       status,
+      value: Number(value) || lead.value || 15000000,
       initialNotes: notes.trim() || undefined,
-      nextFollowUpDate: status === 'Closing' || status === 'Tidak Berhasil' ? undefined : (nextFollowUpDate || undefined),
-      nextFollowUpTime: status === 'Closing' || status === 'Tidak Berhasil' ? undefined : (nextFollowUpTime || undefined),
+      nextFollowUpDate: nextFollowUpDate || undefined,
+      nextFollowUpTime: nextFollowUpTime || undefined,
     });
 
     onClose();
@@ -113,7 +115,7 @@ export const EditLeadModal: React.FC<EditLeadModalProps> = ({
       isOpen={isOpen}
       onClose={onClose}
       title="Edit Data Calon Pelanggan"
-      subtitle={`Perbarui informasi data prospek ${lead.name}`}
+      subtitle={`Perbarui informasi prospek ${lead.name}`}
       maxWidth="lg"
     >
       <form onSubmit={handleSubmit} className="space-y-4 text-xs sm:text-sm">
@@ -129,18 +131,20 @@ export const EditLeadModal: React.FC<EditLeadModalProps> = ({
               value={name}
               onChange={(e) => {
                 setName(e.target.value);
-                if (errors.name) setErrors((prev) => ({ ...prev, name: undefined }));
+                if (errors.name) setErrors({ ...errors, name: undefined });
               }}
-              placeholder="Contoh: Bpk. Hendra Gunawan"
-              className={`w-full pl-10 pr-4 py-2.5 bg-[#F7F9F8] border rounded-xl text-xs sm:text-sm text-[#17221C] focus:outline-none focus:bg-white transition-all ${
-                errors.name ? 'border-rose-500 bg-rose-50/20' : 'border-[#E2E9E4] focus:border-[#00A651]'
+              placeholder="Contoh: Budi Santoso"
+              className={`w-full pl-10 pr-3.5 py-2.5 bg-[#F7F9F8] border rounded-xl text-xs sm:text-sm text-[#17221C] focus:outline-none focus:bg-white transition-all ${
+                errors.name
+                  ? 'border-rose-500 ring-2 ring-rose-500/20'
+                  : 'border-[#E2E9E4] focus:border-[#00A651]'
               }`}
             />
           </div>
           {errors.name && (
-            <p className="text-rose-600 text-[11px] font-semibold mt-1 flex items-center gap-1">
+            <p className="text-rose-600 text-xs mt-1 flex items-center gap-1 font-medium">
               <AlertCircle className="w-3.5 h-3.5" />
-              <span>{errors.name}</span>
+              {errors.name}
             </p>
           )}
         </div>
@@ -157,18 +161,20 @@ export const EditLeadModal: React.FC<EditLeadModalProps> = ({
               value={phone}
               onChange={(e) => {
                 setPhone(e.target.value);
-                if (errors.phone) setErrors((prev) => ({ ...prev, phone: undefined }));
+                if (errors.phone) setErrors({ ...errors, phone: undefined });
               }}
-              placeholder="08xxxxxxxxxx"
-              className={`w-full pl-10 pr-4 py-2.5 bg-[#F7F9F8] border rounded-xl text-xs sm:text-sm text-[#17221C] font-mono focus:outline-none focus:bg-white transition-all ${
-                errors.phone ? 'border-rose-500 bg-rose-50/20' : 'border-[#E2E9E4] focus:border-[#00A651]'
+              placeholder="081289123456"
+              className={`w-full pl-10 pr-3.5 py-2.5 bg-[#F7F9F8] border rounded-xl text-xs sm:text-sm text-[#17221C] focus:outline-none focus:bg-white transition-all ${
+                errors.phone
+                  ? 'border-rose-500 ring-2 ring-rose-500/20'
+                  : 'border-[#E2E9E4] focus:border-[#00A651]'
               }`}
             />
           </div>
           {errors.phone && (
-            <p className="text-rose-600 text-[11px] font-semibold mt-1 flex items-center gap-1">
+            <p className="text-rose-600 text-xs mt-1 flex items-center gap-1 font-medium">
               <AlertCircle className="w-3.5 h-3.5" />
-              <span>{errors.phone}</span>
+              {errors.phone}
             </p>
           )}
         </div>
@@ -211,7 +217,46 @@ export const EditLeadModal: React.FC<EditLeadModalProps> = ({
           </div>
         </div>
 
-        {/* 5. Sumber Lead */}
+        {/* 5. Estimasi Nilai Deal (Nominal Rupiah) */}
+        <div>
+          <label className="block font-bold text-[#17221C] mb-1.5 flex items-center justify-between">
+            <span>Estimasi Nilai Deal (Rupiah)</span>
+            <span className="text-[11px] text-[#006B3C] font-semibold">Potensi Revenue</span>
+          </label>
+          <div className="flex flex-wrap gap-1.5 mb-2">
+            {[
+              { label: 'Rp 15 Jt', val: '15000000' },
+              { label: 'Rp 25 Jt', val: '25000000' },
+              { label: 'Rp 50 Jt', val: '50000000' },
+              { label: 'Rp 100 Jt', val: '100000000' },
+            ].map((p) => (
+              <button
+                key={p.val}
+                type="button"
+                onClick={() => setValue(p.val)}
+                className={`px-3 py-1 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
+                  value === p.val
+                    ? 'bg-[#E8F7EF] text-[#006B3C] border-[#00A651] shadow-xs'
+                    : 'bg-white text-[#66736B] border-[#E2E9E4] hover:bg-slate-50'
+                }`}
+              >
+                {p.label}
+              </button>
+            ))}
+          </div>
+          <div className="relative">
+            <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-[#66736B]">Rp</span>
+            <input
+              type="number"
+              value={value}
+              onChange={(e) => setValue(e.target.value)}
+              placeholder="25000000"
+              className="w-full pl-10 pr-3.5 py-2.5 bg-[#F7F9F8] border border-[#E2E9E4] focus:border-[#00A651] focus:bg-white rounded-xl text-sm font-bold font-mono text-[#17221C] focus:outline-none focus:ring-2 focus:ring-[#00A651]/20 transition-all"
+            />
+          </div>
+        </div>
+
+        {/* 6. Sumber Lead */}
         <div>
           <label className="block font-bold text-[#17221C] mb-1.5">
             Sumber Lead <span className="text-rose-500">*</span>
@@ -238,7 +283,7 @@ export const EditLeadModal: React.FC<EditLeadModalProps> = ({
           </div>
         </div>
 
-        {/* 6. Status Prospek */}
+        {/* 7. Status Prospek */}
         <div>
           <label className="block font-bold text-[#17221C] mb-1.5">
             Status Prospek <span className="text-rose-500">*</span>
@@ -264,34 +309,59 @@ export const EditLeadModal: React.FC<EditLeadModalProps> = ({
           </div>
         </div>
 
-        {/* 7. Catatan */}
+        {/* 8. Jadwal Follow Up Berikutnya */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label className="block font-bold text-[#17221C] mb-1.5 flex items-center gap-1">
+              <CalendarClock className="w-3.5 h-3.5 text-[#00A651]" />
+              <span>Tanggal Follow Up</span>
+            </label>
+            <input
+              type="date"
+              value={nextFollowUpDate}
+              onChange={(e) => setNextFollowUpDate(e.target.value)}
+              className="w-full px-3 py-2.5 bg-[#F7F9F8] border border-[#E2E9E4] rounded-xl text-xs sm:text-sm text-[#17221C] focus:outline-none focus:border-[#00A651] focus:bg-white"
+            />
+          </div>
+          <div>
+            <label className="block font-bold text-[#17221C] mb-1.5">Waktu / Jam</label>
+            <input
+              type="time"
+              value={nextFollowUpTime}
+              onChange={(e) => setNextFollowUpTime(e.target.value)}
+              className="w-full px-3 py-2.5 bg-[#F7F9F8] border border-[#E2E9E4] rounded-xl text-xs sm:text-sm text-[#17221C] focus:outline-none focus:border-[#00A651] focus:bg-white"
+            />
+          </div>
+        </div>
+
+        {/* 9. Catatan */}
         <div>
           <label className="block font-bold text-[#17221C] mb-1.5">
-            Catatan Tambahan (Opsional)
+            Catatan Tambahan
           </label>
           <textarea
             rows={2}
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
-            placeholder="Informasi kebutuhan spesifik, preferensi, dsb."
-            className="w-full px-3.5 py-2.5 bg-[#F7F9F8] border border-[#E2E9E4] rounded-xl text-xs sm:text-sm text-[#17221C] focus:outline-none focus:border-[#00A651] focus:bg-white resize-none"
+            placeholder="Catatan hasil diskusi atau kebutuhan prospek..."
+            className="w-full p-3 bg-[#F7F9F8] border border-[#E2E9E4] rounded-xl text-xs text-[#17221C] focus:outline-none focus:border-[#00A651] focus:bg-white"
           />
         </div>
 
-        {/* Action Buttons */}
-        <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#E2E9E4]">
+        {/* Submit Actions */}
+        <div className="pt-3 flex items-center justify-end gap-3 border-t border-[#E2E9E4]">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2.5 rounded-xl border border-[#E2E9E4] text-xs font-bold text-[#66736B] hover:text-[#17221C] hover:bg-slate-100 transition-colors cursor-pointer"
+            className="px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold text-[#66736B] hover:text-[#17221C] hover:bg-slate-100 transition-colors cursor-pointer"
           >
             Batal
           </button>
           <button
             type="submit"
-            className="px-5 py-2.5 rounded-xl bg-[#00A651] hover:bg-[#006B3C] text-white text-xs font-bold shadow-sm active:scale-95 transition-all flex items-center gap-1.5 cursor-pointer"
+            className="px-6 py-2.5 rounded-xl bg-[#00A651] hover:bg-[#006B3C] text-white text-xs sm:text-sm font-bold shadow-sm active:scale-95 transition-all flex items-center gap-2 cursor-pointer"
           >
-            <Check className="w-4 h-4 stroke-[2.5]" />
+            <Sparkles className="w-4 h-4" />
             <span>Simpan Perubahan</span>
           </button>
         </div>

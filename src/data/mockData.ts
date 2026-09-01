@@ -55,6 +55,7 @@ export const INITIAL_LEADS: Lead[] = [
     source: 'WhatsApp',
     product: 'Produk A — Starter Plan',
     status: 'Hot',
+    value: 15000000,
     initialNotes: 'Customer menanyakan paket terlengkap dan metode pembayaran cicilan.',
     createdAt: getRelativeDate(-4),
     updatedAt: getRelativeDate(0),
@@ -98,6 +99,7 @@ export const INITIAL_LEADS: Lead[] = [
     source: 'Facebook',
     product: 'Produk B — Pro Business',
     status: 'Warm',
+    value: 35000000,
     initialNotes: 'Tertarik implementasi untuk kantor cabang Bandung.',
     createdAt: getRelativeDate(-7),
     updatedAt: getRelativeDate(-1),
@@ -128,6 +130,7 @@ export const INITIAL_LEADS: Lead[] = [
     source: 'Instagram',
     product: 'Produk A — Starter Plan',
     status: 'Hot',
+    value: 15000000,
     initialNotes: 'Sudah siap transfer, hanya menunggu invoice dengan NPWP.',
     createdAt: getRelativeDate(-3),
     updatedAt: getRelativeDate(0),
@@ -169,6 +172,7 @@ export const INITIAL_LEADS: Lead[] = [
     source: 'Referral',
     product: 'Produk C — Enterprise Suite',
     status: 'Warm',
+    value: 75000000,
     initialNotes: 'Direferensikan oleh Pak Hendra (Client existing Semarang).',
     createdAt: getRelativeDate(-10),
     updatedAt: getRelativeDate(-2),
@@ -199,7 +203,8 @@ export const INITIAL_LEADS: Lead[] = [
     source: 'WhatsApp',
     product: 'Produk B — Pro Business',
     status: 'Closing',
-    initialNotes: 'Deal berhasil closed. Sudah tanda tangan kontrak bulanan.',
+    value: 45000000,
+    initialNotes: 'Deal berhasil closed. Sudah tanda tangan kontrak tahunan.',
     createdAt: getRelativeDate(-14),
     updatedAt: getRelativeDate(-1),
     lastFollowUpDate: getRelativeDate(-1),
@@ -246,6 +251,7 @@ export const INITIAL_LEADS: Lead[] = [
     source: 'Website',
     product: 'Produk A — Starter Plan',
     status: 'Cold',
+    value: 15000000,
     initialNotes: 'Mengisi form di website utama jam 11 malam.',
     createdAt: getRelativeDate(-2),
     updatedAt: getRelativeDate(-2),
@@ -262,6 +268,7 @@ export const INITIAL_LEADS: Lead[] = [
     source: 'TikTok',
     product: 'Produk A — Starter Plan',
     status: 'Warm',
+    value: 18000000,
     initialNotes: 'Datang dari video edukasi TikTok profil bisnis.',
     createdAt: getRelativeDate(-5),
     updatedAt: getRelativeDate(-1),
@@ -292,6 +299,7 @@ export const INITIAL_LEADS: Lead[] = [
     source: 'Facebook',
     product: 'Produk C — Enterprise Suite',
     status: 'Hot',
+    value: 95000000,
     initialNotes: 'Perusahaan logistik di Medan butuh 25 user accounts.',
     createdAt: getRelativeDate(-8),
     updatedAt: getRelativeDate(-1),
@@ -333,6 +341,7 @@ export const INITIAL_LEADS: Lead[] = [
     source: 'WhatsApp',
     product: 'Produk B — Pro Business',
     status: 'Cold',
+    value: 25000000,
     initialNotes: 'Nomor baru chat tanya harga singkat.',
     createdAt: getRelativeDate(-1),
     updatedAt: getRelativeDate(-1),
@@ -349,6 +358,7 @@ export const INITIAL_LEADS: Lead[] = [
     source: 'Marketplace',
     product: 'Produk B — Pro Business',
     status: 'Tidak Berhasil',
+    value: 30000000,
     initialNotes: 'Budget tidak mencukupi untuk paket enterprise.',
     createdAt: getRelativeDate(-20),
     updatedAt: getRelativeDate(-6),
@@ -386,6 +396,7 @@ export const INITIAL_LEADS: Lead[] = [
     source: 'Instagram',
     product: 'Produk A — Starter Plan',
     status: 'Closing',
+    value: 20000000,
     initialNotes: 'Usaha villa di Canggu butuh sistem reservasi & tracking lead.',
     createdAt: getRelativeDate(-12),
     updatedAt: getRelativeDate(-3),
@@ -422,6 +433,7 @@ export const INITIAL_LEADS: Lead[] = [
     source: 'WhatsApp',
     product: 'Produk C — Enterprise Suite',
     status: 'Hot',
+    value: 120000000,
     initialNotes: 'Distributor fashion di Tanah Abang butuh sistem custom.',
     createdAt: getRelativeDate(-6),
     updatedAt: getRelativeDate(-1),
@@ -452,6 +464,7 @@ export const INITIAL_LEADS: Lead[] = [
     source: 'Referral',
     product: 'Produk A — Starter Plan',
     status: 'Warm',
+    value: 15000000,
     initialNotes: 'Teman kuliah owner yang mau coba aplikasi.',
     createdAt: getRelativeDate(-4),
     updatedAt: getRelativeDate(-1),
@@ -482,6 +495,7 @@ export const INITIAL_LEADS: Lead[] = [
     source: 'Facebook',
     product: 'Produk B — Pro Business',
     status: 'Closing',
+    value: 50000000,
     initialNotes: 'Pusat oleh-oleh khas Malang.',
     createdAt: getRelativeDate(-18),
     updatedAt: getRelativeDate(-5),
@@ -509,6 +523,7 @@ export const INITIAL_LEADS: Lead[] = [
     source: 'Website',
     product: 'Produk A — Starter Plan',
     status: 'Cold',
+    value: 15000000,
     initialNotes: 'Download ebook panduan sales dari website.',
     createdAt: getRelativeDate(-3),
     updatedAt: getRelativeDate(-3),
@@ -525,6 +540,7 @@ export const INITIAL_LEADS: Lead[] = [
     source: 'WhatsApp',
     product: 'Produk C — Enterprise Suite',
     status: 'Warm',
+    value: 85000000,
     initialNotes: 'Butuh integrasi API khusus dengan database internal.',
     createdAt: getRelativeDate(-9),
     updatedAt: getRelativeDate(-2),
@@ -555,6 +571,7 @@ export const INITIAL_LEADS: Lead[] = [
     source: 'Instagram',
     product: 'Produk B — Pro Business',
     status: 'Cold',
+    value: 35000000,
     initialNotes: 'DM tanya apakah bisa dipakai untuk tim 5 sales.',
     createdAt: getRelativeDate(-1),
     updatedAt: getRelativeDate(-1),
@@ -571,6 +588,7 @@ export const INITIAL_LEADS: Lead[] = [
     source: 'TikTok',
     product: 'Produk A — Starter Plan',
     status: 'Warm',
+    value: 18000000,
     initialNotes: 'Tertarik promo potongan diskon onboarding.',
     createdAt: getRelativeDate(-5),
     updatedAt: getRelativeDate(-1),
@@ -601,6 +619,7 @@ export const INITIAL_LEADS: Lead[] = [
     source: 'Marketplace',
     product: 'Produk B — Pro Business',
     status: 'Tidak Berhasil',
+    value: 25000000,
     initialNotes: 'Salah pencet order.',
     createdAt: getRelativeDate(-25),
     updatedAt: getRelativeDate(-10),
@@ -628,6 +647,7 @@ export const INITIAL_LEADS: Lead[] = [
     source: 'WhatsApp',
     product: 'Produk C — Enterprise Suite',
     status: 'Closing',
+    value: 110000000,
     initialNotes: 'Klinik kecantikan di Dago Bandung.',
     createdAt: getRelativeDate(-15),
     updatedAt: getRelativeDate(-2),
@@ -660,7 +680,15 @@ export function getStoredLeads(): Lead[] {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(INITIAL_LEADS));
       return INITIAL_LEADS;
     }
-    return JSON.parse(raw);
+    const parsed = JSON.parse(raw);
+    // Ensure all leads have a realistic value fallback if missing from previous cache
+    return parsed.map((l: Lead, idx: number) => {
+      if (l.value === undefined || l.value === null) {
+        const fallback = INITIAL_LEADS[idx]?.value || (l.product.includes('Enterprise') ? 75000000 : l.product.includes('Pro') ? 35000000 : 15000000);
+        return { ...l, value: fallback };
+      }
+      return l;
+    });
   } catch {
     return INITIAL_LEADS;
   }

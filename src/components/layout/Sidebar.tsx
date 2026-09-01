@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React from 'react';
 import { 
@@ -135,20 +135,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
         })}
       </div>
 
-      {/* Footer / Dev Mode / Help */}
+      {/* Footer / Help & Status */}
       <div className="p-3 border-t border-[#E2E9E4] space-y-2">
-        {devModeInfo?.isDevMode && (
-          <div className="px-3.5 py-2 rounded-xl bg-amber-50 border border-amber-200 text-[11px] text-amber-900 space-y-0.5">
-            <div className="flex items-center justify-between">
-              <span className="font-bold flex items-center gap-1.5">
-                <Code2 className="w-3 h-3 text-amber-600" />
-                <span>DEV MODE</span>
-              </span>
-              <span className="text-[10px] font-mono font-bold text-amber-800">{devModeInfo.remainingDays}d</span>
-            </div>
-            <p className="text-[10px] text-amber-700">Akses lokal ({devModeInfo.host})</p>
-          </div>
-        )}
 
         <button
           type="button"

@@ -1,4 +1,4 @@
-﻿import confetti from 'canvas-confetti';
+import confetti from 'canvas-confetti';
 import { LeadStatus, LeadSource, FollowUpMethod, FollowUpResult } from '../types';
 
 export function formatIndonesianDate(dateStr?: string): string {
@@ -71,11 +71,33 @@ export function formatDisplayPhone(phone: string): string {
   return phone;
 }
 
+export function formatRupiah(amount?: number | null): string {
+  if (amount === undefined || amount === null || isNaN(amount)) return 'Rp 0';
+  return 'Rp ' + Math.round(amount).toLocaleString('id-ID');
+}
+
+export type WhatsAppTemplateType = 'sapaan_awal' | 'followup_h3' | 'penawaran_khusus';
+
+export function getWhatsAppTemplate(type: WhatsAppTemplateType, name: string, product?: string): string {
+  const cleanName = name || 'Bpk/Ibu';
+  const prodName = (product || 'layanan kami').split('—')[0].trim();
+  switch (type) {
+    case 'sapaan_awal':
+      return `Halo Kak ${cleanName}, perkenalkan saya dari tim sales. Terima kasih atas ketertarikan Kakak terhadap ${prodName}. Apakah ada informasi detail mengenai spesifikasi atau penawaran yang ingin kami jelaskan?`;
+    case 'followup_h3':
+      return `Halo Kak ${cleanName}, semoga harinya menyenangkan. Saya ingin menindaklanjuti informasi mengenai ${prodName} yang kemarin sempat kita diskusikan. Apakah ada waktu yang nyaman untuk kita jadwalkan sesi diskusi singkat?`;
+    case 'penawaran_khusus':
+      return `Halo Kak ${cleanName}, ada kabar baik khusus minggu ini untuk pemesanan ${prodName}. Kami sedang ada program penawaran spesial dan bonus implementasi. Apakah Kakak berkenan kami kirimkan proposal resminya?`;
+    default:
+      return `Halo Kak ${cleanName}, menindaklanjuti ketertarikan mengenai ${prodName}, ada yang bisa kami bantu?`;
+  }
+}
+
 export function generateWhatsAppUrl(phone: string, name: string, product?: string, customText?: string): string {
   const cleaned = cleanPhoneNumber(phone);
   let message = customText;
   if (!message) {
-    message = `Halo Kak ${name}, perkenalkan saya dari tim sales. Menindaklanjuti ketertarikan Kakak mengenai ${product || 'layanan kami'}, apakah ada yang bisa kami bantu jelaskan lebih lanjut?`;
+    message = getWhatsAppTemplate('sapaan_awal', name, product);
   }
   return `https://wa.me/${cleaned}?text=${encodeURIComponent(message)}`;
 }

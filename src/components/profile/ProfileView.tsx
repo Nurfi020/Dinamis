@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React, { useState } from 'react';
 import { 
@@ -9,21 +9,12 @@ import {
   RotateCcw, 
   Edit3, 
   Check, 
-  Sparkles, 
   ShieldCheck,
-  Award,
-  KeyRound,
-  Laptop,
-  Clock,
-  Wrench,
-  AlertTriangle,
-  Code2,
-  Calendar
+  Award
 } from 'lucide-react';
 import { UserProfile, LicenseInfo, DevModeInfo } from '../../types';
 import { formatDisplayPhone } from '../../utils/helpers';
 import { getClientDeviceMetadata } from '../../utils/device';
-import { AdminLicensesModal } from '../license/AdminLicensesModal';
 
 interface ProfileViewProps {
   profile: UserProfile;
@@ -36,18 +27,14 @@ interface ProfileViewProps {
 
 export const ProfileView: React.FC<ProfileViewProps> = ({
   profile,
-  license,
-  devModeInfo,
   onUpdateProfile,
   onResetData,
-  onDeactivateLicense,
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [name, setName] = useState(profile.name);
   const [email, setEmail] = useState(profile.email);
   const [phone, setPhone] = useState(profile.phone);
   const [target, setTarget] = useState(profile.monthlyTarget);
-  const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
 
   const deviceMeta = getClientDeviceMetadata();
 
@@ -64,22 +51,6 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
   };
 
   const targetPct = Math.min(Math.round((profile.closingCount / profile.monthlyTarget) * 100), 100);
-
-  const formattedDevExpires = devModeInfo?.expiresAt
-    ? new Date(devModeInfo.expiresAt).toLocaleDateString('id-ID', {
-        day: 'numeric',
-        month: 'long',
-        year: 'numeric',
-      })
-    : '25 September 2026';
-
-  const formattedDevStart = devModeInfo?.startDate
-    ? new Date(devModeInfo.startDate).toLocaleDateString('id-ID', {
-        day: 'numeric',
-        month: 'long',
-        year: 'numeric',
-      })
-    : '26 Agustus 2026';
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto pb-24 md:pb-12">
@@ -100,151 +71,53 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                 {profile.role}
               </span>
             </div>
-            <p className="text-xs text-[#66736B]">{profile.email}</p>
-            <p className="text-xs font-mono text-[#00A651] font-semibold">{formatDisplayPhone(profile.phone)}</p>
+
+            <p className="text-xs text-[#66736B]">
+              Akun Sales Executive • Kelola Lead CRM
+            </p>
+
+            <div className="pt-2 flex flex-wrap items-center justify-center sm:justify-start gap-3 text-xs text-[#66736B]">
+              <span className="flex items-center gap-1.5">
+                <Mail className="w-3.5 h-3.5 text-[#00A651]" />
+                {profile.email}
+              </span>
+              <span>•</span>
+              <span className="flex items-center gap-1.5 font-mono">
+                <Phone className="w-3.5 h-3.5 text-[#00A651]" />
+                {formatDisplayPhone(profile.phone)}
+              </span>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* 1. If Development Mode is Active: Show Dev Mode Card */}
-      {devModeInfo?.isDevMode && (
-        <div className="bg-white border border-amber-200 rounded-2xl p-6 shadow-sm space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-amber-100 pb-3">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-amber-50 text-amber-700 border border-amber-200 flex items-center justify-center">
-                <Code2 className="w-4 h-4" />
-              </div>
-              <div>
-                <h3 className="text-base font-bold text-[#17221C]">Status: Mode Pengembangan (Development Mode)</h3>
-                <p className="text-xs text-amber-800">Akses sementara untuk pengujian lokal (Bukan lisensi production)</p>
-              </div>
+      {/* Demo Account Info Card */}
+      <div className="bg-white border border-[#A7F3D0] rounded-2xl p-6 shadow-sm space-y-3 bg-gradient-to-br from-white to-[#F0FDF4]">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5">
+            <div className="w-9 h-9 rounded-xl bg-[#E8F7EF] text-[#006B3C] border border-[#A7F3D0] flex items-center justify-center">
+              <ShieldCheck className="w-5 h-5 text-[#00A651]" />
             </div>
-
-            <div className="flex items-center gap-2">
-              <span className="px-3 py-1 rounded-full bg-amber-50 text-amber-800 border border-amber-200 text-xs font-bold flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
-                <span>DEV MODE ({devModeInfo.remainingDays} Hari Tersisa)</span>
-              </span>
-
-              <button
-                type="button"
-                onClick={() => setIsAdminModalOpen(true)}
-                className="p-1.5 rounded-lg text-[#66736B] hover:text-[#17221C] hover:bg-slate-100 transition-colors text-xs flex items-center gap-1 cursor-pointer"
-                title="Admin License Manager"
-              >
-                <Wrench className="w-3.5 h-3.5" />
-              </button>
+            <div>
+              <h3 className="text-sm font-bold text-[#17221C]">Akun Demo Kelola Lead CRM</h3>
+              <p className="text-xs text-[#006B3C] font-medium">Sistem Penjualan & Manajemen Prospek Sales</p>
             </div>
           </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-            <div className="p-3 bg-[#F7F9F8] rounded-xl border border-[#E2E9E4] space-y-1">
-              <div className="flex items-center gap-1.5 text-[#66736B]">
-                <Calendar className="w-3.5 h-3.5 text-amber-600" />
-                <span>Mulai Sesi Dev</span>
-              </div>
-              <p className="font-semibold text-[#17221C]">{formattedDevStart}</p>
-            </div>
-
-            <div className="p-3 bg-[#F7F9F8] rounded-xl border border-[#E2E9E4] space-y-1">
-              <div className="flex items-center gap-1.5 text-[#66736B]">
-                <Clock className="w-3.5 h-3.5 text-amber-600" />
-                <span>Berakhir Pada</span>
-              </div>
-              <p className="font-bold text-[#17221C]">{formattedDevExpires}</p>
-            </div>
-
-            <div className="p-3 bg-[#F7F9F8] rounded-xl border border-[#E2E9E4] space-y-1">
-              <div className="flex items-center gap-1.5 text-[#66736B]">
-                <Laptop className="w-3.5 h-3.5 text-[#00A651]" />
-                <span>Host / Environment</span>
-              </div>
-              <p className="font-semibold text-[#17221C]">{devModeInfo.host || 'localhost'} (dev)</p>
-            </div>
-          </div>
-
-          <p className="text-[11px] text-[#66736B] bg-amber-50/50 p-2.5 rounded-xl border border-amber-100">
-            Catatan: Mode ini otomatis nonaktif setelah 30 hari atau bila aplikasi dijalankan di environment production (Vercel).
-          </p>
+          <span className="px-3 py-1 rounded-full bg-[#E8F7EF] text-[#006B3C] border border-[#A7F3D0] text-xs font-bold self-start sm:self-auto">
+            Versi Demo Komersial
+          </span>
         </div>
-      )}
-
-      {/* 2. If Regular License is Active: Show Production License Card */}
-      {!devModeInfo?.isDevMode && license && (
-        <div className="bg-white border border-[#E2E9E4] rounded-2xl p-6 shadow-sm space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#E2E9E4] pb-3">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-[#E8F7EF] text-[#006B3C] border border-[#A7F3D0] flex items-center justify-center">
-                <ShieldCheck className="w-4 h-4" />
-              </div>
-              <div>
-                <h3 className="text-base font-bold text-[#17221C]">Status Lisensi Aplikasi</h3>
-                <p className="text-xs text-[#66736B]">Lisensi Lifetime (1 User, 1 Device)</p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <span className="px-3 py-1 rounded-full bg-[#E8F7EF] text-[#006B3C] border border-[#A7F3D0] text-xs font-bold flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-[#00A651] animate-pulse" />
-                <span>LISENSI AKTIF</span>
-              </span>
-
-              <button
-                type="button"
-                onClick={() => setIsAdminModalOpen(true)}
-                className="p-1.5 rounded-lg text-[#66736B] hover:text-[#17221C] hover:bg-slate-100 transition-colors text-xs flex items-center gap-1 cursor-pointer"
-                title="Admin License Manager"
-              >
-                <Wrench className="w-3.5 h-3.5" />
-              </button>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-            <div className="p-3 bg-[#F7F9F8] rounded-xl border border-[#E2E9E4] space-y-1">
-              <div className="flex items-center gap-1.5 text-[#66736B]">
-                <KeyRound className="w-3.5 h-3.5 text-[#00A651]" />
-                <span>Kunci Lisensi Terdaftar</span>
-              </div>
-              <p className="font-mono font-bold text-[#17221C]">
-                {license.fullKeyMasked || `••••-••••-••••-${license.licenseKeyLast4}`}
-              </p>
-            </div>
-
-            <div className="p-3 bg-[#F7F9F8] rounded-xl border border-[#E2E9E4] space-y-1">
-              <div className="flex items-center gap-1.5 text-[#66736B]">
-                <Laptop className="w-3.5 h-3.5 text-[#00A651]" />
-                <span>Device Terikat (Terkunci)</span>
-              </div>
-              <p className="font-medium text-[#17221C] truncate">{deviceMeta.deviceName}</p>
-            </div>
-          </div>
-
-          {onDeactivateLicense && (
-            <div className="pt-2 flex justify-end">
-              <button
-                type="button"
-                onClick={() => {
-                  if (confirm('Apakah Anda yakin ingin melepaskan lisensi dari perangkat ini?')) {
-                    onDeactivateLicense();
-                  }
-                }}
-                className="px-3 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
-              >
-                <RotateCcw className="w-3.5 h-3.5" />
-                <span>Reset Lisensi Perangkat</span>
-              </button>
-            </div>
-          )}
-        </div>
-      )}
+        <p className="text-xs text-[#66736B]">
+          Semua data prospek, riwayat WhatsApp, dan performa closing pada akun ini disimulasikan untuk kebutuhan demonstrasi alur kerja tim sales.
+        </p>
+      </div>
 
       {/* Target Sales Progress Card */}
       <div className="bg-white border border-[#E2E9E4] rounded-2xl p-5 sm:p-6 shadow-sm space-y-3">
         <div className="flex items-center justify-between text-xs">
           <div className="flex items-center gap-2">
             <Target className="w-4 h-4 text-[#00A651]" />
-            <span className="font-bold text-[#17221C]">Target Closing Bulan Agustus</span>
+            <span className="font-bold text-[#17221C]">Target Closing Bulan Ini</span>
           </div>
           <span className="font-extrabold text-[#006B3C] text-sm">{targetPct}% Tercapai</span>
         </div>
@@ -265,7 +138,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
       {/* Edit Form or Readonly Information */}
       <div className="bg-white border border-[#E2E9E4] rounded-2xl p-6 shadow-sm space-y-4">
         <div className="flex items-center justify-between border-b border-[#E2E9E4] pb-3">
-          <h3 className="text-base font-bold text-[#17221C]">Informasi Akun Sales</h3>
+          <h3 className="text-base font-bold text-[#17221C]">Informasi Profil Sales</h3>
           {!isEditing ? (
             <button
               type="button"
@@ -382,12 +255,6 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
           <span>Reset ke Data Awal</span>
         </button>
       </div>
-
-      {/* Admin Modals */}
-      <AdminLicensesModal
-        isOpen={isAdminModalOpen}
-        onClose={() => setIsAdminModalOpen(false)}
-      />
     </div>
   );
 };

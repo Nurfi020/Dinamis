@@ -10,7 +10,10 @@ import {
   MessageCircle, 
   ChevronRight, 
   CalendarClock,
-  Clock
+  Clock,
+  TrendingUp,
+  Wallet,
+  Sparkles
 } from 'lucide-react';
 import { Lead, LeadStatus, ActiveTab, LeadSource } from '../../types';
 import { StatCard } from '../common/StatCard';
@@ -19,7 +22,8 @@ import { SourceBadge } from '../common/SourceBadge';
 import { 
   generateWhatsAppUrl, 
   isDateToday, 
-  isDateOverdue 
+  isDateOverdue,
+  formatRupiah 
 } from '../../utils/helpers';
 
 interface DashboardViewProps {
@@ -48,6 +52,19 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   const coldLeads = useMemo(() => leads.filter((l) => l.status === 'Cold').length, [leads]);
   const closingLeads = useMemo(() => leads.filter((l) => l.status === 'Closing').length, [leads]);
   const lostLeads = useMemo(() => leads.filter((l) => l.status === 'Tidak Berhasil').length, [leads]);
+
+  // Financial metrics: Pipeline Revenue & Closing Revenue
+  const totalPipelineRevenue = useMemo(() => {
+    return leads
+      .filter((l) => l.status === 'Cold' || l.status === 'Warm' || l.status === 'Hot')
+      .reduce((sum, l) => sum + (l.value || 0), 0);
+  }, [leads]);
+
+  const totalClosingRevenue = useMemo(() => {
+    return leads
+      .filter((l) => l.status === 'Closing')
+      .reduce((sum, l) => sum + (l.value || 0), 0);
+  }, [leads]);
 
   // Leads created in the last 7 days
   const newLeadsCount = useMemo(() => {
@@ -181,14 +198,20 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-24 md:pb-12">
-      {/* Top Greeting Section */}
+      {/* Top Greeting & Demo Mode Tag */}
       <div className="bg-white border border-[#E2E9E4] rounded-2xl p-5 sm:p-6 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl sm:text-2xl font-bold text-[#17221C] tracking-tight flex items-center gap-2">
-            Selamat datang 👋
-          </h2>
+          <div className="flex items-center gap-2">
+            <h2 className="text-xl sm:text-2xl font-bold text-[#17221C] tracking-tight">
+              Selamat datang 👋
+            </h2>
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[#E8F7EF] text-[#006B3C] border border-[#A7F3D0]">
+              <Sparkles className="w-3 h-3 text-[#00A651]" />
+              Demo Produk • Data Simulasi
+            </span>
+          </div>
           <p className="text-sm text-[#66736B] mt-1">
-            Berikut perkembangan lead dan jadwal follow up Anda hari ini.
+            Pantau pertumbuhan prospek dan percepat follow up sales Anda hari ini.
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -199,6 +222,57 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           >
             <span>+ Tambah Lead</span>
           </button>
+        </div>
+      </div>
+
+      {/* HIGHLIGHT REVENUE & PIPELINE VALUE CARDS */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Card 1: Total Potensi Pipeline */}
+        <div className="p-5 sm:p-6 rounded-2xl bg-gradient-to-br from-white to-[#F0FDF4] border border-[#A7F3D0] shadow-sm relative overflow-hidden flex flex-col justify-between">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <div className="w-10 h-10 rounded-xl bg-[#E8F7EF] text-[#006B3C] border border-[#A7F3D0] flex items-center justify-center">
+                <TrendingUp className="w-5 h-5 text-[#00A651]" />
+              </div>
+              <div>
+                <p className="text-xs font-bold text-[#66736B] uppercase tracking-wider">Total Potensi Pipeline</p>
+                <p className="text-[11px] text-[#006B3C] font-semibold">Prospek Aktif (Cold + Warm + Hot)</p>
+              </div>
+            </div>
+            <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-[#E8F7EF] text-[#006B3C] border border-[#A7F3D0]">
+              {coldLeads + warmLeads + hotLeads} Lead Aktif
+            </span>
+          </div>
+          <div className="mt-4 flex items-baseline justify-between">
+            <h3 className="text-2xl sm:text-3xl font-extrabold text-[#17221C] tracking-tight">
+              {formatRupiah(totalPipelineRevenue)}
+            </h3>
+            <span className="text-xs font-medium text-[#66736B]">Estimasi Nilai Deal</span>
+          </div>
+        </div>
+
+        {/* Card 2: Total Closing Revenue */}
+        <div className="p-5 sm:p-6 rounded-2xl bg-gradient-to-br from-white to-[#E8F7EF] border border-[#00A651]/40 shadow-sm relative overflow-hidden flex flex-col justify-between">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <div className="w-10 h-10 rounded-xl bg-[#00A651] text-white flex items-center justify-center shadow-xs">
+                <Wallet className="w-5 h-5" />
+              </div>
+              <div>
+                <p className="text-xs font-bold text-[#66736B] uppercase tracking-wider">Total Nilai Closing</p>
+                <p className="text-[11px] text-[#006B3C] font-semibold">Transaksi Berhasil</p>
+              </div>
+            </div>
+            <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-[#00A651] text-white">
+              {closingLeads} Deal Sukses
+            </span>
+          </div>
+          <div className="mt-4 flex items-baseline justify-between">
+            <h3 className="text-2xl sm:text-3xl font-extrabold text-[#006B3C] tracking-tight">
+              {formatRupiah(totalClosingRevenue)}
+            </h3>
+            <span className="text-xs font-medium text-[#006B3C] font-bold">Revenue Terkunci</span>
+          </div>
         </div>
       </div>
 
@@ -257,7 +331,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           <div>
             <div className="flex items-center gap-2">
               <span className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-ping" />
-              <h2 className="text-lg font-bold text-[#17221C]">Follow Up Prioritas</h2>
+              <h2 className="text-lg font-bold text-[#17221C]">Follow Up Prioritas Hari Ini</h2>
             </div>
             <p className="text-xs text-[#66736B] mt-0.5">
               Calon pelanggan prioritas yang memerlukan tindakan follow up
@@ -303,9 +377,14 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                         {initials}
                       </div>
                       <div className="min-w-0">
-                        <h4 className="text-sm font-bold text-[#17221C] group-hover:text-[#006B3C] transition-colors truncate">
-                          {lead.name}
-                        </h4>
+                        <div className="flex items-center gap-2">
+                          <h4 className="text-sm font-bold text-[#17221C] group-hover:text-[#006B3C] transition-colors truncate">
+                            {lead.name}
+                          </h4>
+                          <span className="text-xs font-bold text-[#006B3C] bg-[#E8F7EF] px-2 py-0.5 rounded-md border border-[#A7F3D0]/60 shrink-0">
+                            {formatRupiah(lead.value)}
+                          </span>
+                        </div>
                         <p className="text-xs text-[#66736B] truncate mt-0.5">
                           {lead.product.split('—')[0].trim()} • {lead.city}
                         </p>
@@ -360,7 +439,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               <button
                 type="button"
                 onClick={() => setChartPeriod('weekly')}
-                className={`px-2.5 py-1 rounded-lg font-semibold transition-all cursor-pointer ${
+                className={`px-3 py-1.5 rounded-lg font-bold transition-all cursor-pointer ${
                   chartPeriod === 'weekly'
                     ? 'bg-[#00A651] text-white shadow-xs'
                     : 'text-[#66736B] hover:text-[#17221C]'
@@ -371,7 +450,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               <button
                 type="button"
                 onClick={() => setChartPeriod('daily')}
-                className={`px-2.5 py-1 rounded-lg font-semibold transition-all cursor-pointer ${
+                className={`px-3 py-1.5 rounded-lg font-bold transition-all cursor-pointer ${
                   chartPeriod === 'daily'
                     ? 'bg-[#00A651] text-white shadow-xs'
                     : 'text-[#66736B] hover:text-[#17221C]'
@@ -382,30 +461,22 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             </div>
           </div>
 
-          {/* Bar Chart */}
-          <div className="h-44 flex items-end justify-between gap-3 pt-6 px-2">
+          {/* Bar Chart Visualization */}
+          <div className="h-44 flex items-end justify-between gap-3 pt-6 pb-2 px-2">
             {activeChartData.map((item, idx) => {
-              const heightPct = Math.round((item.value / maxChartValue) * 100);
-              const isCurrent = idx === activeChartData.length - 1;
-
+              const heightPct = Math.max(12, Math.round((item.value / maxChartValue) * 100));
               return (
-                <div key={item.label} className="flex-1 flex flex-col items-center gap-2 group h-full justify-end">
-                  <span className="text-[11px] font-bold text-[#17221C] group-hover:text-[#006B3C] transition-colors">
+                <div key={idx} className="flex-1 flex flex-col items-center gap-2 h-full justify-end group">
+                  <span className="text-[11px] font-bold text-[#17221C] opacity-0 group-hover:opacity-100 transition-opacity">
                     {item.value}
                   </span>
-                  <div className="w-full max-w-[40px] bg-[#F4FBF7] rounded-xl h-28 relative flex items-end overflow-hidden border border-[#E2E9E4]">
+                  <div className="w-full bg-[#E8F7EF] rounded-t-xl h-full flex items-end overflow-hidden max-w-[48px]">
                     <div
-                      className={`w-full rounded-xl transition-all duration-300 ${
-                        isCurrent
-                          ? 'bg-[#00A651]'
-                          : 'bg-[#10B981]/70 group-hover:bg-[#00A651]'
-                      }`}
-                      style={{ height: `${Math.max(heightPct, 6)}%` }}
+                      style={{ height: `${heightPct}%` }}
+                      className="w-full bg-gradient-to-t from-[#00A651] to-[#10B981] rounded-t-xl transition-all duration-500 group-hover:brightness-110"
                     />
                   </div>
-                  <span className={`text-[10px] font-semibold truncate ${
-                    isCurrent ? 'text-[#006B3C] font-bold' : 'text-[#66736B]'
-                  }`}>
+                  <span className="text-[11px] font-bold text-[#66736B] text-center truncate w-full">
                     {item.label}
                   </span>
                 </div>
@@ -414,85 +485,77 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </div>
         </div>
 
-        {/* Lead Berdasarkan Status */}
-        <div className="lg:col-span-5 bg-white border border-[#E2E9E4] rounded-2xl p-5 shadow-sm flex flex-col justify-between">
+        {/* Status Distribution */}
+        <div className="lg:col-span-5 bg-white border border-[#E2E9E4] rounded-2xl p-5 shadow-sm">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h2 className="text-base font-bold text-[#17221C]">Distribusi Status Lead</h2>
-              <p className="text-xs text-[#66736B] mt-0.5">Proporsi prospek saat ini ({totalLeadsCount} Lead)</p>
+              <h2 className="text-base font-bold text-[#17221C]">Distribusi Pipeline</h2>
+              <p className="text-xs text-[#66736B] mt-0.5">Komposisi status prospek saat ini</p>
             </div>
           </div>
 
-          <div className="space-y-2.5">
+          {/* Status Breakdown List */}
+          <div className="space-y-3">
             {statusDistribution.map((item) => (
-              <button
+              <div
                 key={item.status}
-                type="button"
                 onClick={() => onFilterByStatus(item.status)}
-                className="w-full flex items-center justify-between p-2 rounded-xl hover:bg-[#F4FBF7] transition-colors group text-left border border-transparent hover:border-[#E2E9E4] cursor-pointer"
+                className="p-2.5 rounded-xl hover:bg-[#F7F9F8] transition-colors cursor-pointer border border-transparent hover:border-[#E2E9E4]"
               >
-                <div className="flex items-center gap-2.5">
-                  <span className={`w-3 h-3 rounded-full ${item.bg}`} />
-                  <span className="text-xs font-semibold text-[#66736B] group-hover:text-[#17221C]">
-                    {item.status}
-                  </span>
+                <div className="flex items-center justify-between text-xs mb-1.5">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: item.color }} />
+                    <span className="font-bold text-[#17221C]">{item.status}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold text-[#17221C]">{item.count} Lead</span>
+                    <span className="text-[11px] text-[#66736B] font-mono">({item.pct})</span>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-bold text-[#17221C]">{item.count}</span>
-                  <span className="text-[11px] font-medium text-[#66736B]">({item.pct})</span>
+                <div className="w-full h-2 rounded-full bg-[#F7F9F8] overflow-hidden">
+                  <div
+                    className="h-full rounded-full transition-all duration-500"
+                    style={{ width: item.pct, backgroundColor: item.color }}
+                  />
                 </div>
-              </button>
+              </div>
             ))}
           </div>
         </div>
       </div>
 
-      {/* Bottom Section: Sumber Lead Terbaik */}
+      {/* Bottom Row: Saluran Terbaik & Quick Stats */}
       <div className="bg-white border border-[#E2E9E4] rounded-2xl p-5 shadow-sm">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h2 className="text-base font-bold text-[#17221C]">Sumber Lead Terbaik</h2>
-            <p className="text-xs text-[#66736B] mt-0.5">Saluran pemasaran dengan data aktual</p>
+            <h2 className="text-base font-bold text-[#17221C]">Efektivitas Saluran Pemasaran</h2>
+            <p className="text-xs text-[#66736B] mt-0.5">Performa konversi berdasarkan sumber lead</p>
           </div>
           <button
             type="button"
             onClick={() => onNavigateToTab('reports')}
             className="text-xs font-bold text-[#006B3C] hover:text-[#00A651] flex items-center gap-1 transition-colors cursor-pointer"
           >
-            Lihat Laporan Lengkap <ChevronRight className="w-3.5 h-3.5" />
+            Laporan Lengkap <ChevronRight className="w-3.5 h-3.5" />
           </button>
         </div>
 
-        <div className="space-y-2">
-          <div className="grid grid-cols-12 text-[11px] font-bold text-[#66736B] pb-2 border-b border-[#E2E9E4]">
-            <span className="col-span-5">Sumber Saluran</span>
-            <span className="col-span-2 text-center">Total Lead</span>
-            <span className="col-span-2 text-center">Closing</span>
-            <span className="col-span-3 text-right">Tingkat Konversi</span>
-          </div>
-
-          {bestSources.map((item, idx) => (
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3">
+          {bestSources.map((s) => (
             <div
-              key={idx}
-              className="grid grid-cols-12 items-center py-2 text-xs hover:bg-[#F4FBF7] rounded-xl px-1 transition-colors"
+              key={s.source}
+              className="p-3.5 rounded-xl bg-[#F7F9F8] border border-[#E2E9E4] flex flex-col justify-between gap-2"
             >
-              <div className="col-span-5 flex items-center gap-2">
-                <SourceBadge source={item.source} size="sm" showText={true} />
+              <div className="flex items-center justify-between">
+                <SourceBadge source={s.source} />
               </div>
-              <div className="col-span-2 text-center font-semibold text-[#17221C]">
-                {item.leads}
+              <div>
+                <p className="text-lg font-extrabold text-[#17221C]">{s.leads}</p>
+                <p className="text-[10px] text-[#66736B]">Total Lead</p>
               </div>
-              <div className="col-span-2 text-center font-bold text-[#006B3C]">
-                {item.closing}
-              </div>
-              <div className="col-span-3 flex items-center justify-end gap-2">
-                <div className="w-16 bg-[#F1F5F3] rounded-full h-2 overflow-hidden border border-[#E2E9E4]">
-                  <div
-                    className="bg-[#00A651] h-full rounded-full"
-                    style={{ width: `${Math.min(item.rateNum * 8, 100)}%` }}
-                  />
-                </div>
-                <span className="font-bold text-[#17221C] w-8 text-right">{item.rate}</span>
+              <div className="pt-2 border-t border-[#E2E9E4] flex items-center justify-between text-[11px]">
+                <span className="text-[#66736B]">Closing:</span>
+                <span className="font-bold text-[#006B3C]">{s.closing} ({s.rate})</span>
               </div>
             </div>
           ))}

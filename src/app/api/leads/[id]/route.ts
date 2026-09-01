@@ -36,6 +36,7 @@ export async function GET(request: Request, { params }: Params) {
         productId: lead.productId,
         product: lead.product?.name || 'Produk A',
         status: lead.status,
+        value: (lead as any).value || (lead.product?.name?.includes('Enterprise') ? 75000000 : lead.product?.name?.includes('Pro') ? 35000000 : 15000000),
         initialNotes: lead.initialNotes || undefined,
         lostReason: lead.lostReason || undefined,
         createdAt: lead.createdAt.toISOString().split('T')[0],

@@ -1,4 +1,4 @@
-﻿export type LeadStatus = 'Cold' | 'Warm' | 'Hot' | 'Closing' | 'Tidak Berhasil';
+export type LeadStatus = 'Cold' | 'Warm' | 'Hot' | 'Closing' | 'Tidak Berhasil';
 
 export type LeadSource = 
   | 'WhatsApp'
@@ -54,6 +54,7 @@ export interface Lead {
   source: LeadSource;
   product: string;
   status: LeadStatus;
+  value?: number; // Estimasi nilai nominal deal (Rupiah)
   initialNotes?: string;
   createdAt: string;
   updatedAt: string;
@@ -108,7 +109,7 @@ export interface FilterState {
   city: string; // 'all' or specific city
   source: string; // 'all' or LeadSource
   dateRange: 'all' | 'today' | 'this_week' | 'this_month' | 'last_month';
-  sortBy: 'latest' | 'oldest' | 'next_followup' | 'overdue' | 'name';
+  sortBy: 'latest' | 'oldest' | 'next_followup' | 'overdue' | 'name' | 'value_high' | 'value_low';
 }
 
 export interface DevModeInfo {

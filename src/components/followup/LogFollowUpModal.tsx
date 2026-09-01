@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React, { useState } from 'react';
 import { 
@@ -12,7 +12,9 @@ import {
   Sparkles, 
   ArrowRight, 
   AlertCircle, 
-  RotateCcw 
+  RotateCcw,
+  Send,
+  FileText
 } from 'lucide-react';
 import { Modal } from '../common/Modal';
 import { 
@@ -23,7 +25,12 @@ import {
   FollowUpLog,
   LostReason
 } from '../../types';
-import { triggerClosingConfetti } from '../../utils/helpers';
+import { 
+  triggerClosingConfetti, 
+  getWhatsAppTemplate, 
+  generateWhatsAppUrl,
+  WhatsAppTemplateType 
+} from '../../utils/helpers';
 
 interface LogFollowUpModalProps {
   isOpen: boolean;
@@ -43,6 +50,7 @@ export const LogFollowUpModal: React.FC<LogFollowUpModalProps> = ({
   const [newStatus, setNewStatus] = useState<LeadStatus>(lead.status);
   const [lostReason, setLostReason] = useState<LostReason>('Harga terlalu mahal');
   const [notes, setNotes] = useState('');
+  const [selectedTemplate, setSelectedTemplate] = useState<WhatsAppTemplateType | null>(null);
   
   // Next follow up date helper calculation
   const getFormattedDate = (daysAhead: number) => {
@@ -91,6 +99,12 @@ export const LogFollowUpModal: React.FC<LogFollowUpModalProps> = ({
     { id: 'Tidak Berhasil', label: 'Tidak Berhasil', dot: 'bg-[#6B7280]' },
   ];
 
+  const handleApplyTemplate = (type: WhatsAppTemplateType) => {
+    setSelectedTemplate(type);
+    const templateText = getWhatsAppTemplate(type, lead.name, lead.product);
+    setNotes(templateText);
+  };
+
   const handleQuickResultClick = (res: FollowUpResult) => {
     setResult(res);
     if (res === 'Siap Membeli') {
@@ -105,8 +119,6 @@ export const LogFollowUpModal: React.FC<LogFollowUpModalProps> = ({
       if (lead.status === 'Cold') setNewStatus('Warm');
     }
   };
-
-  const isReopening = lead.status === 'Tidak Berhasil' && (newStatus === 'Cold' || newStatus === 'Warm' || newStatus === 'Hot');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -123,10 +135,10 @@ export const LogFollowUpModal: React.FC<LogFollowUpModalProps> = ({
       time: currentTimeStr,
       method,
       result,
-      notes: notes.trim() || undefined,
       oldStatus: lead.status,
       newStatus,
       lostReason: newStatus === 'Tidak Berhasil' ? lostReason : undefined,
+      notes: notes.trim() || undefined,
       nextFollowUpDate: noNextFollowUp || newStatus === 'Closing' || newStatus === 'Tidak Berhasil' ? undefined : nextDate,
       nextFollowUpTime: noNextFollowUp || newStatus === 'Closing' || newStatus === 'Tidak Berhasil' ? undefined : nextTime,
     });
@@ -134,27 +146,21 @@ export const LogFollowUpModal: React.FC<LogFollowUpModalProps> = ({
     onClose();
   };
 
+  const liveWhatsAppUrl = generateWhatsAppUrl(lead.phone, lead.name, lead.product, notes.trim() || undefined);
+
   return (
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={`Catat Follow Up — ${lead.name}`}
-      subtitle={`Produk: ${lead.product.split('—')[0].trim()} • Status saat ini: ${lead.status}`}
+      title="Catat Riwayat Follow Up"
+      subtitle={`Catat hasil interaksi dengan ${lead.name} (${lead.product.split('—')[0].trim()})`}
       maxWidth="lg"
     >
       <form onSubmit={handleSubmit} className="space-y-4 text-xs sm:text-sm">
-        {/* If reopening notice */}
-        {isReopening && (
-          <div className="p-3 bg-amber-50 rounded-2xl border border-amber-200 flex items-center gap-2.5 text-xs text-amber-800 font-semibold">
-            <RotateCcw className="w-4 h-4 text-amber-600 shrink-0" />
-            <span>Membuka kembali prospek yang sebelumnya Tidak Berhasil.</span>
-          </div>
-        )}
-
-        {/* 1. Metode Komunikasi (Clickable Chips) */}
+        {/* 1. Metode Interaksi */}
         <div>
           <label className="block font-bold text-[#17221C] mb-1.5">
-            Metode Hubungi <span className="text-rose-500">*</span>
+            Metode Follow Up <span className="text-rose-500">*</span>
           </label>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
             {methodsList.map((m) => {
@@ -165,7 +171,7 @@ export const LogFollowUpModal: React.FC<LogFollowUpModalProps> = ({
                   key={m.id}
                   type="button"
                   onClick={() => setMethod(m.id)}
-                  className={`p-2.5 rounded-xl text-xs font-bold border flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                  className={`p-2.5 rounded-xl border flex items-center justify-center gap-2 font-bold text-xs transition-all cursor-pointer ${
                     isSelected
                       ? 'bg-[#E8F7EF] text-[#006B3C] border-[#00A651] shadow-xs ring-1 ring-[#00A651]'
                       : 'bg-white text-[#66736B] border-[#E2E9E4] hover:border-[#00A651]/40 hover:text-[#17221C]'
@@ -179,12 +185,54 @@ export const LogFollowUpModal: React.FC<LogFollowUpModalProps> = ({
           </div>
         </div>
 
-        {/* 2. Respon / Hasil Follow Up (Clickable Chips) */}
+        {/* 1.1 WhatsApp Templates Picker (If WhatsApp Selected) */}
+        {method === 'WhatsApp' && (
+          <div className="p-3.5 bg-[#E8F7EF]/60 rounded-2xl border border-[#A7F3D0] space-y-2.5">
+            <div className="flex items-center justify-between">
+              <span className="font-bold text-[#006B3C] text-xs flex items-center gap-1.5">
+                <FileText className="w-3.5 h-3.5" />
+                Template Pesan WhatsApp Siap Pakai:
+              </span>
+              <a
+                href={liveWhatsAppUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-[11px] font-bold text-[#006B3C] hover:underline"
+              >
+                <span>Buka Chat WA</span>
+                <ArrowRight className="w-3 h-3" />
+              </a>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-1.5">
+              {[
+                { id: 'sapaan_awal' as WhatsAppTemplateType, label: 'Sapaan Awal' },
+                { id: 'followup_h3' as WhatsAppTemplateType, label: 'Follow-up H+3' },
+                { id: 'penawaran_khusus' as WhatsAppTemplateType, label: 'Penawaran Khusus' },
+              ].map((tmpl) => (
+                <button
+                  key={tmpl.id}
+                  type="button"
+                  onClick={() => handleApplyTemplate(tmpl.id)}
+                  className={`p-2 rounded-xl text-xs font-bold border transition-all text-center cursor-pointer ${
+                    selectedTemplate === tmpl.id
+                      ? 'bg-[#00A651] text-white border-[#00A651] shadow-xs'
+                      : 'bg-white text-[#006B3C] border-[#A7F3D0] hover:bg-[#E8F7EF]'
+                  }`}
+                >
+                  {tmpl.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* 2. Hasil Respon / Interaksi */}
         <div>
           <label className="block font-bold text-[#17221C] mb-1.5">
-            Hasil / Respon Calon Pelanggan <span className="text-rose-500">*</span>
+            Hasil Respon Customer <span className="text-rose-500">*</span>
           </label>
-          <div className="flex flex-wrap gap-1.5">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
             {resultsList.map((res) => {
               const isSelected = result === res;
               return (
@@ -192,7 +240,7 @@ export const LogFollowUpModal: React.FC<LogFollowUpModalProps> = ({
                   key={res}
                   type="button"
                   onClick={() => handleQuickResultClick(res)}
-                  className={`px-3 py-2 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
+                  className={`p-2 rounded-xl text-xs font-semibold border transition-all text-center cursor-pointer ${
                     isSelected
                       ? 'bg-[#00A651] text-white border-[#00A651] shadow-xs'
                       : 'bg-white text-[#66736B] border-[#E2E9E4] hover:border-[#00A651]/40 hover:text-[#17221C]'
@@ -356,17 +404,17 @@ export const LogFollowUpModal: React.FC<LogFollowUpModalProps> = ({
           </div>
         )}
 
-        {/* 5. Catatan Tambahan (Opsional) */}
+        {/* 5. Catatan Percakapan / Pesan WA */}
         <div>
           <label className="block font-bold text-[#17221C] mb-1 flex items-center justify-between">
-            <span>Catatan Hasil Obrolan</span>
-            <span className="text-xs text-[#66736B] font-normal">Opsional</span>
+            <span>Catatan Percakapan / Draft Pesan</span>
+            <span className="text-xs text-[#66736B] font-normal">Dapat diedit bebas</span>
           </label>
           <textarea
-            rows={2}
+            rows={3}
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
-            placeholder="Contoh: Customer tertarik dengan Produk A, meminta info diskon..."
+            placeholder="Ketik catatan hasil percakapan atau gunakan template di atas..."
             className="w-full p-3 bg-white border border-[#E2E9E4] rounded-xl text-xs text-[#17221C] placeholder-[#66736B] focus:outline-none focus:border-[#00A651] focus:ring-2 focus:ring-[#00A651]/20"
           />
         </div>
@@ -385,7 +433,7 @@ export const LogFollowUpModal: React.FC<LogFollowUpModalProps> = ({
             className="px-6 py-2.5 rounded-xl bg-[#00A651] hover:bg-[#006B3C] text-white text-sm font-bold shadow-sm active:scale-95 transition-all flex items-center gap-2 cursor-pointer"
           >
             <Sparkles className="w-4 h-4" />
-            <span>Simpan Follow Up</span>
+            <span>Simpan Riwayat Follow Up</span>
           </button>
         </div>
       </form>

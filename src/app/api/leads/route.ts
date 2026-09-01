@@ -98,6 +98,7 @@ export async function GET(request: Request) {
       productId: l.productId,
       product: l.product?.name || 'Produk A',
       status: l.status,
+      value: (l as any).value || (l.product?.name?.includes('Enterprise') ? 75000000 : l.product?.name?.includes('Pro') ? 35000000 : 15000000),
       initialNotes: l.initialNotes || undefined,
       lostReason: l.lostReason || undefined,
       createdAt: l.createdAt.toISOString().split('T')[0],

@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React from 'react';
 import { Calendar, ChevronDown, Bell } from 'lucide-react';
@@ -35,12 +35,10 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
           <h1 className="text-xl sm:text-2xl font-extrabold text-[#17221C] tracking-tight flex items-center gap-2">
             {title}
           </h1>
-          {devModeInfo?.isDevMode && (
-            <span className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-50 border border-amber-200 text-amber-800 text-[10px] font-extrabold tracking-tight">
-              <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
-              <span>DEV MODE ({devModeInfo.remainingDays}d)</span>
-            </span>
-          )}
+          <span className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#E8F7EF] border border-[#A7F3D0] text-[#006B3C] text-[10px] font-bold tracking-tight">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#00A651]" />
+            <span>Demo Mode • Data Simulasi</span>
+          </span>
         </div>
         {subtitle && (
           <p className="text-xs sm:text-sm text-[#66736B] mt-0.5">{subtitle}</p>

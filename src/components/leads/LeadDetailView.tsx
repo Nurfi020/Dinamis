@@ -32,7 +32,8 @@ import {
   formatDisplayPhone, 
   generateWhatsAppUrl, 
   isDateOverdue,
-  isDateToday
+  isDateToday,
+  formatRupiah
 } from '../../utils/helpers';
 
 interface LeadDetailViewProps {
@@ -158,6 +159,10 @@ export const LeadDetailView: React.FC<LeadDetailViewProps> = ({
 
               {/* Sub-meta */}
               <div className="flex flex-wrap items-center gap-3 text-xs text-[#66736B] mt-2">
+                <span className="font-extrabold text-xs text-[#006B3C] bg-[#E8F7EF] px-2.5 py-1 rounded-lg border border-[#A7F3D0]/60 font-mono">
+                  {formatRupiah(lead.value)}
+                </span>
+                <span>•</span>
                 <span className="flex items-center gap-1 font-semibold text-[#17221C]">
                   <Package className="w-3.5 h-3.5 text-[#00A651]" />
                   {lead.product}
@@ -284,6 +289,13 @@ export const LeadDetailView: React.FC<LeadDetailViewProps> = ({
             </h3>
 
             <div className="space-y-3 text-xs">
+              <div className="flex items-center justify-between p-2.5 rounded-xl bg-[#E8F7EF] border border-[#A7F3D0]">
+                <span className="text-[#006B3C] font-bold">Estimasi Nilai Deal</span>
+                <span className="font-extrabold text-sm text-[#006B3C] font-mono">
+                  {formatRupiah(lead.value)}
+                </span>
+              </div>
+
               <div className="flex items-center justify-between">
                 <span className="text-[#66736B]">Nama Lengkap</span>
                 <span className="font-bold text-[#17221C]">{lead.name}</span>

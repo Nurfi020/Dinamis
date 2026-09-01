@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React, { useState } from 'react';
 import { 
@@ -37,6 +37,7 @@ export const AddLeadModal: React.FC<AddLeadModalProps> = ({
   const [source, setSource] = useState<LeadSource>('WhatsApp');
   const [product, setProduct] = useState(PRODUCTS_LIST[0]);
   const [status, setStatus] = useState<LeadStatus>('Warm');
+  const [dealValue, setDealValue] = useState<string>('25000000');
   const [notes, setNotes] = useState('');
   const [errors, setErrors] = useState<{ name?: string; phone?: string }>({});
 
@@ -74,6 +75,7 @@ export const AddLeadModal: React.FC<AddLeadModalProps> = ({
       source,
       product,
       status,
+      value: Number(dealValue) || 15000000,
       initialNotes: notes.trim() || undefined,
       nextFollowUpDate: new Date().toISOString().split('T')[0],
       nextFollowUpTime: '10:00',
@@ -86,6 +88,7 @@ export const AddLeadModal: React.FC<AddLeadModalProps> = ({
     setSource('WhatsApp');
     setProduct(PRODUCTS_LIST[0]);
     setStatus('Warm');
+    setDealValue('25000000');
     setNotes('');
     setErrors({});
     onClose();
@@ -262,7 +265,46 @@ export const AddLeadModal: React.FC<AddLeadModalProps> = ({
           </div>
         </div>
 
-        {/* 6. Status Awal (Large Selectable Segmented Buttons) */}
+        {/* 6. Estimasi Nilai Deal (Nominal Rupiah) */}
+        <div>
+          <label className="block font-bold text-[#17221C] mb-1.5 flex items-center justify-between">
+            <span>Estimasi Nilai Deal (Rupiah)</span>
+            <span className="text-[11px] text-[#006B3C] font-semibold">Potensi Revenue</span>
+          </label>
+          <div className="flex flex-wrap gap-1.5 mb-2">
+            {[
+              { label: 'Rp 15 Jt', val: '15000000' },
+              { label: 'Rp 25 Jt', val: '25000000' },
+              { label: 'Rp 50 Jt', val: '50000000' },
+              { label: 'Rp 100 Jt', val: '100000000' },
+            ].map((p) => (
+              <button
+                key={p.val}
+                type="button"
+                onClick={() => setDealValue(p.val)}
+                className={`px-3 py-1 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
+                  dealValue === p.val
+                    ? 'bg-[#E8F7EF] text-[#006B3C] border-[#00A651] shadow-xs'
+                    : 'bg-white text-[#66736B] border-[#E2E9E4] hover:bg-slate-50'
+                }`}
+              >
+                {p.label}
+              </button>
+            ))}
+          </div>
+          <div className="relative">
+            <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-[#66736B]">Rp</span>
+            <input
+              type="number"
+              value={dealValue}
+              onChange={(e) => setDealValue(e.target.value)}
+              placeholder="25000000"
+              className="w-full pl-10 pr-3.5 py-2.5 bg-white border border-[#E2E9E4] focus:border-[#00A651] rounded-xl text-sm font-bold font-mono text-[#17221C] focus:outline-none focus:ring-2 focus:ring-[#00A651]/20 transition-all"
+            />
+          </div>
+        </div>
+
+        {/* 7. Status Awal (Large Selectable Segmented Buttons) */}
         <div>
           <label className="block font-bold text-[#17221C] mb-1.5">
             Bagaimana Kondisi Lead? (Status Awal) <span className="text-rose-500">*</span>

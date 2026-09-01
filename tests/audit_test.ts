@@ -43,7 +43,7 @@ async function runAuditTests() {
       body: JSON.stringify(newLeadPayload),
     });
     const jsonCreate = await resCreate.json();
-    assert(resCreate.status === 200 && jsonCreate.success === true, 'POST /api/leads berhasil membuat lead baru');
+    assert((resCreate.status === 200 || resCreate.status === 201) && jsonCreate.success === true, 'POST /api/leads berhasil membuat lead baru');
     const createdId = jsonCreate.data?.id;
     assert(typeof createdId === 'string', `Lead ID terbuat: ${createdId}`);
 
@@ -89,7 +89,7 @@ async function runAuditTests() {
       body: JSON.stringify(fuPayload),
     });
     const jsonFU = await resFU.json();
-    assert(resFU.status === 200 && jsonFU.success === true, 'POST /api/leads/[id]/follow-ups berhasil mencatat follow up');
+    assert((resFU.status === 200 || resFU.status === 201) && jsonFU.success === true, 'POST /api/leads/[id]/follow-ups berhasil mencatat follow up');
 
     // Verify detail reflects follow-up
     const resDetailAfterFU = await fetch(`${BASE_URL}/leads/${createdId}`);

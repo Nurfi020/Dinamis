@@ -11,12 +11,14 @@ import {
   Flame, 
   Users,
   Calendar,
-  Download
+  Download,
+  Wallet
 } from 'lucide-react';
 import { Lead, LeadStatus, LeadSource } from '../../types';
 import { StatusBadge } from '../common/StatusBadge';
 import { SourceBadge } from '../common/SourceBadge';
 import { CITIES_LIST, PRODUCTS_LIST } from '../../data/mockData';
+import { formatRupiah } from '../../utils/helpers';
 
 interface ReportsViewProps {
   leads: Lead[];
@@ -65,6 +67,19 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ leads }) => {
   const hotCount = useMemo(() => filteredLeads.filter((l) => l.status === 'Hot').length, [filteredLeads]);
   const closingCount = useMemo(() => filteredLeads.filter((l) => l.status === 'Closing').length, [filteredLeads]);
   const failedCount = useMemo(() => filteredLeads.filter((l) => l.status === 'Tidak Berhasil').length, [filteredLeads]);
+
+  // Revenue calculations
+  const totalPipelineRevenue = useMemo(() => {
+    return filteredLeads
+      .filter((l) => l.status === 'Cold' || l.status === 'Warm' || l.status === 'Hot')
+      .reduce((sum, l) => sum + (l.value || 0), 0);
+  }, [filteredLeads]);
+
+  const totalClosingRevenue = useMemo(() => {
+    return filteredLeads
+      .filter((l) => l.status === 'Closing')
+      .reduce((sum, l) => sum + (l.value || 0), 0);
+  }, [filteredLeads]);
 
   // Conversion rate formula
   const closingRateNum = totalLeads > 0 ? (closingCount / totalLeads) * 100 : 0;
@@ -133,10 +148,11 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ leads }) => {
       return;
     }
 
-    const headers = ['ID', 'Nama', 'Nomor WA', 'Kota', 'Sumber', 'Produk', 'Status', 'Catatan', 'Tanggal Dibuat', 'Follow Up Terakhir', 'Jadwal Berikutnya'];
+    const headers = ['ID', 'Nama', 'Nilai Deal (Rp)', 'Nomor WA', 'Kota', 'Sumber', 'Produk', 'Status', 'Catatan', 'Tanggal Dibuat', 'Follow Up Terakhir', 'Jadwal Berikutnya'];
     const rows = filteredLeads.map((l) => [
       `"${l.id}"`,
       `"${l.name.replace(/"/g, '""')}"`,
+      `"${l.value || 0}"`,
       `"${l.phone}"`,
       `"${l.city}"`,
       `"${l.source}"`,
@@ -204,6 +220,35 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ leads }) => {
             <Printer className="w-3.5 h-3.5 text-[#00A651]" />
             <span>Cetak PDF</span>
           </button>
+        </div>
+      </div>
+
+      {/* REVENUE HIGHLIGHT BANNER */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="bg-gradient-to-br from-white to-[#F0FDF4] border border-[#A7F3D0] rounded-2xl p-5 shadow-sm flex items-center justify-between">
+          <div>
+            <span className="text-xs font-bold text-[#66736B] uppercase tracking-wider block">Potensi Pipeline Periode Ini</span>
+            <span className="text-2xl sm:text-3xl font-extrabold text-[#17221C] mt-1 block font-mono">
+              {formatRupiah(totalPipelineRevenue)}
+            </span>
+            <span className="text-[11px] text-[#006B3C] font-semibold mt-0.5 block">{coldCount + warmCount + hotCount} Prospek Aktif</span>
+          </div>
+          <div className="w-12 h-12 rounded-2xl bg-[#E8F7EF] border border-[#A7F3D0] flex items-center justify-center text-[#006B3C]">
+            <TrendingUp className="w-6 h-6 text-[#00A651]" />
+          </div>
+        </div>
+
+        <div className="bg-gradient-to-br from-white to-[#E8F7EF] border border-[#00A651]/40 rounded-2xl p-5 shadow-sm flex items-center justify-between">
+          <div>
+            <span className="text-xs font-bold text-[#66736B] uppercase tracking-wider block">Realisasi Closing Periode Ini</span>
+            <span className="text-2xl sm:text-3xl font-extrabold text-[#006B3C] mt-1 block font-mono">
+              {formatRupiah(totalClosingRevenue)}
+            </span>
+            <span className="text-[11px] text-[#006B3C] font-semibold mt-0.5 block">{closingCount} Transaksi Sukses ({closingRate}%)</span>
+          </div>
+          <div className="w-12 h-12 rounded-2xl bg-[#00A651] flex items-center justify-center text-white shadow-xs">
+            <Wallet className="w-6 h-6" />
+          </div>
         </div>
       </div>
 
