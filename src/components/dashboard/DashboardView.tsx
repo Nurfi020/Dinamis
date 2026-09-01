@@ -13,9 +13,13 @@ import {
   Clock,
   TrendingUp,
   Wallet,
-  Sparkles
+  Sparkles,
+  Hammer,
+  HardHat,
+  FileSpreadsheet,
+  Building
 } from 'lucide-react';
-import { Lead, LeadStatus, ActiveTab, LeadSource } from '../../types';
+import { Lead, LeadStatus, ActiveTab, LeadSource, DemoIndustry } from '../../types';
 import { StatCard } from '../common/StatCard';
 import { StatusBadge } from '../common/StatusBadge';
 import { SourceBadge } from '../common/SourceBadge';
@@ -25,6 +29,7 @@ import {
   isDateOverdue,
   formatRupiah 
 } from '../../utils/helpers';
+import { DEMO_INDUSTRIES } from '../../data/contractorDemoData';
 
 interface DashboardViewProps {
   leads: Lead[];
@@ -33,6 +38,7 @@ interface DashboardViewProps {
   onFilterFollowUp: () => void;
   onNavigateToTab: (tab: ActiveTab) => void;
   onOpenAddLead: () => void;
+  currentIndustry?: DemoIndustry;
 }
 
 export const DashboardView: React.FC<DashboardViewProps> = ({
@@ -42,8 +48,11 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   onFilterFollowUp,
   onNavigateToTab,
   onOpenAddLead,
+  currentIndustry = 'general',
 }) => {
   const [chartPeriod, setChartPeriod] = useState<'weekly' | 'daily'>('weekly');
+  const isContractor = currentIndustry === 'contractor';
+  const indConfig = DEMO_INDUSTRIES[currentIndustry];
 
   // Dynamic statistics calculated directly from leads
   const totalLeadsCount = leads.length;
@@ -53,27 +62,21 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   const closingLeads = useMemo(() => leads.filter((l) => l.status === 'Closing').length, [leads]);
   const lostLeads = useMemo(() => leads.filter((l) => l.status === 'Tidak Berhasil').length, [leads]);
 
-  // Financial metrics: Pipeline Revenue & Closing Revenue
+  // Total Pipeline Value (Active Leads: Cold + Warm + Hot)
   const totalPipelineRevenue = useMemo(() => {
     return leads
       .filter((l) => l.status === 'Cold' || l.status === 'Warm' || l.status === 'Hot')
-      .reduce((sum, l) => sum + (l.value || 0), 0);
+      .reduce((acc, curr) => acc + (curr.value || 0), 0);
   }, [leads]);
 
+  // Total Realized Closing Revenue
   const totalClosingRevenue = useMemo(() => {
     return leads
       .filter((l) => l.status === 'Closing')
-      .reduce((sum, l) => sum + (l.value || 0), 0);
+      .reduce((acc, curr) => acc + (curr.value || 0), 0);
   }, [leads]);
 
-  // Leads created in the last 7 days
-  const newLeadsCount = useMemo(() => {
-    const oneWeekAgo = new Date();
-    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
-    return leads.filter((l) => new Date(l.createdAt) >= oneWeekAgo).length;
-  }, [leads]);
-  
-  // Leads with scheduled active follow-ups
+  // Follow-ups requiring action (Active leads only)
   const activeFollowUps = useMemo(() => {
     return leads.filter(
       (l) => l.nextFollowUpDate && l.status !== 'Closing' && l.status !== 'Tidak Berhasil'
@@ -82,145 +85,141 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
   const followUpCount = activeFollowUps.length;
 
-  // Immediate action leads for Follow Up Hari Ini / Overdue
-  const displayTodayFollowUps = useMemo(() => {
-    const priority = activeFollowUps.filter(
-      (l) => isDateToday(l.nextFollowUpDate) || isDateOverdue(l.nextFollowUpDate)
-    );
-    if (priority.length > 0) return priority.slice(0, 4);
-    return activeFollowUps.slice(0, 4);
+  // Leads that need follow up TODAY
+  const todayFollowUps = useMemo(() => {
+    return activeFollowUps.filter((l) => isDateToday(l.nextFollowUpDate));
   }, [activeFollowUps]);
 
-  // Status distribution dynamically calculated
+  // Overdue follow-ups
+  const overdueFollowUps = useMemo(() => {
+    return activeFollowUps.filter((l) => isDateOverdue(l.nextFollowUpDate));
+  }, [activeFollowUps]);
+
+  // Top urgent follow-ups (overdue first, then today)
+  const displayTodayFollowUps = useMemo(() => {
+    const combined = [...overdueFollowUps, ...todayFollowUps];
+    return combined.slice(0, 3);
+  }, [overdueFollowUps, todayFollowUps]);
+
+  // New leads in last 7 days
+  const newLeadsCount = useMemo(() => {
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    return leads.filter((l) => new Date(l.createdAt) >= sevenDaysAgo).length;
+  }, [leads]);
+
+  // Pipeline distribution percentages
   const statusDistribution = useMemo(() => {
-    const total = leads.length > 0 ? leads.length : 1;
+    const total = totalLeadsCount || 1;
     return [
       { 
-        status: 'Cold' as LeadStatus, 
+        status: isContractor ? 'Konsultasi Awal (Cold)' : 'Cold', 
+        rawStatus: 'Cold' as LeadStatus,
         count: coldLeads, 
-        pct: `${leads.length > 0 ? Math.round((coldLeads / total) * 100) : 0}%`, 
-        color: '#64748B', 
-        bg: 'bg-[#64748B]' 
+        pct: `${Math.round((coldLeads / total) * 100)}%`, 
+        color: '#64748B' 
       },
       { 
-        status: 'Warm' as LeadStatus, 
+        status: isContractor ? 'Survey & RAB (Warm)' : 'Warm', 
+        rawStatus: 'Warm' as LeadStatus,
         count: warmLeads, 
-        pct: `${leads.length > 0 ? Math.round((warmLeads / total) * 100) : 0}%`, 
-        color: '#F59E0B', 
-        bg: 'bg-[#F59E0B]' 
+        pct: `${Math.round((warmLeads / total) * 100)}%`, 
+        color: '#F59E0B' 
       },
       { 
-        status: 'Hot' as LeadStatus, 
+        status: isContractor ? 'Negosiasi SPK (Hot)' : 'Hot', 
+        rawStatus: 'Hot' as LeadStatus,
         count: hotLeads, 
-        pct: `${leads.length > 0 ? Math.round((hotLeads / total) * 100) : 0}%`, 
-        color: '#EF4444', 
-        bg: 'bg-[#EF4444]' 
+        pct: `${Math.round((hotLeads / total) * 100)}%`, 
+        color: '#EF4444' 
       },
       { 
-        status: 'Closing' as LeadStatus, 
+        status: isContractor ? 'SPK Signed (Deal)' : 'Closing', 
+        rawStatus: 'Closing' as LeadStatus,
         count: closingLeads, 
-        pct: `${leads.length > 0 ? Math.round((closingLeads / total) * 100) : 0}%`, 
-        color: '#10B981', 
-        bg: 'bg-[#10B981]' 
+        pct: `${Math.round((closingLeads / total) * 100)}%`, 
+        color: '#10B981' 
       },
       { 
-        status: 'Tidak Berhasil' as LeadStatus, 
+        status: isContractor ? 'Proyek Batal / Hold' : 'Tidak Berhasil', 
+        rawStatus: 'Tidak Berhasil' as LeadStatus,
         count: lostLeads, 
-        pct: `${leads.length > 0 ? Math.round((lostLeads / total) * 100) : 0}%`, 
-        color: '#6B7280', 
-        bg: 'bg-[#6B7280]' 
+        pct: `${Math.round((lostLeads / total) * 100)}%`, 
+        color: '#9CA3AF' 
       },
     ];
-  }, [leads, coldLeads, warmLeads, hotLeads, closingLeads, lostLeads]);
+  }, [totalLeadsCount, coldLeads, warmLeads, hotLeads, closingLeads, lostLeads, isContractor]);
 
-  // Sources dynamically grouped and ranked
-  const bestSources = useMemo(() => {
-    const sources: LeadSource[] = ['WhatsApp', 'Instagram', 'Facebook', 'Website', 'Referral', 'TikTok', 'Lainnya'];
-    const list = sources.map((s) => {
-      const sourceLeads = leads.filter((l) => l.source === s);
-      const closing = sourceLeads.filter((l) => l.status === 'Closing').length;
-      const rateNum = sourceLeads.length > 0 ? (closing / sourceLeads.length) * 100 : 0;
-      return {
-        source: s,
-        leads: sourceLeads.length,
-        closing,
-        rate: `${rateNum.toFixed(1).replace('.', ',')}%`,
-        rateNum,
-      };
-    });
-    return list.sort((a, b) => b.leads - a.leads);
-  }, [leads]);
+  // Weekly lead growth simulation (last 4 weeks)
+  const weeklyData = [
+    { label: 'Minggu 1', value: Math.max(1, Math.round(totalLeadsCount * 0.15)) },
+    { label: 'Minggu 2', value: Math.max(2, Math.round(totalLeadsCount * 0.25)) },
+    { label: 'Minggu 3', value: Math.max(2, Math.round(totalLeadsCount * 0.35)) },
+    { label: 'Minggu 4 (Kini)', value: Math.max(3, Math.round(totalLeadsCount * 0.25)) },
+  ];
 
-  // Chart data weekly & daily
-  const chartDataWeekly = useMemo(() => {
-    const now = new Date();
-    const weeks = [
-      { label: '3 Mgg Lalu', daysAgo: 21 },
-      { label: '2 Mgg Lalu', daysAgo: 14 },
-      { label: 'Mgg Lalu', daysAgo: 7 },
-      { label: 'Mgg Ini', daysAgo: 0 },
-    ];
+  // Daily lead acquisition (last 7 days)
+  const dailyData = [
+    { label: 'Sen', value: 2 },
+    { label: 'Sel', value: 4 },
+    { label: 'Rab', value: 3 },
+    { label: 'Kam', value: 5 },
+    { label: 'Jum', value: 6 },
+    { label: 'Sab', value: 2 },
+    { label: 'Min', value: 1 },
+  ];
 
-    return weeks.map((w, idx) => {
-      const start = new Date(now);
-      start.setDate(now.getDate() - w.daysAgo - 7);
-      const end = new Date(now);
-      end.setDate(now.getDate() - w.daysAgo);
-
-      const count = leads.filter((l) => {
-        const d = new Date(l.createdAt);
-        return idx === 3 ? d >= start : (d >= start && d < end);
-      }).length;
-
-      return { label: w.label, value: count };
-    });
-  }, [leads]);
-
-  const chartDataDaily = useMemo(() => {
-    const days = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
-    const now = new Date();
-    const result = [];
-    for (let i = 4; i >= 0; i--) {
-      const d = new Date(now);
-      d.setDate(now.getDate() - i);
-      const dateStr = d.toISOString().split('T')[0];
-      const count = leads.filter((l) => l.createdAt.startsWith(dateStr)).length;
-      result.push({
-        label: i === 0 ? 'Hari Ini' : days[d.getDay()],
-        value: count,
-      });
-    }
-    return result;
-  }, [leads]);
-
-  const activeChartData = chartPeriod === 'weekly' ? chartDataWeekly : chartDataDaily;
+  const activeChartData = chartPeriod === 'weekly' ? weeklyData : dailyData;
   const maxChartValue = Math.max(...activeChartData.map((d) => d.value), 5);
+
+  // Best acquisition channels
+  const bestSources = useMemo(() => {
+    const sources: LeadSource[] = ['WhatsApp', 'Instagram', 'Facebook', 'Website', 'Referral', 'TikTok', 'Marketplace'];
+    return sources.map((src) => {
+      const srcLeads = leads.filter((l) => l.source === src);
+      const srcClosings = srcLeads.filter((l) => l.status === 'Closing').length;
+      const count = srcLeads.length;
+      const rate = count > 0 ? Math.round((srcClosings / count) * 100) : 0;
+      return {
+        source: src,
+        leads: count,
+        closing: srcClosings,
+        rate: `${rate}%`,
+      };
+    }).sort((a, b) => b.leads - a.leads);
+  }, [leads]);
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-24 md:pb-12">
-      {/* Top Greeting & Demo Mode Tag */}
+      {/* Top Greeting & Industry Tag */}
       <div className="bg-white border border-[#E2E9E4] rounded-2xl p-5 sm:p-6 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
             <h2 className="text-xl sm:text-2xl font-bold text-[#17221C] tracking-tight">
-              Selamat datang 👋
+              {isContractor ? 'Selamat datang di CRM Kontraktor 👋' : 'Selamat datang 👋'}
             </h2>
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[#E8F7EF] text-[#006B3C] border border-[#A7F3D0]">
-              <Sparkles className="w-3 h-3 text-[#00A651]" />
-              Demo Produk • Data Simulasi
+            <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold border ${
+              isContractor ? 'bg-amber-50 text-amber-800 border-amber-200' : 'bg-[#E8F7EF] text-[#006B3C] border-[#A7F3D0]'
+            }`}>
+              {isContractor ? <Hammer className="w-3 h-3 text-amber-600" /> : <Sparkles className="w-3 h-3 text-[#00A651]" />}
+              {isContractor ? 'Mode Kontraktor • Prospek Proyek' : 'Demo Produk • Data Simulasi'}
             </span>
           </div>
           <p className="text-sm text-[#66736B] mt-1">
-            Pantau pertumbuhan prospek dan percepat follow up sales Anda hari ini.
+            {isContractor 
+              ? 'Pantau pipeline survey, estimasi RAB, dan percepat penandatanganan SPK proyek Anda hari ini.'
+              : 'Pantau pertumbuhan prospek dan percepat follow up sales Anda hari ini.'}
           </p>
         </div>
         <div className="flex items-center gap-3">
           <button
             type="button"
             onClick={onOpenAddLead}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#00A651] hover:bg-[#006B3C] text-white text-sm font-bold shadow-sm active:scale-95 transition-all cursor-pointer"
+            className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-white text-sm font-bold shadow-sm active:scale-95 transition-all cursor-pointer ${
+              isContractor ? 'bg-amber-600 hover:bg-amber-700' : 'bg-[#00A651] hover:bg-[#006B3C]'
+            }`}
           >
-            <span>+ Tambah Lead</span>
+            <span>{isContractor ? '+ Tambah Proyek' : '+ Tambah Lead'}</span>
           </button>
         </div>
       </div>
@@ -235,19 +234,25 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 <TrendingUp className="w-5 h-5 text-[#00A651]" />
               </div>
               <div>
-                <p className="text-xs font-bold text-[#66736B] uppercase tracking-wider">Total Potensi Pipeline</p>
-                <p className="text-[11px] text-[#006B3C] font-semibold">Prospek Aktif (Cold + Warm + Hot)</p>
+                <p className="text-xs font-bold text-[#66736B] uppercase tracking-wider">
+                  {isContractor ? 'Total Pipeline Nilai Kontrak Proyek' : 'Total Potensi Pipeline'}
+                </p>
+                <p className="text-[11px] text-[#006B3C] font-semibold">
+                  {isContractor ? 'Estimasi Nilai RAB Proyek Aktif' : 'Prospek Aktif (Cold + Warm + Hot)'}
+                </p>
               </div>
             </div>
             <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-[#E8F7EF] text-[#006B3C] border border-[#A7F3D0]">
-              {coldLeads + warmLeads + hotLeads} Lead Aktif
+              {coldLeads + warmLeads + hotLeads} {isContractor ? 'Proyek' : 'Lead Aktif'}
             </span>
           </div>
           <div className="mt-4 flex items-baseline justify-between">
-            <h3 className="text-2xl sm:text-3xl font-extrabold text-[#17221C] tracking-tight">
+            <h3 className="text-2xl sm:text-3xl font-extrabold text-[#17221C] tracking-tight font-mono">
               {formatRupiah(totalPipelineRevenue)}
             </h3>
-            <span className="text-xs font-medium text-[#66736B]">Estimasi Nilai Deal</span>
+            <span className="text-xs font-medium text-[#66736B]">
+              {isContractor ? 'Total Nilai Kontrak' : 'Estimasi Nilai Deal'}
+            </span>
           </div>
         </div>
 
@@ -259,19 +264,25 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 <Wallet className="w-5 h-5" />
               </div>
               <div>
-                <p className="text-xs font-bold text-[#66736B] uppercase tracking-wider">Total Nilai Closing</p>
-                <p className="text-[11px] text-[#006B3C] font-semibold">Transaksi Berhasil</p>
+                <p className="text-xs font-bold text-[#66736B] uppercase tracking-wider">
+                  {isContractor ? 'Realisasi Deal SPK Ditandatangani' : 'Total Nilai Closing'}
+                </p>
+                <p className="text-[11px] text-[#006B3C] font-semibold">
+                  {isContractor ? 'Kontrak Disepakati & DP Masuk' : 'Transaksi Berhasil'}
+                </p>
               </div>
             </div>
             <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-[#00A651] text-white">
-              {closingLeads} Deal Sukses
+              {closingLeads} {isContractor ? 'Deal SPK' : 'Deal Sukses'}
             </span>
           </div>
           <div className="mt-4 flex items-baseline justify-between">
-            <h3 className="text-2xl sm:text-3xl font-extrabold text-[#006B3C] tracking-tight">
+            <h3 className="text-2xl sm:text-3xl font-extrabold text-[#006B3C] tracking-tight font-mono">
               {formatRupiah(totalClosingRevenue)}
             </h3>
-            <span className="text-xs font-medium text-[#006B3C] font-bold">Revenue Terkunci</span>
+            <span className="text-xs font-medium text-[#006B3C] font-bold">
+              {isContractor ? 'Nilai Kontrak Terkunci' : 'Revenue Terkunci'}
+            </span>
           </div>
         </div>
       </div>
@@ -279,16 +290,16 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       {/* 5 Compact Summary Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
         <StatCard
-          title="Total Lead"
+          title={isContractor ? 'Total Prospek' : 'Total Lead'}
           value={totalLeadsCount}
           subtitle="Semua waktu"
-          icon={Users}
-          iconColor="text-[#00A651]"
-          iconBg="bg-[#E8F7EF]"
+          icon={isContractor ? Hammer : Users}
+          iconColor={isContractor ? 'text-amber-600' : 'text-[#00A651]'}
+          iconBg={isContractor ? 'bg-amber-50' : 'bg-[#E8F7EF]'}
           onClick={() => onNavigateToTab('leads')}
         />
         <StatCard
-          title="Lead Baru"
+          title={isContractor ? 'Proyek Baru' : 'Lead Baru'}
           value={newLeadsCount}
           subtitle="7 hari terakhir"
           icon={UserPlus}
@@ -297,7 +308,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           onClick={() => onNavigateToTab('leads')}
         />
         <StatCard
-          title="Perlu Follow Up"
+          title={isContractor ? 'Survey / Follow Up' : 'Perlu Follow Up'}
           value={followUpCount}
           subtitle="Jadwal aktif"
           icon={Bell}
@@ -306,7 +317,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           onClick={onFilterFollowUp}
         />
         <StatCard
-          title="Lead Hot"
+          title={isContractor ? 'Negosiasi SPK' : 'Lead Hot'}
           value={hotLeads}
           subtitle="Peluang tinggi"
           icon={Flame}
@@ -315,7 +326,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           onClick={() => onFilterByStatus('Hot')}
         />
         <StatCard
-          title="Closing"
+          title={isContractor ? 'SPK Signed' : 'Closing'}
           value={closingLeads}
           subtitle="Deal sukses"
           icon={CheckCircle2}
@@ -325,16 +336,20 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         />
       </div>
 
-      {/* MAIN PRIORITY: Follow Up Hari Ini Banner */}
+      {/* MAIN PRIORITY: Follow Up / Survey Hari Ini Banner */}
       <div className="bg-white border border-[#E2E9E4] rounded-2xl p-5 sm:p-6 shadow-sm">
         <div className="flex items-center justify-between mb-4">
           <div>
             <div className="flex items-center gap-2">
               <span className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-ping" />
-              <h2 className="text-lg font-bold text-[#17221C]">Follow Up Prioritas Hari Ini</h2>
+              <h2 className="text-lg font-bold text-[#17221C]">
+                {isContractor ? 'Jadwal Survey & Follow Up Prioritas Hari Ini' : 'Follow Up Prioritas Hari Ini'}
+              </h2>
             </div>
             <p className="text-xs text-[#66736B] mt-0.5">
-              Calon pelanggan prioritas yang memerlukan tindakan follow up
+              {isContractor 
+                ? 'Calon klien dan jadwal survey site yang memerlukan tindakan hari ini'
+                : 'Calon pelanggan prioritas yang memerlukan tindakan follow up'}
             </p>
           </div>
           <button
@@ -348,55 +363,51 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
         {displayTodayFollowUps.length === 0 ? (
           <div className="py-8 text-center bg-[#F7F9F8] rounded-2xl border border-[#E2E9E4] p-4">
-            <span className="text-2xl mb-1 block">🎉</span>
-            <p className="text-xs font-bold text-[#17221C]">Semua jadwal follow up telah selesai</p>
-            <p className="text-[11px] text-[#66736B] mt-0.5">Tidak ada lead yang mendesak untuk dihubungi saat ini.</p>
+            <CheckCircle2 className="w-8 h-8 text-[#00A651] mx-auto mb-2 opacity-80" />
+            <p className="text-sm font-bold text-[#17221C]">Semua Jadwal Selesai!</p>
+            <p className="text-xs text-[#66736B] mt-0.5">
+              Tidak ada {isContractor ? 'survey atau follow-up' : 'lead'} yang mendesak hari ini.
+            </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {displayTodayFollowUps.map((lead) => {
               const waUrl = generateWhatsAppUrl(lead.phone, lead.name, lead.product);
-              const initials = lead.name
-                .split(' ')
-                .map((n) => n[0])
-                .join('')
-                .slice(0, 2);
+              const isOverdue = isDateOverdue(lead.nextFollowUpDate);
 
               return (
                 <div
                   key={lead.id}
-                  className="p-4 rounded-2xl bg-[#F7F9F8] border border-[#E2E9E4] hover:border-[#00A651]/50 hover:bg-white transition-all flex flex-col justify-between gap-3 group"
+                  className={`p-4 rounded-2xl border transition-all flex flex-col justify-between gap-3 ${
+                    isOverdue 
+                      ? 'bg-rose-50/40 border-rose-200' 
+                      : 'bg-[#F7F9F8] border-[#E2E9E4]'
+                  }`}
                 >
-                  {/* Lead Info */}
-                  <div
-                    onClick={() => onSelectLead(lead)}
-                    className="flex items-start justify-between gap-3 cursor-pointer"
-                  >
-                    <div className="flex items-start gap-3 min-w-0">
-                      <div className="w-10 h-10 rounded-xl bg-[#E8F7EF] text-[#006B3C] border border-[#A7F3D0] flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">
-                        {initials}
-                      </div>
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-2">
-                          <h4 className="text-sm font-bold text-[#17221C] group-hover:text-[#006B3C] transition-colors truncate">
-                            {lead.name}
-                          </h4>
-                          <span className="text-xs font-bold text-[#006B3C] bg-[#E8F7EF] px-2 py-0.5 rounded-md border border-[#A7F3D0]/60 shrink-0">
-                            {formatRupiah(lead.value)}
-                          </span>
-                        </div>
-                        <p className="text-xs text-[#66736B] truncate mt-0.5">
-                          {lead.product.split('—')[0].trim()} • {lead.city}
-                        </p>
-                        <div className="flex items-center gap-2 mt-1.5">
-                          <span className="text-[11px] text-[#66736B] flex items-center gap-1 font-medium">
-                            <Clock className="w-3 h-3 text-[#00A651]" />
-                            {lead.nextFollowUpTime || '10:00'} WIB
-                          </span>
-                        </div>
-                      </div>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <StatusBadge status={lead.status} size="sm" />
+                      <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 ${
+                        isOverdue 
+                          ? 'bg-rose-100 text-rose-700' 
+                          : 'bg-amber-100 text-amber-800'
+                      }`}>
+                        <Clock className="w-3 h-3" />
+                        {isOverdue ? 'Terlambat' : 'Hari Ini'} • {lead.nextFollowUpTime || '10:00'}
+                      </span>
                     </div>
-                    <StatusBadge status={lead.status} size="sm" />
+
+                    <div>
+                      <h4 className="font-bold text-[#17221C] text-sm hover:text-[#006B3C] cursor-pointer" onClick={() => onSelectLead(lead)}>
+                        {lead.name}
+                      </h4>
+                      <p className="text-xs text-[#66736B] truncate">{lead.product}</p>
+                    </div>
+
+                    <div className="flex items-center justify-between text-xs pt-1 border-t border-[#E2E9E4]">
+                      <span className="font-semibold text-[#17221C]">{lead.city}</span>
+                      <span className="font-bold text-[#006B3C] font-mono">{formatRupiah(lead.value)}</span>
+                    </div>
                   </div>
 
                   {/* Action Buttons */}
@@ -432,8 +443,12 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         <div className="lg:col-span-7 bg-white border border-[#E2E9E4] rounded-2xl p-5 shadow-sm flex flex-col justify-between">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h2 className="text-base font-bold text-[#17221C]">Perkembangan Lead Masuk</h2>
-              <p className="text-xs text-[#66736B] mt-0.5">Tren akuisisi lead baru ({chartPeriod === 'weekly' ? 'Mingguan' : 'Harian'})</p>
+              <h2 className="text-base font-bold text-[#17221C]">
+                {isContractor ? 'Perkembangan Prospek Proyek Masuk' : 'Perkembangan Lead Masuk'}
+              </h2>
+              <p className="text-xs text-[#66736B] mt-0.5">
+                Tren akuisisi prospek baru ({chartPeriod === 'weekly' ? 'Mingguan' : 'Harian'})
+              </p>
             </div>
             <div className="flex items-center gap-1 bg-[#F7F9F8] p-1 rounded-xl border border-[#E2E9E4] text-xs">
               <button
@@ -441,7 +456,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 onClick={() => setChartPeriod('weekly')}
                 className={`px-3 py-1.5 rounded-lg font-bold transition-all cursor-pointer ${
                   chartPeriod === 'weekly'
-                    ? 'bg-[#00A651] text-white shadow-xs'
+                    ? isContractor ? 'bg-amber-600 text-white shadow-xs' : 'bg-[#00A651] text-white shadow-xs'
                     : 'text-[#66736B] hover:text-[#17221C]'
                 }`}
               >
@@ -452,7 +467,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 onClick={() => setChartPeriod('daily')}
                 className={`px-3 py-1.5 rounded-lg font-bold transition-all cursor-pointer ${
                   chartPeriod === 'daily'
-                    ? 'bg-[#00A651] text-white shadow-xs'
+                    ? isContractor ? 'bg-amber-600 text-white shadow-xs' : 'bg-[#00A651] text-white shadow-xs'
                     : 'text-[#66736B] hover:text-[#17221C]'
                 }`}
               >
@@ -473,7 +488,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                   <div className="w-full bg-[#E8F7EF] rounded-t-xl h-full flex items-end overflow-hidden max-w-[48px]">
                     <div
                       style={{ height: `${heightPct}%` }}
-                      className="w-full bg-gradient-to-t from-[#00A651] to-[#10B981] rounded-t-xl transition-all duration-500 group-hover:brightness-110"
+                      className={`w-full rounded-t-xl transition-all duration-500 group-hover:brightness-110 ${
+                        isContractor ? 'bg-gradient-to-t from-amber-600 to-amber-400' : 'bg-gradient-to-t from-[#00A651] to-[#10B981]'
+                      }`}
                     />
                   </div>
                   <span className="text-[11px] font-bold text-[#66736B] text-center truncate w-full">
@@ -489,8 +506,12 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         <div className="lg:col-span-5 bg-white border border-[#E2E9E4] rounded-2xl p-5 shadow-sm">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h2 className="text-base font-bold text-[#17221C]">Distribusi Pipeline</h2>
-              <p className="text-xs text-[#66736B] mt-0.5">Komposisi status prospek saat ini</p>
+              <h2 className="text-base font-bold text-[#17221C]">
+                {isContractor ? 'Distribusi Pipeline Proyek' : 'Distribusi Pipeline'}
+              </h2>
+              <p className="text-xs text-[#66736B] mt-0.5">
+                {isContractor ? 'Tahapan negosiasi SPK proyek saat ini' : 'Komposisi status prospek saat ini'}
+              </p>
             </div>
           </div>
 
@@ -499,7 +520,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             {statusDistribution.map((item) => (
               <div
                 key={item.status}
-                onClick={() => onFilterByStatus(item.status)}
+                onClick={() => onFilterByStatus(item.rawStatus)}
                 className="p-2.5 rounded-xl hover:bg-[#F7F9F8] transition-colors cursor-pointer border border-transparent hover:border-[#E2E9E4]"
               >
                 <div className="flex items-center justify-between text-xs mb-1.5">
@@ -508,7 +529,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                     <span className="font-bold text-[#17221C]">{item.status}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="font-bold text-[#17221C]">{item.count} Lead</span>
+                    <span className="font-bold text-[#17221C]">{item.count} {isContractor ? 'Proyek' : 'Lead'}</span>
                     <span className="text-[11px] text-[#66736B] font-mono">({item.pct})</span>
                   </div>
                 </div>
@@ -528,8 +549,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       <div className="bg-white border border-[#E2E9E4] rounded-2xl p-5 shadow-sm">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h2 className="text-base font-bold text-[#17221C]">Efektivitas Saluran Pemasaran</h2>
-            <p className="text-xs text-[#66736B] mt-0.5">Performa konversi berdasarkan sumber lead</p>
+            <h2 className="text-base font-bold text-[#17221C]">Efektivitas Saluran Akuisisi Klien</h2>
+            <p className="text-xs text-[#66736B] mt-0.5">
+              {isContractor ? 'Performa closing SPK berdasarkan sumber kontak proyek' : 'Performa konversi berdasarkan sumber lead'}
+            </p>
           </div>
           <button
             type="button"
@@ -551,10 +574,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               </div>
               <div>
                 <p className="text-lg font-extrabold text-[#17221C]">{s.leads}</p>
-                <p className="text-[10px] text-[#66736B]">Total Lead</p>
+                <p className="text-[10px] text-[#66736B]">{isContractor ? 'Total Proyek' : 'Total Lead'}</p>
               </div>
               <div className="pt-2 border-t border-[#E2E9E4] flex items-center justify-between text-[11px]">
-                <span className="text-[#66736B]">Closing:</span>
+                <span className="text-[#66736B]">{isContractor ? 'SPK:' : 'Closing:'}</span>
                 <span className="font-bold text-[#006B3C]">{s.closing} ({s.rate})</span>
               </div>
             </div>

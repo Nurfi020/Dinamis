@@ -231,3 +231,30 @@ export interface DemoPackageConfig {
   availableTabs: ActiveTab[];
   features: string[];
 }
+
+export type DemoIndustry = 'general' | 'contractor';
+
+export interface DemoIndustryConfig {
+  id: DemoIndustry;
+  name: string;
+  badge: string;
+  leadLabel: string;
+  leadsLabel: string;
+  productLabel: string;
+  valueLabel: string;
+  pipelineLabel: string;
+  closingLabel: string;
+  defaultOrganization: {
+    basic: string;
+    business: string;
+    enterprise: string;
+  };
+  projectTypes: string[];
+  pipelineStages: {
+    key: LeadStatus;
+    contractorStage: string;
+    label: string;
+    subLabel: string;
+    description: string;
+  }[];
+}

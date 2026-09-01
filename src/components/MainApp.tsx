@@ -11,7 +11,8 @@ import {
   DevModeInfo,
   DemoRole,
   DemoPersona,
-  DemoPackage
+  DemoPackage,
+  DemoIndustry
 } from '../types';
 import { 
   getStoredLeads, 
@@ -24,6 +25,7 @@ import {
 } from '../data/mockData';
 import { DEMO_PERSONAS } from '../data/enterpriseDemoData';
 import { DEMO_PACKAGES } from '../data/packageDemoData';
+import { DEMO_INDUSTRIES, CONTRACTOR_DEMO_LEADS } from '../data/contractorDemoData';
 import { leadService, followUpService, profileService } from '../services/api';
 import { Sidebar } from './layout/Sidebar';
 import { BottomNav } from './layout/BottomNav';
@@ -101,6 +103,9 @@ export function MainApp({
   // DEMO PACKAGE STATE (Basic / Business / Enterprise)
   const [currentPackage, setCurrentPackage] = useState<DemoPackage>('enterprise');
 
+  // DEMO INDUSTRY STATE (General / Contractor)
+  const [currentIndustry, setCurrentIndustry] = useState<DemoIndustry>('general');
+
   // ENTERPRISE DEMO ROLE & PERSONA STATE
   const [currentRole, setCurrentRole] = useState<DemoRole>('sales');
   const [currentPersona, setCurrentPersona] = useState<DemoPersona>(DEMO_PERSONAS.sales);
@@ -162,12 +167,20 @@ export function MainApp({
     }
   }, [initialOpenAddModal]);
 
-  // Load stored demo package preference from isolated key on mount
+  // Load stored demo package and industry preferences from isolated keys on mount
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const storedPkg = localStorage.getItem('kelola_lead_demo_package_v1') as DemoPackage;
       if (storedPkg && (storedPkg === 'basic' || storedPkg === 'business' || storedPkg === 'enterprise')) {
         setCurrentPackage(storedPkg);
+      }
+
+      const storedInd = localStorage.getItem('kelola_lead_demo_industry_v1') as DemoIndustry;
+      if (storedInd && (storedInd === 'general' || storedInd === 'contractor')) {
+        setCurrentIndustry(storedInd);
+        if (storedInd === 'contractor') {
+          setLeads(CONTRACTOR_DEMO_LEADS);
+        }
       }
     }
   }, []);
@@ -204,8 +217,30 @@ export function MainApp({
     setActiveTab('dashboard');
     addToast(
       'info',
-      `Beralih ke Demo: ${DEMO_PACKAGES[newPkg].name}`,
+      `Paket Demo: ${DEMO_PACKAGES[newPkg].name}`,
       DEMO_PACKAGES[newPkg].tagline
+    );
+  };
+
+  // Industry Switcher Handler (Instant Simulated State)
+  const handleSwitchIndustry = (newInd: DemoIndustry) => {
+    setCurrentIndustry(newInd);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('kelola_lead_demo_industry_v1', newInd);
+    }
+
+    if (newInd === 'contractor') {
+      setLeads(CONTRACTOR_DEMO_LEADS);
+    } else {
+      loadData();
+    }
+
+    setSelectedLeadId(null);
+    setActiveTab('dashboard');
+    addToast(
+      'info',
+      `Industri: ${DEMO_INDUSTRIES[newInd].name}`,
+      `Beralih ke konfigurasi dan terminology ${DEMO_INDUSTRIES[newInd].name}.`
     );
   };
 
@@ -347,9 +382,9 @@ export function MainApp({
       });
       // Replace with real database record
       setLeads((prev) => prev.map((l) => (l.id === tempId ? created : l)));
-      addToast('success', 'Lead Baru Berhasil Ditambahkan', `${newLead.name} telah masuk ke daftar prospek.`);
+      addToast('success', currentIndustry === 'contractor' ? 'Prospek Proyek Berhasil Ditambahkan' : 'Lead Baru Berhasil Ditambahkan', `${newLead.name} telah masuk ke daftar prospek.`);
     } catch {
-      addToast('success', 'Lead Disimpan Lokal', `${newLead.name} berhasil ditambahkan (Mode Offline).`);
+      addToast('success', 'Disimpan Lokal', `${newLead.name} berhasil ditambahkan (Mode Offline).`);
     }
 
     setIsAddModalOpen(false);
@@ -373,9 +408,9 @@ export function MainApp({
 
     try {
       await leadService.updateLead(leadId, updatedData);
-      addToast('success', 'Data Lead Diperbarui', 'Perubahan data prospek berhasil disimpan.');
+      addToast('success', 'Data Diperbarui', 'Perubahan data prospek berhasil disimpan.');
     } catch {
-      addToast('success', 'Data Lead Diperbarui Lokal', 'Perubahan disimpan (Mode Offline).');
+      addToast('success', 'Data Diperbarui Lokal', 'Perubahan disimpan (Mode Offline).');
     }
 
     setIsEditModalOpen(false);
@@ -392,9 +427,9 @@ export function MainApp({
 
     try {
       await leadService.deleteLead(leadId);
-      addToast('success', 'Lead Berhasil Dihapus', `${targetLead?.name || 'Lead'} telah dihapus.`);
+      addToast('success', 'Berhasil Dihapus', `${targetLead?.name || 'Prospek'} telah dihapus.`);
     } catch {
-      addToast('success', 'Lead Dihapus Lokal', `${targetLead?.name || 'Lead'} dihapus (Mode Offline).`);
+      addToast('success', 'Dihapus Lokal', `${targetLead?.name || 'Prospek'} dihapus (Mode Offline).`);
     }
   };
 
@@ -440,9 +475,9 @@ export function MainApp({
       };
       setProfile(updatedProfile);
       saveStoredProfile(updatedProfile);
-      addToast('success', '🎉 DEAL CLOSING BERHASIL!', 'Selamat! Target closing bertambah.');
+      addToast('success', currentIndustry === 'contractor' ? '🎉 DEAL SPK DITANDATANGANI!' : '🎉 DEAL CLOSING BERHASIL!', 'Selamat! Target omset bertambah.');
     } else {
-      addToast('success', 'Follow Up Dicatat', 'Riwayat aktivitas lead berhasil diperbarui.');
+      addToast('success', 'Aktivitas Dicatat', 'Riwayat tindak lanjut prospek berhasil diperbarui.');
     }
 
     try {
@@ -470,7 +505,7 @@ export function MainApp({
       oldStatus: leads.find((l) => l.id === leadId)?.status,
       newStatus,
     });
-    addToast('success', `Status lead diubah menjadi ${newStatus}`);
+    addToast('success', `Status prospek diubah menjadi ${newStatus}`);
   };
 
   // Handler: Reset data
@@ -486,7 +521,7 @@ export function MainApp({
       setLeads(fresh);
       setSelectedLeadId(null);
       setActiveTab('dashboard');
-      addToast('success', 'Data Di-reset Lokal', 'Seluruh data lead kembali ke kondisi awal.');
+      addToast('success', 'Data Di-reset Lokal', 'Seluruh data prospek kembali ke kondisi awal.');
     }
   };
 
@@ -504,8 +539,10 @@ export function MainApp({
     }
   };
 
-  // Header title & subtitle dynamically tailored to active tab, active role, and active package
+  // Header title & subtitle dynamically tailored to active tab, active role, active package, and active industry
   const getHeaderInfo = () => {
+    const isContractor = currentIndustry === 'contractor';
+
     if (selectedLead && activeTab === 'leads') {
       return {
         title: selectedLead.name,
@@ -516,74 +553,98 @@ export function MainApp({
       case 'dashboard':
         if (currentPackage === 'basic') {
           return {
-            title: 'Dashboard Sales',
-            subtitle: 'Ringkasan aktivitas lead dan follow-up bisnis Anda hari ini',
+            title: isContractor ? 'Dashboard Proyek Kontraktor' : 'Dashboard Sales',
+            subtitle: isContractor 
+              ? 'Ringkasan prospek proyek, estimasi RAB, dan jadwal survey hari ini'
+              : 'Ringkasan aktivitas lead dan follow-up bisnis Anda hari ini',
           };
         }
         if (currentPackage === 'business') {
           return {
-            title: currentRole === 'supervisor' ? 'Dashboard Tim Penjualan' : 'Dashboard Sales Pro',
-            subtitle: 'Monitoring target closing, performa tim, dan prospek prioritas',
+            title: currentRole === 'supervisor' 
+              ? (isContractor ? 'Dashboard Tim Kontraktor' : 'Dashboard Tim Penjualan')
+              : (isContractor ? 'Dashboard Project Sales Pro' : 'Dashboard Sales Pro'),
+            subtitle: isContractor
+              ? 'Monitoring target kontrak proyek, performa estimator, dan survey prioritas'
+              : 'Monitoring target closing, performa tim, dan prospek prioritas',
           };
         }
         // Enterprise
         if (currentRole === 'supervisor') {
           return {
-            title: 'Dashboard Tim',
-            subtitle: `Monitoring kinerja tim & pipeline ${currentPersona.team || 'Sales'}`,
+            title: isContractor ? 'Dashboard Tim Proyek' : 'Dashboard Tim',
+            subtitle: isContractor
+              ? `Monitoring progres tender, survey & pipeline ${currentPersona.team || 'Estimator'}`
+              : `Monitoring kinerja tim & pipeline ${currentPersona.team || 'Sales'}`,
           };
         }
         if (currentRole === 'manager') {
           return {
-            title: 'Dashboard Eksekutif',
-            subtitle: `Konsolidasi kinerja cabang & target korporasi ${currentPersona.branch}`,
+            title: isContractor ? 'Dashboard Direksi Proyek' : 'Dashboard Eksekutif',
+            subtitle: isContractor
+              ? `Konsolidasi nilai kontrak proyek seluruh cabang regional ${currentPersona.branch}`
+              : `Konsolidasi kinerja cabang & target korporasi ${currentPersona.branch}`,
           };
         }
         if (currentRole === 'admin') {
           return {
-            title: 'Dashboard Administrator',
+            title: isContractor ? 'Dashboard Admin Kontrak & Sistem' : 'Dashboard Administrator',
             subtitle: 'Status operasional sistem, manajemen lisensi, dan log keamanan',
           };
         }
         return {
-          title: 'Dashboard Sales Enterprise',
-          subtitle: 'Ringkasan aktivitas lead dan pencapaian target closing korporasi',
+          title: isContractor ? 'Dashboard Proyek Enterprise' : 'Dashboard Sales Enterprise',
+          subtitle: isContractor
+            ? 'Ringkasan pipeline proyek strategis dan pencapaian target kontrak korporasi'
+            : 'Ringkasan aktivitas lead dan pencapaian target closing korporasi',
         };
 
       case 'leads':
         return {
-          title: currentRole === 'supervisor' ? 'Daftar Lead Tim' : currentRole === 'manager' ? 'Semua Pipeline Organisasi' : 'Daftar Calon Pelanggan',
-          subtitle: 'Kelola semua calon pelanggan dan status prospek penjualan',
+          title: isContractor ? 'Daftar Prospek Proyek' : (currentRole === 'supervisor' ? 'Daftar Lead Tim' : currentRole === 'manager' ? 'Semua Pipeline Organisasi' : 'Daftar Calon Pelanggan'),
+          subtitle: isContractor 
+            ? 'Kelola calon klien, lokasi pekerjaan, dan estimasi nilai RAB proyek'
+            : 'Kelola semua calon pelanggan dan status prospek penjualan',
         };
 
       case 'followup':
         return {
-          title: currentRole === 'supervisor' ? 'Monitoring Follow Up Tim' : 'Jadwal Follow Up',
-          subtitle: 'Pantau lead yang terlambat, hari ini, dan jadwal mendatang',
+          title: isContractor ? 'Jadwal Survey & Follow Up' : (currentRole === 'supervisor' ? 'Monitoring Follow Up Tim' : 'Jadwal Follow Up'),
+          subtitle: isContractor
+            ? 'Pantau jadwal survey site lokasi, pengiriman RAB, dan negosiasi SPK'
+            : 'Pantau lead yang terlambat, hari ini, dan jadwal mendatang',
         };
 
       case 'team_performance':
         return {
-          title: 'Kinerja & Leaderboard Tim',
-          subtitle: 'Evaluasi pencapaian target dan rasio konversi per sales representative',
+          title: isContractor ? 'Kinerja & Leaderboard Estimator' : 'Kinerja & Leaderboard Tim',
+          subtitle: isContractor
+            ? 'Evaluasi pencapaian target deal SPK dan rasio konversi per sales estimator'
+            : 'Evaluasi pencapaian target dan rasio konversi per sales representative',
         };
 
       case 'branches':
         return {
-          title: 'Kinerja Kantor Cabang',
-          subtitle: 'Komparasi performa KC Jakarta, KC Bandung, dan KC Surabaya',
+          title: isContractor ? 'Kinerja Proyek Kantor Cabang' : 'Kinerja Kantor Cabang',
+          subtitle: isContractor
+            ? 'Komparasi nilai kontrak proyek Divisi Jakarta, Bandung, dan Surabaya'
+            : 'Komparasi performa KC Jakarta, KC Bandung, dan KC Surabaya',
         };
 
       case 'teams':
         return {
-          title: 'Kinerja Unit Tim Sales',
-          subtitle: 'Produktivitas Sales Team Alpha, Team Beta, dan Regional Commercial',
+          title: isContractor ? 'Kinerja Divisi Proyek Konstruksi' : 'Kinerja Unit Tim Sales',
+          subtitle: isContractor
+            ? 'Produktivitas Tim Estimator, Tim Survey, dan Regional Commercial'
+            : 'Produktivitas Sales Team Alpha, Team Beta, dan Regional Commercial',
         };
 
       case 'users':
         return {
-          title: 'Manajemen Pengguna & Role',
-          subtitle: 'Daftar staf sales, supervisor tim, branch manager, dan administrator',
+          title: isContractor ? 'Manajemen Estimator & Staff' : 'Manajemen Pengguna & Role',
+          subtitle: isContractor
+            ? 'Daftar estimator proyek, project supervisor, branch director, dan admin'
+            : 'Daftar staf sales, supervisor tim, branch manager, dan administrator',
         };
 
       case 'audit_log':
@@ -600,8 +661,10 @@ export function MainApp({
 
       case 'reports':
         return {
-          title: currentRole === 'manager' ? 'Laporan Kinerja Manajemen' : currentRole === 'supervisor' ? 'Laporan Performa Tim' : 'Laporan Performa Penjualan',
-          subtitle: 'Analisis konversi lead, efektivitas saluran, dan tingkat closing',
+          title: isContractor ? 'Laporan Pipeline Proyek Konstruksi' : (currentRole === 'manager' ? 'Laporan Kinerja Manajemen' : currentRole === 'supervisor' ? 'Laporan Performa Tim' : 'Laporan Performa Penjualan'),
+          subtitle: isContractor
+            ? 'Analisis konversi survey ke SPK, efektivitas sumber proyek, dan closing'
+            : 'Analisis konversi lead, efektivitas saluran, dan tingkat closing',
         };
 
       case 'profile':
@@ -668,6 +731,7 @@ export function MainApp({
         currentRole={currentRole}
         currentPersona={currentPersona}
         currentPackage={currentPackage}
+        currentIndustry={currentIndustry}
         onOpenLockedFeature={handleOpenLockedFeature}
         devModeInfo={devModeInfo}
       />
@@ -682,8 +746,10 @@ export function MainApp({
           currentRole={currentRole}
           currentPersona={currentPersona}
           currentPackage={currentPackage}
+          currentIndustry={currentIndustry}
           onSwitchRole={handleSwitchRole}
           onSwitchPackage={handleSwitchPackage}
+          onSwitchIndustry={handleSwitchIndustry}
           onOpenLockedFeature={handleOpenLockedFeature}
           devModeInfo={devModeInfo}
           onOpenProfile={() => {
@@ -725,6 +791,7 @@ export function MainApp({
                     setActiveTab(tab);
                   }}
                   onOpenAddLead={() => setIsAddModalOpen(true)}
+                  currentIndustry={currentIndustry}
                 />
               )}
 

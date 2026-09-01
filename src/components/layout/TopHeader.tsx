@@ -12,13 +12,23 @@ import {
   ShieldCheck, 
   Briefcase, 
   Check, 
-  Layers,
-  MapPin,
-  Lock
+  Layers, 
+  MapPin, 
+  Lock,
+  Hammer,
+  LayoutGrid
 } from 'lucide-react';
-import { UserProfile, DevModeInfo, DemoRole, DemoPersona, DemoPackage } from '../../types';
+import { 
+  UserProfile, 
+  DevModeInfo, 
+  DemoRole, 
+  DemoPersona, 
+  DemoPackage, 
+  DemoIndustry 
+} from '../../types';
 import { DEMO_PERSONAS } from '../../data/enterpriseDemoData';
 import { DEMO_PACKAGES } from '../../data/packageDemoData';
+import { DEMO_INDUSTRIES } from '../../data/contractorDemoData';
 
 interface TopHeaderProps {
   title: string;
@@ -27,8 +37,10 @@ interface TopHeaderProps {
   currentRole: DemoRole;
   currentPersona: DemoPersona;
   currentPackage: DemoPackage;
+  currentIndustry: DemoIndustry;
   onSwitchRole: (role: DemoRole) => void;
   onSwitchPackage: (pkg: DemoPackage) => void;
+  onSwitchIndustry: (industry: DemoIndustry) => void;
   onOpenLockedFeature: (title: string, desc: string, reqPkg: DemoPackage) => void;
   devModeInfo?: DevModeInfo | null;
   onOpenProfile: () => void;
@@ -45,8 +57,10 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
   currentRole,
   currentPersona,
   currentPackage,
+  currentIndustry,
   onSwitchRole,
   onSwitchPackage,
+  onSwitchIndustry,
   onOpenLockedFeature,
   devModeInfo,
   onOpenProfile,
@@ -85,38 +99,66 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
   const roleOptions: { role: DemoRole; label: string; desc: string; icon: any; minPackage: DemoPackage }[] = [
     {
       role: 'sales',
-      label: DEMO_PERSONAS.sales.name,
-      desc: DEMO_PERSONAS.sales.title,
+      label: currentIndustry === 'contractor' ? 'Budi Estimator' : DEMO_PERSONAS.sales.name,
+      desc: currentIndustry === 'contractor' ? 'Project Sales & Estimator' : DEMO_PERSONAS.sales.title,
       icon: UserCircle2,
       minPackage: 'basic',
     },
     {
       role: 'supervisor',
-      label: DEMO_PERSONAS.supervisor.name,
-      desc: DEMO_PERSONAS.supervisor.title,
+      label: currentIndustry === 'contractor' ? 'Dimas SPV Proyek' : DEMO_PERSONAS.supervisor.name,
+      desc: currentIndustry === 'contractor' ? 'Project Team Supervisor' : DEMO_PERSONAS.supervisor.title,
       icon: Users,
       minPackage: 'business',
     },
     {
       role: 'manager',
-      label: DEMO_PERSONAS.manager.name,
-      desc: DEMO_PERSONAS.manager.title,
+      label: currentIndustry === 'contractor' ? 'Ir. Hendra (Dir. Proyek)' : DEMO_PERSONAS.manager.name,
+      desc: currentIndustry === 'contractor' ? 'Project Director / Branch Manager' : DEMO_PERSONAS.manager.title,
       icon: Briefcase,
       minPackage: 'enterprise',
     },
     {
       role: 'admin',
-      label: DEMO_PERSONAS.admin.name,
-      desc: DEMO_PERSONAS.admin.title,
+      label: currentIndustry === 'contractor' ? 'Fauzan (Admin Kontrak)' : DEMO_PERSONAS.admin.name,
+      desc: currentIndustry === 'contractor' ? 'Contract & System Administrator' : DEMO_PERSONAS.admin.title,
       icon: ShieldCheck,
       minPackage: 'enterprise',
     },
   ];
 
   const currentPkgConfig = DEMO_PACKAGES[currentPackage];
+  const currentIndConfig = DEMO_INDUSTRIES[currentIndustry];
 
-  // Organization context label according to active package
+  // Organization context label according to active package & active industry
   const getOrgContext = () => {
+    if (currentIndustry === 'contractor') {
+      switch (currentPackage) {
+        case 'basic':
+          return {
+            org: 'CV Karya Bersama — Kontraktor Renovasi',
+            branch: 'Jakarta Barat',
+            badge: 'CONTRACTOR • Small Business',
+            badgeClass: 'bg-amber-50 text-amber-800 border-amber-200',
+          };
+        case 'business':
+          return {
+            org: 'PT Konstruksi Prima Mandiri — General Contractor',
+            branch: 'Jakarta Pusat',
+            badge: 'CONTRACTOR • Project Sales Team',
+            badgeClass: 'bg-emerald-50 text-emerald-800 border-emerald-200',
+          };
+        case 'enterprise':
+          return {
+            org: 'PT Nusantara Megakonstruksi Tbk — Enterprise EPC',
+            branch: 'Divisi Commercial & Infra',
+            badge: 'CONTRACTOR • Enterprise EPC',
+            badgeClass: 'bg-slate-900 text-amber-400 border-slate-700',
+          };
+      }
+    }
+
+    // General CRM
     switch (currentPackage) {
       case 'basic':
         return {
@@ -155,7 +197,11 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
 
           {/* Organization & Branch Context Pill */}
           <div className="hidden xl:flex items-center gap-2 px-2.5 py-1 rounded-full bg-[#F7F9F8] border border-[#E2E9E4] text-[11px] text-[#66736B]">
-            <Building2 className="w-3.5 h-3.5 text-[#00A651]" />
+            {currentIndustry === 'contractor' ? (
+              <Hammer className="w-3.5 h-3.5 text-amber-600" />
+            ) : (
+              <Building2 className="w-3.5 h-3.5 text-[#00A651]" />
+            )}
             <span className="font-bold text-[#17221C]">{orgContext.org}</span>
             <span>•</span>
             <span className="flex items-center gap-1">
@@ -164,7 +210,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
             </span>
           </div>
 
-          {/* Package / Enterprise Demo Label */}
+          {/* Package / Industry Label */}
           <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border text-[10px] font-bold tracking-tight ${orgContext.badgeClass}`}>
             <span className="w-1.5 h-1.5 rounded-full bg-current animate-pulse" />
             <span>{orgContext.badge}</span>
@@ -176,11 +222,44 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
         )}
       </div>
 
-      {/* 2. Right Controls: PACKAGE SWITCHER + Role Switcher + Actions */}
-      <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-        {/* A. PACKAGE SWITCHER SEGMENTED CONTROL */}
-        <div className="flex items-center bg-[#F1F5F3] p-1 rounded-xl border border-[#E2E9E4] shadow-2xs">
-          <span className="text-[10px] uppercase font-extrabold text-[#66736B] px-1.5 hidden md:inline">
+      {/* 2. Right Controls: PACKAGE + INDUSTRY + ROLE + Actions */}
+      <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
+        {/* A. INDUSTRY SWITCHER CONTROL */}
+        <div className="flex items-center bg-[#F1F5F3] p-0.5 sm:p-1 rounded-xl border border-[#E2E9E4] shadow-2xs">
+          <span className="text-[10px] uppercase font-extrabold text-[#66736B] px-1.5 hidden 2xl:inline">
+            Industri:
+          </span>
+          {(['general', 'contractor'] as DemoIndustry[]).map((indKey) => {
+            const indConfig = DEMO_INDUSTRIES[indKey];
+            const isActive = currentIndustry === indKey;
+            return (
+              <button
+                key={indKey}
+                type="button"
+                onClick={() => onSwitchIndustry(indKey)}
+                className={`px-2 sm:px-2.5 py-1 rounded-lg text-xs font-bold transition-all duration-150 flex items-center gap-1 cursor-pointer ${
+                  isActive
+                    ? indKey === 'contractor'
+                      ? 'bg-amber-600 text-white shadow-xs'
+                      : 'bg-slate-800 text-white shadow-xs'
+                    : 'text-[#66736B] hover:text-[#17221C] hover:bg-white/60'
+                }`}
+                title={`Ganti mode industri: ${indConfig.name}`}
+              >
+                {indKey === 'contractor' ? (
+                  <Hammer className="w-3 h-3" />
+                ) : (
+                  <LayoutGrid className="w-3 h-3" />
+                )}
+                <span>{indKey === 'general' ? 'General' : 'Kontraktor'}</span>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* B. PACKAGE SWITCHER SEGMENTED CONTROL */}
+        <div className="flex items-center bg-[#F1F5F3] p-0.5 sm:p-1 rounded-xl border border-[#E2E9E4] shadow-2xs">
+          <span className="text-[10px] uppercase font-extrabold text-[#66736B] px-1.5 hidden 2xl:inline">
             Paket:
           </span>
           {(['basic', 'business', 'enterprise'] as DemoPackage[]).map((pkgKey) => {
@@ -191,7 +270,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
                 key={pkgKey}
                 type="button"
                 onClick={() => onSwitchPackage(pkgKey)}
-                className={`relative px-2.5 py-1 rounded-lg text-xs font-bold transition-all duration-150 flex items-center gap-1 cursor-pointer ${
+                className={`relative px-2 sm:px-2.5 py-1 rounded-lg text-xs font-bold transition-all duration-150 flex items-center gap-1 cursor-pointer ${
                   isActive
                     ? pkgKey === 'basic'
                       ? 'bg-blue-600 text-white shadow-xs'
@@ -221,24 +300,21 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
           })}
         </div>
 
-        {/* B. DEMO ROLE SWITCHER DROPDOWN */}
+        {/* C. DEMO ROLE SWITCHER DROPDOWN */}
         <div className="relative" ref={dropdownRef}>
           <button
             type="button"
             onClick={() => setIsRoleDropdownOpen(!isRoleDropdownOpen)}
-            className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs font-bold transition-all cursor-pointer shadow-xs ${
+            className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 rounded-xl border text-xs font-bold transition-all cursor-pointer shadow-xs ${
               isRoleDropdownOpen ? 'ring-2 ring-[#00A651]/30 border-[#00A651]' : 'border-[#E2E9E4] bg-[#F7F9F8] hover:bg-white'
             }`}
             title="Ganti Peran Demo"
           >
-            <div className="flex items-center gap-1.5">
-              <span className="text-[10px] uppercase font-bold text-[#66736B] tracking-wider hidden sm:inline">Role:</span>
-              <span className={`px-2 py-0.5 rounded-md text-[10px] font-extrabold uppercase border ${getRoleBadgeStyle(currentRole)}`}>
-                {currentRole}
-              </span>
-            </div>
-            <span className="font-bold text-[#17221C] truncate max-w-[100px] sm:max-w-[130px]">
-              {currentPersona.name.split(' ')[0]}
+            <span className={`px-1.5 py-0.5 rounded-md text-[9px] font-extrabold uppercase border ${getRoleBadgeStyle(currentRole)}`}>
+              {currentRole}
+            </span>
+            <span className="font-bold text-[#17221C] truncate max-w-[85px] sm:max-w-[120px]">
+              {roleOptions.find((r) => r.role === currentRole)?.label.split(' ')[0] || currentPersona.name.split(' ')[0]}
             </span>
             <ChevronDown className={`w-3.5 h-3.5 text-[#66736B] transition-transform duration-200 ${isRoleDropdownOpen ? 'rotate-180' : ''}`} />
           </button>
@@ -327,8 +403,8 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
           )}
         </div>
 
-        {/* C. Filter Date Range */}
-        <div className="hidden sm:flex items-center bg-[#F7F9F8] border border-[#E2E9E4] rounded-xl px-2.5 py-1.5 text-xs text-[#17221C]">
+        {/* D. Filter Date Range */}
+        <div className="hidden xl:flex items-center bg-[#F7F9F8] border border-[#E2E9E4] rounded-xl px-2.5 py-1.5 text-xs text-[#17221C]">
           <Calendar className="w-3.5 h-3.5 text-[#00A651] mr-1.5 shrink-0" />
           <select
             value={selectedDateRange}
@@ -343,12 +419,12 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
           </select>
         </div>
 
-        {/* D. Notification Bell (Follow Up Count) */}
+        {/* E. Notification Bell (Follow Up Count) */}
         <button
           type="button"
           onClick={onOpenFollowUps}
           className="relative p-2 rounded-xl border border-[#E2E9E4] bg-[#F7F9F8] hover:bg-white text-[#66736B] hover:text-[#17221C] transition-colors cursor-pointer"
-          title={`${followUpCount} Lead perlu di-follow up`}
+          title={`${followUpCount} ${currentIndustry === 'contractor' ? 'prospek proyek' : 'lead'} perlu di-follow up`}
           aria-label="Notifikasi Follow Up"
         >
           <Bell className="w-4 h-4" />
@@ -359,7 +435,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
           )}
         </button>
 
-        {/* E. Profile Avatar Pill */}
+        {/* F. Profile Avatar Pill */}
         <button
           type="button"
           onClick={onOpenProfile}
@@ -369,7 +445,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
           <div className="w-7 h-7 rounded-lg bg-[#00A651] text-white flex items-center justify-center font-bold text-xs shadow-xs">
             {currentPersona.name.split(' ').map((n) => n[0]).join('').slice(0, 2)}
           </div>
-          <div className="hidden md:block text-left">
+          <div className="hidden 2xl:block text-left">
             <span className="block text-xs font-bold text-[#17221C] truncate max-w-[90px]">
               {currentPersona.name.split(' ')[0]}
             </span>
