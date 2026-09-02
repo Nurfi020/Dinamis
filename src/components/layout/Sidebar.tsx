@@ -1,13 +1,13 @@
 'use client';
 
 import React from 'react';
-import { 
-  LayoutDashboard, 
-  Users, 
-  PlusCircle, 
-  CalendarClock, 
-  BarChart3, 
-  UserCircle2, 
+import {
+  LayoutDashboard,
+  Users,
+  PlusCircle,
+  CalendarClock,
+  BarChart3,
+  UserCircle2,
   HelpCircle,
   Sparkles,
   Building2,
@@ -21,7 +21,8 @@ import {
   Lock,
   Hammer,
   Store,
-  FileSpreadsheet
+  FileSpreadsheet,
+  FileText
 } from 'lucide-react';
 import { ActiveTab, DevModeInfo, DemoRole, DemoPersona, DemoPackage, DemoIndustry } from '../../types';
 import { DEMO_PACKAGES } from '../../data/packageDemoData';
@@ -79,6 +80,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
             label: 'Rencana Anggaran (RAB)',
             icon: FileSpreadsheet,
           },
+          {
+            id: 'contractor_quotation' as ActiveTab,
+            label: 'Penawaran / SPH',
+            icon: FileText,
+          },
         ] : []),
         {
           id: 'add_lead_action' as ActiveTab,
@@ -124,6 +130,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
               id: 'contractor_rab' as ActiveTab,
               label: 'Rencana Anggaran (RAB)',
               icon: FileSpreadsheet,
+            },
+            {
+              id: 'contractor_quotation' as ActiveTab,
+              label: 'Penawaran / SPH',
+              icon: FileText,
             },
           ] : []),
           {
@@ -173,6 +184,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
             id: 'contractor_rab' as ActiveTab,
             label: 'Rencana Anggaran (RAB)',
             icon: FileSpreadsheet,
+          },
+          {
+            id: 'contractor_quotation' as ActiveTab,
+            label: 'Penawaran / SPH',
+            icon: FileText,
           },
         ] : []),
         {
@@ -225,6 +241,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
               label: 'Rencana Anggaran (RAB)',
               icon: FileSpreadsheet,
             },
+            {
+              id: 'contractor_quotation' as ActiveTab,
+              label: 'Penawaran / SPH',
+              icon: FileText,
+            },
           ] : []),
           {
             id: 'add_lead_action' as ActiveTab,
@@ -267,6 +288,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
               id: 'contractor_rab' as ActiveTab,
               label: 'Rencana Anggaran (RAB)',
               icon: FileSpreadsheet,
+            },
+            {
+              id: 'contractor_quotation' as ActiveTab,
+              label: 'Penawaran / SPH',
+              icon: FileText,
             },
           ] : []),
           {
@@ -326,6 +352,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
               label: 'RAB & Estimasi Biaya',
               icon: FileSpreadsheet,
             },
+            {
+              id: 'contractor_quotation' as ActiveTab,
+              label: 'Penawaran & SPH Proyek',
+              icon: FileText,
+            },
           ] : []),
           {
             id: 'reports' as ActiveTab,
@@ -362,6 +393,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
               label: 'Master RAB Proyek',
               icon: FileSpreadsheet,
             },
+            {
+              id: 'contractor_quotation' as ActiveTab,
+              label: 'Master SPH Penawaran',
+              icon: FileText,
+            },
           ] : []),
           {
             id: 'admin_licenses' as ActiveTab,
@@ -392,19 +428,19 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const getRoleHeaderBadge = () => {
     switch (currentRole) {
       case 'sales':
-        return { 
-          text: isContractor ? 'Estimator' : isUmkm ? 'Sales UMKM' : 'Sales', 
-          color: 'text-emerald-700 bg-emerald-50 border-emerald-200' 
+        return {
+          text: isContractor ? 'Estimator' : isUmkm ? 'Sales UMKM' : 'Sales',
+          color: 'text-emerald-700 bg-emerald-50 border-emerald-200'
         };
       case 'supervisor':
-        return { 
-          text: isContractor ? 'SPV Proyek' : isUmkm ? 'SPV Toko' : 'Supervisor', 
-          color: 'text-amber-800 bg-amber-50 border-amber-200' 
+        return {
+          text: isContractor ? 'SPV Proyek' : isUmkm ? 'SPV Toko' : 'Supervisor',
+          color: 'text-amber-800 bg-amber-50 border-amber-200'
         };
       case 'manager':
-        return { 
-          text: isContractor ? 'Director' : isUmkm ? 'Owner' : 'Manager', 
-          color: 'text-indigo-800 bg-indigo-50 border-indigo-200' 
+        return {
+          text: isContractor ? 'Director' : isUmkm ? 'Owner' : 'Manager',
+          color: 'text-indigo-800 bg-indigo-50 border-indigo-200'
         };
       case 'admin':
         return { text: 'Admin', color: 'text-slate-700 bg-slate-100 border-slate-300' };
@@ -419,14 +455,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
       <div className="p-4 border-b border-slate-200 flex items-center justify-between gap-2">
         <div className="flex items-center gap-2.5">
           <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-white shadow-2xs ${
-            isContractor 
-              ? 'bg-amber-600' 
+            isContractor
+              ? 'bg-amber-600'
               : isUmkm
               ? 'bg-emerald-600'
-              : currentPackage === 'basic' 
-              ? 'bg-blue-600' 
-              : currentPackage === 'business' 
-              ? 'bg-emerald-600' 
+              : currentPackage === 'basic'
+              ? 'bg-blue-600'
+              : currentPackage === 'business'
+              ? 'bg-emerald-600'
               : 'bg-slate-900 text-emerald-300'
           }`}>
             {isContractor ? (
@@ -442,8 +478,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
               {isContractor ? 'Kelola Proyek' : isUmkm ? 'Kelola Usaha' : 'Kelola Lead'}
             </h1>
             <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wide">
-              {isContractor 
-                ? `Contractor ${pkgConfig.name.split(' ')[0]}` 
+              {isContractor
+                ? `Contractor ${pkgConfig.name.split(' ')[0]}`
                 : isUmkm
                 ? `UMKM ${pkgConfig.name.split(' ')[0]}`
                 : pkgConfig.name}
@@ -460,7 +496,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       <div className="flex-1 px-3 py-3 space-y-0.5 overflow-y-auto">
         {navItems.map((item) => {
           const Icon = item.icon;
-          
+
           if (item.isAction) {
             return (
               <button
@@ -490,8 +526,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
             >
               <div className="flex items-center gap-2.5">
                 <Icon className={`w-4 h-4 shrink-0 ${
-                  isActive 
-                    ? 'text-emerald-700' 
+                  isActive
+                    ? 'text-emerald-700'
                     : 'text-slate-400'
                 }`} />
                 <span>{item.label}</span>
@@ -520,12 +556,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <button
               type="button"
               onClick={() => onOpenLockedFeature(
-                isContractor 
-                  ? 'Kinerja Estimator & Tim Proyek' 
+                isContractor
+                  ? 'Kinerja Estimator & Tim Proyek'
                   : isUmkm
                   ? 'Kinerja Tim Penjualan Toko'
                   : 'Kinerja & Leaderboard Tim',
-                isContractor 
+                isContractor
                   ? 'Pantau target kontrak dan SLA survey seluruh tim estimator pada Paket Business & Enterprise.'
                   : isUmkm
                   ? 'Pantau pencapaian target penjualan tim kasir/sales toko pada Paket Business & Enterprise.'
@@ -546,8 +582,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <button
               type="button"
               onClick={() => onOpenLockedFeature(
-                isContractor 
-                  ? 'Manajemen Proyek Multi-Cabang' 
+                isContractor
+                  ? 'Manajemen Proyek Multi-Cabang'
                   : isUmkm
                   ? 'Manajemen Multi-Outlet & Toko'
                   : 'Manajemen Multi-Cabang & Organisasi',
@@ -579,8 +615,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <button
               type="button"
               onClick={() => onOpenLockedFeature(
-                isContractor 
-                  ? 'Manajemen Proyek Multi-Cabang' 
+                isContractor
+                  ? 'Manajemen Proyek Multi-Cabang'
                   : isUmkm
                   ? 'Manajemen Multi-Outlet'
                   : 'Manajemen Multi-Cabang',

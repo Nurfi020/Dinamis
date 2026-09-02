@@ -1,39 +1,46 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { 
-  Lead, 
-  LeadStatus, 
-  ActiveTab, 
-  UserProfile, 
-  FollowUpLog, 
-  LicenseInfo, 
+import {
+  Lead,
+  LeadStatus,
+  ActiveTab,
+  UserProfile,
+  FollowUpLog,
+  LicenseInfo,
   DevModeInfo,
   DemoRole,
   DemoPersona,
   DemoPackage,
   DemoIndustry,
   RAB,
-  RABItem
+  RABItem,
+  Quotation,
+  QuotationStatus
 } from '../types';
-import { 
-  getStoredLeads, 
-  saveStoredLeads, 
-  resetStoredLeads, 
-  getStoredProfile, 
-  saveStoredProfile, 
-  INITIAL_USER_PROFILE, 
-  INITIAL_LEADS 
+import {
+  getStoredLeads,
+  saveStoredLeads,
+  resetStoredLeads,
+  getStoredProfile,
+  saveStoredProfile,
+  INITIAL_USER_PROFILE,
+  INITIAL_LEADS
 } from '../data/mockData';
 import { DEMO_PERSONAS } from '../data/enterpriseDemoData';
 import { DEMO_PACKAGES } from '../data/packageDemoData';
 import { DEMO_INDUSTRIES, CONTRACTOR_DEMO_LEADS, UMKM_DEMO_LEADS } from '../data/contractorDemoData';
-import { 
-  INITIAL_RABS, 
-  getStoredRABs, 
-  saveStoredRABs, 
-  calculateRABSummary 
+import {
+  INITIAL_RABS,
+  getStoredRABs,
+  saveStoredRABs,
+  calculateRABSummary
 } from '../data/contractorRABData';
+import {
+  INITIAL_QUOTATIONS,
+  getStoredQuotations,
+  saveStoredQuotations
+} from '../data/contractorQuotationData';
 import { leadService, followUpService, profileService } from '../services/api';
 import { Sidebar } from './layout/Sidebar';
 import { BottomNav } from './layout/BottomNav';
@@ -42,11 +49,11 @@ import { DashboardView } from './dashboard/DashboardView';
 import { SupervisorDashboardView } from './supervisor/SupervisorDashboardView';
 import { ManagerDashboardView } from './manager/ManagerDashboardView';
 import { AdminDashboardView } from './admin/AdminDashboardView';
-import { 
-  AdminUsersView, 
-  AdminBranchesView, 
-  AdminAuditLogView, 
-  AdminSettingsView 
+import {
+  AdminUsersView,
+  AdminBranchesView,
+  AdminAuditLogView,
+  AdminSettingsView
 } from './admin/AdminEnterpriseViews';
 import { LeadListView } from './leads/LeadListView';
 import { LeadDetailView } from './leads/LeadDetailView';
@@ -58,6 +65,9 @@ import { ReportsView } from './reports/ReportsView';
 import { ProfileView } from './profile/ProfileView';
 import { RABListView } from './contractor/RABListView';
 import { RABDetailView } from './contractor/RABDetailView';
+import { QuotationListView } from './contractor/quotation/QuotationListView';
+import { QuotationDetailView } from './contractor/quotation/QuotationDetailView';
+import { CreateQuotationModal } from './contractor/quotation/CreateQuotationModal';
 import { HelpGuideModal } from './common/HelpGuideModal';
 import { ToastContainer, ToastMessage } from './common/Toast';
 import { LockedFeatureModal } from './common/LockedFeatureModal';
@@ -114,6 +124,12 @@ export function MainApp({
   const [rabs, setRabs] = useState<RAB[]>(INITIAL_RABS);
   const [selectedRabId, setSelectedRabId] = useState<string | null>(null);
 
+  // CONTRACTOR QUOTATION STATE (Isolated Storage Engine)
+  const [quotations, setQuotations] = useState<Quotation[]>(INITIAL_QUOTATIONS);
+  const [selectedQuotationId, setSelectedQuotationId] = useState<string | null>(null);
+  const [isCreateQuotationModalOpen, setIsCreateQuotationModalOpen] = useState<boolean>(false);
+  const [preSelectedRabForQuotation, setPreSelectedRabForQuotation] = useState<string | null>(null);
+
   // DEMO PACKAGE STATE (Basic / Business / Enterprise)
   const [currentPackage, setCurrentPackage] = useState<DemoPackage>('enterprise');
 
@@ -146,7 +162,7 @@ export function MainApp({
   const [devModeInfo, setDevModeInfo] = useState<DevModeInfo | null>(
     AUTH_BYPASS_ENABLED ? MOCK_DEV_MODE_INFO : null
   );
-  
+
   // Modals state
   const [isAddModalOpen, setIsAddModalOpen] = useState(initialOpenAddModal);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -201,6 +217,9 @@ export function MainApp({
 
       const loadedRabs = getStoredRABs();
       setRabs(loadedRabs);
+
+      const loadedQuotations = getStoredQuotations();
+      setQuotations(loadedQuotations);
     }
   }, []);
 
@@ -234,6 +253,7 @@ export function MainApp({
 
     setSelectedLeadId(null);
     setSelectedRabId(null);
+    setSelectedQuotationId(null);
     setActiveTab('dashboard');
     addToast(
       'info',
@@ -259,6 +279,7 @@ export function MainApp({
 
     setSelectedLeadId(null);
     setSelectedRabId(null);
+    setSelectedQuotationId(null);
     setActiveTab('dashboard');
     addToast(
       'info',
@@ -274,6 +295,7 @@ export function MainApp({
     setCurrentPersona(targetPersona);
     setSelectedLeadId(null);
     setSelectedRabId(null);
+    setSelectedQuotationId(null);
     setActiveTab('dashboard');
     addToast('info', `Beralih ke ${role.toUpperCase()} Portal`, `Akun aktif: ${targetPersona.name} (${targetPersona.title})`);
   };
@@ -370,9 +392,10 @@ export function MainApp({
     addToast('info', 'Perangkat Dilepaskan', 'Lisensi berhasil dinonaktifkan dari perangkat ini.');
   };
 
-  // Find currently selected lead & RAB
+  // Find currently selected lead, RAB & Quotation
   const selectedLead = leads.find((l) => l.id === selectedLeadId) || null;
   const selectedRab = rabs.find((r) => r.id === selectedRabId) || null;
+  const selectedQuotation = quotations.find((q) => q.id === selectedQuotationId) || null;
 
   // Active follow up badge calculation
   const followUpCount = leads.filter(
@@ -408,12 +431,12 @@ export function MainApp({
       // Replace with real database record
       setLeads((prev) => prev.map((l) => (l.id === tempId ? created : l)));
       addToast(
-        'success', 
-        currentIndustry === 'contractor' 
-          ? 'Prospek Proyek Berhasil Ditambahkan' 
+        'success',
+        currentIndustry === 'contractor'
+          ? 'Prospek Proyek Berhasil Ditambahkan'
           : currentIndustry === 'umkm'
           ? 'Calon Pelanggan Berhasil Ditambahkan'
-          : 'Lead Baru Berhasil Ditambahkan', 
+          : 'Lead Baru Berhasil Ditambahkan',
         `${newLead.name} telah masuk ke daftar prospek.`
       );
     } catch {
@@ -509,12 +532,12 @@ export function MainApp({
       setProfile(updatedProfile);
       saveStoredProfile(updatedProfile);
       addToast(
-        'success', 
-        currentIndustry === 'contractor' 
-          ? '🎉 DEAL SPK DITANDATANGANI!' 
+        'success',
+        currentIndustry === 'contractor'
+          ? '🎉 DEAL SPK DITANDATANGANI!'
           : currentIndustry === 'umkm'
           ? '🎉 PENJUALAN BERHASIL (CLOSING)!'
-          : '🎉 DEAL CLOSING BERHASIL!', 
+          : '🎉 DEAL CLOSING BERHASIL!',
         'Selamat! Target omset penjualan bertambah.'
       );
     } else {
@@ -753,6 +776,61 @@ export function MainApp({
     addToast('info', 'Item Dihapus', 'Item pekerjaan berhasil dihapus dari RAB.');
   };
 
+  // ====================================================
+  // CONTRACTOR QUOTATION HANDLERS (Isolated Storage Engine)
+  // ====================================================
+
+  const handleCreateQuotation = (newQuotation: Quotation) => {
+    setQuotations((prev) => {
+      const updated = [newQuotation, ...prev];
+      saveStoredQuotations(updated);
+      return updated;
+    });
+
+    setSelectedQuotationId(newQuotation.id);
+    setActiveTab('contractor_quotation');
+    addToast('success', 'SPH Berhasil Diterbitkan', `${newQuotation.quotationNumber} — ${newQuotation.projectName}`);
+  };
+
+  const handleGenerateQuotationFromRAB = (rab: RAB) => {
+    if (rab.status !== 'Final') {
+      addToast('error', 'Gagal Membuat SPH', 'SPH hanya dapat dibuat dari RAB dengan status FINAL.');
+      return;
+    }
+
+    setPreSelectedRabForQuotation(rab.id);
+    setIsCreateQuotationModalOpen(true);
+  };
+
+  const handleUpdateQuotation = (quotationId: string, updatedData: Partial<Quotation>) => {
+    setQuotations((prev) => {
+      const updated = prev.map((q) =>
+        q.id === quotationId
+          ? {
+              ...q,
+              ...updatedData,
+              updatedAt: new Date().toISOString(),
+            }
+          : q
+      );
+      saveStoredQuotations(updated);
+      return updated;
+    });
+    addToast('success', 'Dokumen SPH Diperbarui', 'Perubahan penawaran harga berhasil disimpan.');
+  };
+
+  const handleDeleteQuotation = (quotationId: string) => {
+    setQuotations((prev) => {
+      const updated = prev.filter((q) => q.id !== quotationId);
+      saveStoredQuotations(updated);
+      return updated;
+    });
+    if (selectedQuotationId === quotationId) {
+      setSelectedQuotationId(null);
+    }
+    addToast('info', 'SPH Dihapus', 'Dokumen Surat Penawaran Harga telah dihapus.');
+  };
+
   // Header title & subtitle dynamically tailored to active tab, active role, active package, and active industry
   const getHeaderInfo = () => {
     const isContractor = currentIndustry === 'contractor';
@@ -771,16 +849,23 @@ export function MainApp({
         subtitle: `Dokumen ${selectedRab.rabNumber} • Klien: ${selectedRab.clientName} (${selectedRab.projectLocation})`,
       };
     }
+
+    if (selectedQuotation && activeTab === 'contractor_quotation') {
+      return {
+        title: selectedQuotation.projectName,
+        subtitle: `Dokumen ${selectedQuotation.quotationNumber} • Klien: ${selectedQuotation.clientName} (${selectedQuotation.projectLocation})`,
+      };
+    }
     switch (activeTab) {
       case 'dashboard':
         if (currentPackage === 'basic') {
           return {
-            title: isContractor 
-              ? 'Dashboard Proyek Kontraktor' 
+            title: isContractor
+              ? 'Dashboard Proyek Kontraktor'
               : isUmkm
               ? 'Dashboard Usaha & Penjualan'
               : 'Dashboard Sales',
-            subtitle: isContractor 
+            subtitle: isContractor
               ? 'Ringkasan prospek proyek, estimasi RAB, dan jadwal survey hari ini'
               : isUmkm
               ? 'Ringkasan prospek pelanggan, estimasi omset, dan jadwal follow-up hari ini'
@@ -789,7 +874,7 @@ export function MainApp({
         }
         if (currentPackage === 'business') {
           return {
-            title: currentRole === 'supervisor' 
+            title: currentRole === 'supervisor'
               ? (isContractor ? 'Dashboard Tim Kontraktor' : isUmkm ? 'Dashboard Tim Penjualan UMKM' : 'Dashboard Tim Penjualan')
               : (isContractor ? 'Dashboard Project Sales Pro' : isUmkm ? 'Dashboard Sales UMKM Pro' : 'Dashboard Sales Pro'),
             subtitle: isContractor
@@ -802,10 +887,10 @@ export function MainApp({
         // Enterprise
         if (currentRole === 'supervisor') {
           return {
-            title: isContractor 
-              ? 'Dashboard Tim Proyek' 
-              : isUmkm 
-              ? 'Dashboard Tim Sales & Outlet' 
+            title: isContractor
+              ? 'Dashboard Tim Proyek'
+              : isUmkm
+              ? 'Dashboard Tim Sales & Outlet'
               : 'Dashboard Tim',
             subtitle: isContractor
               ? `Monitoring progres tender, survey & pipeline ${currentPersona.team || 'Estimator'}`
@@ -816,8 +901,8 @@ export function MainApp({
         }
         if (currentRole === 'manager') {
           return {
-            title: isContractor 
-              ? 'Dashboard Direksi Proyek' 
+            title: isContractor
+              ? 'Dashboard Direksi Proyek'
               : isUmkm
               ? 'Dashboard Owner & Eksekutif Usaha'
               : 'Dashboard Eksekutif',
@@ -830,8 +915,8 @@ export function MainApp({
         }
         if (currentRole === 'admin') {
           return {
-            title: isContractor 
-              ? 'Dashboard Admin Kontrak & Sistem' 
+            title: isContractor
+              ? 'Dashboard Admin Kontrak & Sistem'
               : isUmkm
               ? 'Dashboard Administrator Usaha'
               : 'Dashboard Administrator',
@@ -839,8 +924,8 @@ export function MainApp({
           };
         }
         return {
-          title: isContractor 
-            ? 'Dashboard Proyek Enterprise' 
+          title: isContractor
+            ? 'Dashboard Proyek Enterprise'
             : isUmkm
             ? 'Dashboard Usaha Enterprise'
             : 'Dashboard Sales Enterprise',
@@ -853,12 +938,12 @@ export function MainApp({
 
       case 'leads':
         return {
-          title: isContractor 
-            ? 'Daftar Prospek Proyek' 
+          title: isContractor
+            ? 'Daftar Prospek Proyek'
             : isUmkm
             ? 'Daftar Calon Pelanggan'
             : (currentRole === 'supervisor' ? 'Daftar Lead Tim' : currentRole === 'manager' ? 'Semua Pipeline Organisasi' : 'Daftar Calon Pelanggan'),
-          subtitle: isContractor 
+          subtitle: isContractor
             ? 'Kelola calon klien, lokasi pekerjaan, dan estimasi nilai RAB proyek'
             : isUmkm
             ? 'Kelola calon pelanggan, kebutuhan produk, dan estimasi nilai transaksi'
@@ -867,8 +952,8 @@ export function MainApp({
 
       case 'followup':
         return {
-          title: isContractor 
-            ? 'Jadwal Survey & Follow Up' 
+          title: isContractor
+            ? 'Jadwal Survey & Follow Up'
             : isUmkm
             ? 'Follow-up Calon Pelanggan'
             : (currentRole === 'supervisor' ? 'Monitoring Follow Up Tim' : 'Jadwal Follow Up'),
@@ -881,8 +966,8 @@ export function MainApp({
 
       case 'team_performance':
         return {
-          title: isContractor 
-            ? 'Kinerja & Leaderboard Estimator' 
+          title: isContractor
+            ? 'Kinerja & Leaderboard Estimator'
             : isUmkm
             ? 'Kinerja & Leaderboard Tim Sales'
             : 'Kinerja & Leaderboard Tim',
@@ -895,8 +980,8 @@ export function MainApp({
 
       case 'branches':
         return {
-          title: isContractor 
-            ? 'Kinerja Proyek Kantor Cabang' 
+          title: isContractor
+            ? 'Kinerja Proyek Kantor Cabang'
             : isUmkm
             ? 'Kinerja Multi-Outlet & Toko'
             : 'Kinerja Kantor Cabang',
@@ -909,8 +994,8 @@ export function MainApp({
 
       case 'teams':
         return {
-          title: isContractor 
-            ? 'Kinerja Divisi Proyek Konstruksi' 
+          title: isContractor
+            ? 'Kinerja Divisi Proyek Konstruksi'
             : isUmkm
             ? 'Kinerja Tim & Toko Penjualan'
             : 'Kinerja Unit Tim Sales',
@@ -923,8 +1008,8 @@ export function MainApp({
 
       case 'users':
         return {
-          title: isContractor 
-            ? 'Manajemen Estimator & Staff' 
+          title: isContractor
+            ? 'Manajemen Estimator & Staff'
             : isUmkm
             ? 'Manajemen Staff & Kasir Toko'
             : 'Manajemen Pengguna & Role',
@@ -949,8 +1034,8 @@ export function MainApp({
 
       case 'reports':
         return {
-          title: isContractor 
-            ? 'Laporan Analisis Proyek' 
+          title: isContractor
+            ? 'Laporan Analisis Proyek'
             : isUmkm
             ? 'Laporan Penjualan & Produk Terlaris'
             : (currentRole === 'supervisor' ? 'Laporan Performa Tim Sales' : 'Laporan Performa Sales'),
@@ -965,6 +1050,12 @@ export function MainApp({
         return {
           title: 'Rencana Anggaran Biaya (RAB)',
           subtitle: 'Penyusunan estimasi biaya proyek, analisa harga satuan material & upah, serta margin profit kontraktor',
+        };
+
+      case 'contractor_quotation':
+        return {
+          title: 'Surat Penawaran Harga (SPH)',
+          subtitle: 'Penerbitan dokumen penawaran harga komersial resmi berbasis snapshot RAB yang telah disetujui',
         };
 
       case 'profile':
@@ -1211,6 +1302,7 @@ export function MainApp({
                   onAddItem={handleAddRABItem}
                   onUpdateItem={handleUpdateRABItem}
                   onDeleteItem={handleDeleteRABItem}
+                  onCreateQuotation={handleGenerateQuotationFromRAB}
                 />
               ) : (
                 <RABListView
@@ -1220,6 +1312,29 @@ export function MainApp({
                   onCreateRAB={handleCreateRAB}
                   onUpdateRAB={handleUpdateRAB}
                   onDeleteRAB={handleDeleteRAB}
+                />
+              )}
+            </>
+          )}
+
+          {/* E. Contractor Dedicated Tab: Quotation / SPH */}
+          {activeTab === 'contractor_quotation' && (
+            <>
+              {selectedQuotation ? (
+                <QuotationDetailView
+                  quotation={selectedQuotation}
+                  onBack={() => setSelectedQuotationId(null)}
+                  onUpdateQuotation={handleUpdateQuotation}
+                  onDeleteQuotation={handleDeleteQuotation}
+                />
+              ) : (
+                <QuotationListView
+                  quotations={quotations}
+                  rabs={rabs}
+                  onSelectQuotation={(q) => setSelectedQuotationId(q.id)}
+                  onCreateQuotation={handleCreateQuotation}
+                  onUpdateQuotation={handleUpdateQuotation}
+                  onDeleteQuotation={handleDeleteQuotation}
                 />
               )}
             </>
@@ -1292,6 +1407,19 @@ export function MainApp({
       <HelpGuideModal
         isOpen={isHelpOpen}
         onClose={() => setIsHelpOpen(false)}
+      />
+
+      {/* Direct Create Quotation Modal from RAB */}
+      <CreateQuotationModal
+        isOpen={isCreateQuotationModalOpen}
+        onClose={() => {
+          setIsCreateQuotationModalOpen(false);
+          setPreSelectedRabForQuotation(null);
+        }}
+        rabs={rabs}
+        existingQuotations={quotations}
+        preSelectedRabId={preSelectedRabForQuotation}
+        onSave={handleCreateQuotation}
       />
 
       {/* Locked Feature Gate Modal */}

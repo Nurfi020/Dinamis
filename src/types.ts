@@ -1,6 +1,6 @@
 export type LeadStatus = 'Cold' | 'Warm' | 'Hot' | 'Closing' | 'Tidak Berhasil';
 
-export type LeadSource = 
+export type LeadSource =
   | 'WhatsApp'
   | 'Facebook'
   | 'Instagram'
@@ -12,7 +12,7 @@ export type LeadSource =
 
 export type FollowUpMethod = 'WhatsApp' | 'Telepon' | 'Meeting' | 'Email' | 'Lainnya';
 
-export type FollowUpResult = 
+export type FollowUpResult =
   | 'Tertarik'
   | 'Minta Harga'
   | 'Minta Detail'
@@ -23,7 +23,7 @@ export type FollowUpResult =
   | 'Buka Kembali'
   | 'Lainnya';
 
-export type LostReason = 
+export type LostReason =
   | 'Harga terlalu mahal'
   | 'Memilih kompetitor'
   | 'Tidak membutuhkan produk'
@@ -152,20 +152,21 @@ export interface AuditLogItem {
   ipAddress?: string;
 }
 
-export type ActiveTab = 
-  | 'dashboard' 
-  | 'leads' 
-  | 'pipeline' 
-  | 'followup' 
+export type ActiveTab =
+  | 'dashboard'
+  | 'leads'
+  | 'pipeline'
+  | 'followup'
   | 'contractor_rab'
-  | 'team_performance' 
-  | 'branches' 
-  | 'teams' 
-  | 'reports' 
-  | 'users' 
-  | 'audit_log' 
-  | 'settings' 
-  | 'profile' 
+  | 'contractor_quotation'
+  | 'team_performance'
+  | 'branches'
+  | 'teams'
+  | 'reports'
+  | 'users'
+  | 'audit_log'
+  | 'settings'
+  | 'profile'
   | 'admin_licenses';
 
 export interface LicenseInfo {
@@ -266,7 +267,7 @@ export interface DemoIndustryConfig {
 
 export type RABStatus = 'Draft' | 'Final';
 
-export type WorkCategory = 
+export type WorkCategory =
   | 'Pekerjaan Persiapan'
   | 'Pekerjaan Pondasi & Struktur'
   | 'Pekerjaan Dinding & Plesteran'
@@ -317,6 +318,61 @@ export interface RAB {
   discountAmount: number;
   grandTotal: number;
   notes?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// ====================================================
+// PHASE 2D-2: CONTRACTOR QUOTATION / SPH DATA MODEL
+// ====================================================
+
+export type QuotationStatus = 'Draft' | 'Sent' | 'Accepted' | 'Rejected' | 'Expired';
+
+export interface Quotation {
+  id: string;
+  quotationNumber: string; // e.g. SPH-2026-0001
+  rabId: string;
+  rabNumber: string;
+  leadId?: string;
+
+  // Project & Client Info Snapshot
+  projectName: string;
+  clientName: string;
+  clientPhone: string;
+  clientEmail?: string;
+  projectLocation: string;
+  buildingAreaM2?: number;
+
+  // Quotation Specific Dates & Validity
+  quotationDate: string; // YYYY-MM-DD
+  validityDays: number; // e.g. 14, 30 days
+  validUntil: string; // YYYY-MM-DD
+
+  // Company Information (Contractor / Vendor)
+  companyName: string;
+  companyAddress: string;
+  companyPhone: string;
+  companyEmail: string;
+
+  // Work Scope & Commercial Terms
+  workDescription: string;
+  paymentTerms: string;
+  termsAndConditions: string;
+  notes?: string;
+
+  // Financial Breakdown Snapshot (Inherited from approved RAB)
+  materialTotal: number;
+  laborTotal: number;
+  subtotalCost: number; // HPP Riil
+  overheadAmount: number;
+  overheadValue: number;
+  marginAmount: number;
+  marginValue: number;
+  discountAmount: number;
+  grandTotal: number; // Nilai Total Penawaran SPH
+
+  // Status & Metadata
+  status: QuotationStatus;
   createdAt: string;
   updatedAt: string;
 }

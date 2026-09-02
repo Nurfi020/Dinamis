@@ -1,24 +1,25 @@
 'use client';
 
 import React, { useState } from 'react';
-import { 
-  ArrowLeft, 
-  Building2, 
-  User, 
-  Phone, 
-  MapPin, 
-  Printer, 
-  Edit3, 
-  Trash2, 
-  Plus, 
-  CheckCircle2, 
-  Clock, 
-  Layers, 
-  Calculator, 
+import {
+  ArrowLeft,
+  Building2,
+  User,
+  Phone,
+  MapPin,
+  Printer,
+  Edit3,
+  Trash2,
+  Plus,
+  CheckCircle2,
+  Clock,
+  Layers,
+  Calculator,
   Sparkles,
   Coins,
   HardHat,
-  Package
+  Package,
+  FileText
 } from 'lucide-react';
 import { RAB, RABItem, RABStatus } from '../../types';
 import { formatRupiah } from '../../utils/helpers';
@@ -36,6 +37,7 @@ interface RABDetailViewProps {
   onAddItem: (newItem: Omit<RABItem, 'id'>) => void;
   onUpdateItem: (itemId: string, updatedItem: Partial<RABItem>) => void;
   onDeleteItem: (itemId: string) => void;
+  onCreateQuotation?: (rab: RAB) => void;
 }
 
 export const RABDetailView: React.FC<RABDetailViewProps> = ({
@@ -46,6 +48,7 @@ export const RABDetailView: React.FC<RABDetailViewProps> = ({
   onAddItem,
   onUpdateItem,
   onDeleteItem,
+  onCreateQuotation,
 }) => {
   const [isAddItemModalOpen, setIsAddItemModalOpen] = useState(false);
   const [isEditRABModalOpen, setIsEditRABModalOpen] = useState(false);
@@ -168,13 +171,38 @@ export const RABDetailView: React.FC<RABDetailViewProps> = ({
           </div>
 
           {/* Right: Quick CTA */}
-          <div className="flex items-center gap-2 print:hidden shrink-0">
+          <div className="flex flex-wrap items-center gap-2 print:hidden shrink-0">
+            {onCreateQuotation && (
+              <button
+                type="button"
+                onClick={() => {
+                  if (isFinal) {
+                    onCreateQuotation(rab);
+                  }
+                }}
+                disabled={!isFinal}
+                title={
+                  isFinal
+                    ? 'Terbitkan Surat Penawaran Harga (SPH) dari snapshot RAB ini'
+                    : 'SPH hanya dapat dibuat dari RAB dengan status FINAL. Silakan finalisasi RAB terlebih dahulu.'
+                }
+                className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold shadow-xs transition-all cursor-pointer ${
+                  isFinal
+                    ? 'bg-slate-900 hover:bg-slate-800 text-white active:scale-95'
+                    : 'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed'
+                }`}
+              >
+                <FileText className="w-4 h-4 text-emerald-400" />
+                <span>Buat Penawaran (SPH)</span>
+              </button>
+            )}
+
             <button
               onClick={() => setIsAddItemModalOpen(true)}
-              className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs sm:text-sm font-semibold shadow-xs active:scale-95 transition-all cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs sm:text-sm font-semibold shadow-xs active:scale-95 transition-all cursor-pointer"
             >
               <Plus className="w-4 h-4" />
-              <span>Tambah Item Pekerjaan</span>
+              <span>Tambah Item</span>
             </button>
           </div>
         </div>
