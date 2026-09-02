@@ -600,6 +600,120 @@ export interface ProjectFinance {
   netCashFlow: number; // totalCollected - totalActualExpense
   costVariance: number; // budgetCost - totalActualExpense
 
+  // Optional Client-Side Activity History (Informational only)
+  activityLogs?: FinanceActivityLog[];
+
   createdAt: string;
   updatedAt: string;
+}
+
+// ====================================================
+// PHASE 2D-5: FINANCIAL INTELLIGENCE & COLLECTION CONTROL
+// ====================================================
+
+export type AgingBucket = 
+  | 'CURRENT' 
+  | '1_30_DAYS' 
+  | '31_60_DAYS' 
+  | '61_90_DAYS' 
+  | 'OVER_90_DAYS' 
+  | 'DUE_DATE_UNKNOWN';
+
+export type CollectionStatus = 
+  | 'PAID' 
+  | 'OVERDUE' 
+  | 'DUE_TODAY' 
+  | 'DUE_SOON' 
+  | 'NOT_DUE' 
+  | 'DUE_DATE_UNKNOWN';
+
+export type BudgetOverrunStatus = 
+  | 'NORMAL' 
+  | 'WARNING' 
+  | 'CRITICAL' 
+  | 'OVERRUN' 
+  | 'NO_BUDGET';
+
+export type ProfitabilityStatus = 
+  | 'LOSS' 
+  | 'AT_RISK' 
+  | 'LOW_MARGIN' 
+  | 'PROFITABLE';
+
+export type FinancialHealthStatus = 
+  | 'HEALTHY' 
+  | 'ATTENTION' 
+  | 'CRITICAL';
+
+export type FinanceActivityEventType = 
+  | 'BILLING_CONFIGURED' 
+  | 'INVOICE_CREATED' 
+  | 'PAYMENT_RECORDED' 
+  | 'EXPENSE_LOGGED' 
+  | 'EXPENSE_DELETED';
+
+export interface FinanceActivityLog {
+  id: string;
+  timestamp: string;
+  eventType: FinanceActivityEventType;
+  summary: string;
+  actor: string;
+  amount?: number;
+  referenceNumber?: string;
+}
+
+export interface ReceivablesInvoiceItem {
+  id: string;
+  projectId: string;
+  projectNumber: string;
+  projectName: string;
+  clientName: string;
+  clientPhone?: string;
+  invoiceNumber: string;
+  title: string;
+  invoiceDate: string; // YYYY-MM-DD
+  dueDate?: string; // YYYY-MM-DD
+  hasValidDueDate: boolean;
+  totalAmount: number; // Gross invoice
+  paidAmount: number;
+  outstandingAmount: number;
+  daysOverdue: number; // max(0, today - dueDate) (only if valid dueDate)
+  invoiceAge: number; // max(0, today - invoiceDate)
+  agingBucket: AgingBucket;
+  collectionStatus: CollectionStatus;
+  priorityScore: number; // 1 (highest) to 8 (lowest)
+}
+
+export interface ProjectFinancialHealthAnalysis {
+  projectId: string;
+  projectNumber: string;
+  projectName: string;
+  clientName: string;
+  healthStatus: FinancialHealthStatus;
+  healthReasons: string[];
+  profitabilityStatus: ProfitabilityStatus;
+  hasBudget: boolean;
+  budgetStatus: BudgetOverrunStatus;
+  budgetUtilizationPercent: number | null; // null if hasBudget is false
+  overdueReceivable: number;
+  oldestOverdueDays: number;
+  realizedGrossProfit: number;
+  realizedGrossMarginPercent: number;
+  netCashFlow: number;
+}
+
+export interface PortfolioFinancialHealthSummary {
+  totalProjects: number;
+  healthyProjectsCount: number;
+  attentionProjectsCount: number;
+  criticalProjectsCount: number;
+  totalContractValue: number;
+  totalInvoiced: number;
+  totalCollected: number;
+  totalOutstanding: number;
+  totalActualExpenses: number;
+  totalRealizedProfit: number;
+  portfolioMarginPercent: number;
+  totalOverdueReceivable: number;
+  agingSummary: Record<AgingBucket, { count: number; totalOutstanding: number }>;
 }
