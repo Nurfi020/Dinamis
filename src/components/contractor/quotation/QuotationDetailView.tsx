@@ -19,7 +19,8 @@ import {
   AlertCircle,
   FileCheck,
   ShieldCheck,
-  MessageCircle
+  MessageCircle,
+  HardHat
 } from 'lucide-react';
 import { Quotation, QuotationStatus } from '../../../types';
 import { formatRupiah, formatFullIndonesianDate, formatIndonesianDate } from '../../../utils/helpers';
@@ -31,6 +32,7 @@ interface QuotationDetailViewProps {
   onBack: () => void;
   onUpdateQuotation: (id: string, updatedData: Partial<Quotation>) => void;
   onDeleteQuotation: (id: string) => void;
+  onCreateProject?: (quotation: Quotation) => void;
 }
 
 export const QuotationDetailView: React.FC<QuotationDetailViewProps> = ({
@@ -38,6 +40,7 @@ export const QuotationDetailView: React.FC<QuotationDetailViewProps> = ({
   onBack,
   onUpdateQuotation,
   onDeleteQuotation,
+  onCreateProject,
 }) => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -100,6 +103,18 @@ export const QuotationDetailView: React.FC<QuotationDetailViewProps> = ({
               );
             })}
           </div>
+
+          {/* Terbitkan Proyek SPK Action */}
+          {onCreateProject && quotation.status === 'Accepted' && (
+            <button
+              onClick={() => onCreateProject(quotation)}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow-xs active:scale-95 transition-all cursor-pointer"
+              title="Terbitkan Proyek Konstruksi (SPK Masuk) dari SPH ini"
+            >
+              <HardHat className="w-3.5 h-3.5" />
+              <span>Terbitkan Proyek SPK</span>
+            </button>
+          )}
 
           {/* WhatsApp Direct Link */}
           {quotation.clientPhone && (

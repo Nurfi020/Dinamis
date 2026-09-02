@@ -17,7 +17,7 @@ export const DEMO_PACKAGES: Record<DemoPackage, DemoPackageConfig> = {
       pillActive: 'bg-blue-600 text-white shadow-xs',
     },
     allowedRoles: ['sales'],
-    availableTabs: ['dashboard', 'leads', 'contractor_rab', 'contractor_quotation', 'followup', 'reports', 'profile'],
+    availableTabs: ['dashboard', 'leads', 'contractor_rab', 'contractor_quotation', 'contractor_project', 'followup', 'reports', 'profile'],
     features: [
       'Manajemen Calon Pelanggan (Leads)',
       'WhatsApp Direct Follow-up',
@@ -43,7 +43,7 @@ export const DEMO_PACKAGES: Record<DemoPackage, DemoPackageConfig> = {
       pillActive: 'bg-[#00A651] text-white shadow-xs',
     },
     allowedRoles: ['sales', 'supervisor'],
-    availableTabs: ['dashboard', 'leads', 'contractor_rab', 'contractor_quotation', 'followup', 'team_performance', 'reports', 'profile'],
+    availableTabs: ['dashboard', 'leads', 'contractor_rab', 'contractor_quotation', 'contractor_project', 'followup', 'team_performance', 'reports', 'profile'],
     features: [
       'Seluruh Fitur Basic CRM',
       'Portal Supervisor & Tim',
@@ -75,6 +75,7 @@ export const DEMO_PACKAGES: Record<DemoPackage, DemoPackageConfig> = {
       'leads',
       'contractor_rab',
       'contractor_quotation',
+      'contractor_project',
       'followup',
       'team_performance',
       'branches',

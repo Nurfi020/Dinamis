@@ -22,7 +22,8 @@ import {
   Hammer,
   Store,
   FileSpreadsheet,
-  FileText
+  FileText,
+  HardHat
 } from 'lucide-react';
 import { ActiveTab, DevModeInfo, DemoRole, DemoPersona, DemoPackage, DemoIndustry } from '../../types';
 import { DEMO_PACKAGES } from '../../data/packageDemoData';
@@ -85,6 +86,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
             label: 'Penawaran / SPH',
             icon: FileText,
           },
+          {
+            id: 'contractor_project' as ActiveTab,
+            label: 'Proyek & Progress',
+            icon: HardHat,
+          },
         ] : []),
         {
           id: 'add_lead_action' as ActiveTab,
@@ -135,6 +141,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
               id: 'contractor_quotation' as ActiveTab,
               label: 'Penawaran / SPH',
               icon: FileText,
+            },
+            {
+              id: 'contractor_project' as ActiveTab,
+              label: 'Proyek & Progress',
+              icon: HardHat,
             },
           ] : []),
           {
@@ -189,6 +200,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
             id: 'contractor_quotation' as ActiveTab,
             label: 'Penawaran / SPH',
             icon: FileText,
+          },
+          {
+            id: 'contractor_project' as ActiveTab,
+            label: 'Proyek & Progress',
+            icon: HardHat,
           },
         ] : []),
         {
@@ -246,6 +262,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
               label: 'Penawaran / SPH',
               icon: FileText,
             },
+            {
+              id: 'contractor_project' as ActiveTab,
+              label: 'Proyek & Progress',
+              icon: HardHat,
+            },
           ] : []),
           {
             id: 'add_lead_action' as ActiveTab,
@@ -293,6 +314,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
               id: 'contractor_quotation' as ActiveTab,
               label: 'Penawaran / SPH',
               icon: FileText,
+            },
+            {
+              id: 'contractor_project' as ActiveTab,
+              label: 'Proyek & Progress',
+              icon: HardHat,
             },
           ] : []),
           {
@@ -357,6 +383,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
               label: 'Penawaran & SPH Proyek',
               icon: FileText,
             },
+            {
+              id: 'contractor_project' as ActiveTab,
+              label: 'Monitoring Proyek',
+              icon: HardHat,
+            },
           ] : []),
           {
             id: 'reports' as ActiveTab,
@@ -397,6 +428,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
               id: 'contractor_quotation' as ActiveTab,
               label: 'Master SPH Penawaran',
               icon: FileText,
+            },
+            {
+              id: 'contractor_project' as ActiveTab,
+              label: 'Master Proyek Konstruksi',
+              icon: HardHat,
             },
           ] : []),
           {

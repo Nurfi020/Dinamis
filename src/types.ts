@@ -159,6 +159,7 @@ export type ActiveTab =
   | 'followup'
   | 'contractor_rab'
   | 'contractor_quotation'
+  | 'contractor_project'
   | 'team_performance'
   | 'branches'
   | 'teams'
@@ -373,6 +374,94 @@ export interface Quotation {
 
   // Status & Metadata
   status: QuotationStatus;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// ====================================================
+// PHASE 2D-3: CONTRACTOR PROJECT TRACKING & PROGRESS MODEL
+// ====================================================
+
+export type ProjectStage =
+  | 'Persiapan'
+  | 'Struktur'
+  | 'Arsitektur'
+  | 'MEP'
+  | 'Finishing'
+  | 'Serah Terima (PHO)'
+  | 'Selesai';
+
+export type ProjectStatus =
+  | 'Planning'
+  | 'In_Progress'
+  | 'Delayed'
+  | 'Completed'
+  | 'On_Hold';
+
+export interface ProjectMilestone {
+  id: string;
+  name: string;
+  category: string;
+  weightPercent: number; // Bobot % (Total sum of all milestones = 100%)
+  targetStartDate: string; // YYYY-MM-DD
+  targetEndDate: string; // YYYY-MM-DD
+  actualProgressPercent: number; // 0 - 100%
+  status: 'Pending' | 'In_Progress' | 'Completed';
+}
+
+export interface ProgressLogEntry {
+  id: string;
+  date: string; // YYYY-MM-DD
+  weekNumber: number; // Minggu ke-N
+  plannedProgressPercent: number; // Target Kurva S % pada tanggal tsb
+  actualProgressPercent: number; // Realisasi Lapangan kumulatif %
+  deviationPercent: number; // Actual - Planned (+ / -)
+  workSummary: string;
+  weatherCondition?: 'Cerah' | 'Hujan Ringan' | 'Hujan Lebat';
+  manpowerCount?: number;
+  notes?: string;
+  createdAt: string;
+}
+
+export interface ContractorProject {
+  id: string;
+  projectNumber: string; // e.g. PRJ-2026-0001
+  quotationId?: string;
+  quotationNumber?: string;
+  rabId: string;
+  rabNumber: string;
+  leadId?: string;
+
+  // Identity & Client Info Snapshot
+  projectName: string;
+  clientName: string;
+  clientPhone: string;
+  clientEmail?: string;
+  projectLocation: string;
+  buildingAreaM2?: number;
+
+  // Contract & Financial Value
+  contractValue: number; // Snapshot dari SPH grandTotal / RAB fallback
+  contractNumber?: string;
+  contractStartDate: string; // YYYY-MM-DD
+  contractEndDate: string; // YYYY-MM-DD
+  durationDays: number;
+
+  // Execution State & Calculated Metrics
+  status: ProjectStatus;
+  stage: ProjectStage;
+  targetProgressPercent: number; // Target Kurva S saat ini
+  currentProgressPercent: number; // Realisasi bobot tertimbang saat ini
+  deviationPercent: number; // currentProgress - targetProgress
+
+  // Milestones & Progress Log History
+  milestones: ProjectMilestone[];
+  progressLogs: ProgressLogEntry[];
+
+  // Site Supervisor / Field Management
+  siteManagerName?: string;
+  siteManagerPhone?: string;
+
   createdAt: string;
   updatedAt: string;
 }

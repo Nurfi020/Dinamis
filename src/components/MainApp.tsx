@@ -16,7 +16,12 @@ import {
   RAB,
   RABItem,
   Quotation,
-  QuotationStatus
+  QuotationStatus,
+  ContractorProject,
+  ProjectMilestone,
+  ProgressLogEntry,
+  ProjectStatus,
+  ProjectStage
 } from '../types';
 import {
   getStoredLeads,
@@ -41,6 +46,11 @@ import {
   getStoredQuotations,
   saveStoredQuotations
 } from '../data/contractorQuotationData';
+import {
+  INITIAL_PROJECTS,
+  getStoredProjects,
+  saveStoredProjects
+} from '../data/contractorProjectData';
 import { leadService, followUpService, profileService } from '../services/api';
 import { Sidebar } from './layout/Sidebar';
 import { BottomNav } from './layout/BottomNav';
@@ -68,6 +78,9 @@ import { RABDetailView } from './contractor/RABDetailView';
 import { QuotationListView } from './contractor/quotation/QuotationListView';
 import { QuotationDetailView } from './contractor/quotation/QuotationDetailView';
 import { CreateQuotationModal } from './contractor/quotation/CreateQuotationModal';
+import { ProjectListView } from './contractor/project/ProjectListView';
+import { ProjectDetailView } from './contractor/project/ProjectDetailView';
+import { CreateProjectModal } from './contractor/project/CreateProjectModal';
 import { HelpGuideModal } from './common/HelpGuideModal';
 import { ToastContainer, ToastMessage } from './common/Toast';
 import { LockedFeatureModal } from './common/LockedFeatureModal';
@@ -129,6 +142,12 @@ export function MainApp({
   const [selectedQuotationId, setSelectedQuotationId] = useState<string | null>(null);
   const [isCreateQuotationModalOpen, setIsCreateQuotationModalOpen] = useState<boolean>(false);
   const [preSelectedRabForQuotation, setPreSelectedRabForQuotation] = useState<string | null>(null);
+
+  // CONTRACTOR PROJECT STATE (Isolated Storage Engine)
+  const [projects, setProjects] = useState<ContractorProject[]>(INITIAL_PROJECTS);
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
+  const [isCreateProjectModalOpen, setIsCreateProjectModalOpen] = useState<boolean>(false);
+  const [preSelectedQuotationForProject, setPreSelectedQuotationForProject] = useState<string | null>(null);
 
   // DEMO PACKAGE STATE (Basic / Business / Enterprise)
   const [currentPackage, setCurrentPackage] = useState<DemoPackage>('enterprise');
@@ -220,6 +239,9 @@ export function MainApp({
 
       const loadedQuotations = getStoredQuotations();
       setQuotations(loadedQuotations);
+
+      const loadedProjects = getStoredProjects();
+      setProjects(loadedProjects);
     }
   }, []);
 
@@ -254,6 +276,7 @@ export function MainApp({
     setSelectedLeadId(null);
     setSelectedRabId(null);
     setSelectedQuotationId(null);
+    setSelectedProjectId(null);
     setActiveTab('dashboard');
     addToast(
       'info',
@@ -280,6 +303,7 @@ export function MainApp({
     setSelectedLeadId(null);
     setSelectedRabId(null);
     setSelectedQuotationId(null);
+    setSelectedProjectId(null);
     setActiveTab('dashboard');
     addToast(
       'info',
@@ -296,6 +320,7 @@ export function MainApp({
     setSelectedLeadId(null);
     setSelectedRabId(null);
     setSelectedQuotationId(null);
+    setSelectedProjectId(null);
     setActiveTab('dashboard');
     addToast('info', `Beralih ke ${role.toUpperCase()} Portal`, `Akun aktif: ${targetPersona.name} (${targetPersona.title})`);
   };
@@ -392,10 +417,11 @@ export function MainApp({
     addToast('info', 'Perangkat Dilepaskan', 'Lisensi berhasil dinonaktifkan dari perangkat ini.');
   };
 
-  // Find currently selected lead, RAB & Quotation
+  // Find currently selected lead, RAB, Quotation & Project
   const selectedLead = leads.find((l) => l.id === selectedLeadId) || null;
   const selectedRab = rabs.find((r) => r.id === selectedRabId) || null;
   const selectedQuotation = quotations.find((q) => q.id === selectedQuotationId) || null;
+  const selectedProject = projects.find((p) => p.id === selectedProjectId) || null;
 
   // Active follow up badge calculation
   const followUpCount = leads.filter(
@@ -831,6 +857,61 @@ export function MainApp({
     addToast('info', 'SPH Dihapus', 'Dokumen Surat Penawaran Harga telah dihapus.');
   };
 
+  // ====================================================
+  // CONTRACTOR PROJECT HANDLERS (Isolated Storage Engine)
+  // ====================================================
+
+  const handleCreateProject = (newProject: ContractorProject) => {
+    setProjects((prev) => {
+      const updated = [newProject, ...prev];
+      saveStoredProjects(updated);
+      return updated;
+    });
+
+    setSelectedProjectId(newProject.id);
+    setActiveTab('contractor_project');
+    addToast('success', 'Proyek Baru Diterbitkan', `${newProject.projectNumber} — ${newProject.projectName}`);
+  };
+
+  const handleGenerateProjectFromQuotation = (quotation: Quotation) => {
+    if (quotation.status !== 'Accepted') {
+      addToast('error', 'Gagal Membuat Proyek', 'Proyek hanya dapat dibuat dari SPH dengan status ACCEPTED (Deal SPK).');
+      return;
+    }
+
+    setPreSelectedQuotationForProject(quotation.id);
+    setIsCreateProjectModalOpen(true);
+  };
+
+  const handleUpdateProject = (projectId: string, updatedData: Partial<ContractorProject>) => {
+    setProjects((prev) => {
+      const updated = prev.map((p) =>
+        p.id === projectId
+          ? {
+              ...p,
+              ...updatedData,
+              updatedAt: new Date().toISOString(),
+            }
+          : p
+      );
+      saveStoredProjects(updated);
+      return updated;
+    });
+    addToast('success', 'Proyek Diperbarui', 'Data proyek dan progres fisik berhasil disimpan.');
+  };
+
+  const handleDeleteProject = (projectId: string) => {
+    setProjects((prev) => {
+      const updated = prev.filter((p) => p.id !== projectId);
+      saveStoredProjects(updated);
+      return updated;
+    });
+    if (selectedProjectId === projectId) {
+      setSelectedProjectId(null);
+    }
+    addToast('info', 'Proyek Dihapus', 'Data proyek konstruksi telah dihapus.');
+  };
+
   // Header title & subtitle dynamically tailored to active tab, active role, active package, and active industry
   const getHeaderInfo = () => {
     const isContractor = currentIndustry === 'contractor';
@@ -854,6 +935,13 @@ export function MainApp({
       return {
         title: selectedQuotation.projectName,
         subtitle: `Dokumen ${selectedQuotation.quotationNumber} • Klien: ${selectedQuotation.clientName} (${selectedQuotation.projectLocation})`,
+      };
+    }
+
+    if (selectedProject && activeTab === 'contractor_project') {
+      return {
+        title: selectedProject.projectName,
+        subtitle: `Proyek ${selectedProject.projectNumber} • SPK: ${selectedProject.contractNumber} (${selectedProject.stage})`,
       };
     }
     switch (activeTab) {
@@ -1056,6 +1144,12 @@ export function MainApp({
         return {
           title: 'Surat Penawaran Harga (SPH)',
           subtitle: 'Penerbitan dokumen penawaran harga komersial resmi berbasis snapshot RAB yang telah disetujui',
+        };
+
+      case 'contractor_project':
+        return {
+          title: 'Monitoring Proyek & Progres Lapangan',
+          subtitle: 'Pelacakan realisasi fisik, Kurva S, log opname mingguan, dan deviasi proyek konstruksi aktif',
         };
 
       case 'profile':
@@ -1326,6 +1420,7 @@ export function MainApp({
                   onBack={() => setSelectedQuotationId(null)}
                   onUpdateQuotation={handleUpdateQuotation}
                   onDeleteQuotation={handleDeleteQuotation}
+                  onCreateProject={handleGenerateProjectFromQuotation}
                 />
               ) : (
                 <QuotationListView
@@ -1335,6 +1430,30 @@ export function MainApp({
                   onCreateQuotation={handleCreateQuotation}
                   onUpdateQuotation={handleUpdateQuotation}
                   onDeleteQuotation={handleDeleteQuotation}
+                />
+              )}
+            </>
+          )}
+
+          {/* F. Contractor Dedicated Tab: Project Tracking & Field Progress */}
+          {activeTab === 'contractor_project' && (
+            <>
+              {selectedProject ? (
+                <ProjectDetailView
+                  project={selectedProject}
+                  onBack={() => setSelectedProjectId(null)}
+                  onUpdateProject={handleUpdateProject}
+                  onDeleteProject={handleDeleteProject}
+                />
+              ) : (
+                <ProjectListView
+                  projects={projects}
+                  quotations={quotations}
+                  rabs={rabs}
+                  onSelectProject={(p) => setSelectedProjectId(p.id)}
+                  onCreateProject={handleCreateProject}
+                  onUpdateProject={handleUpdateProject}
+                  onDeleteProject={handleDeleteProject}
                 />
               )}
             </>
@@ -1420,6 +1539,20 @@ export function MainApp({
         existingQuotations={quotations}
         preSelectedRabId={preSelectedRabForQuotation}
         onSave={handleCreateQuotation}
+      />
+
+      {/* Direct Create Project Modal from Accepted SPH / Final RAB */}
+      <CreateProjectModal
+        isOpen={isCreateProjectModalOpen}
+        onClose={() => {
+          setIsCreateProjectModalOpen(false);
+          setPreSelectedQuotationForProject(null);
+        }}
+        quotations={quotations}
+        rabs={rabs}
+        existingProjects={projects}
+        preSelectedQuotationId={preSelectedQuotationForProject}
+        onSave={handleCreateProject}
       />
 
       {/* Locked Feature Gate Modal */}
