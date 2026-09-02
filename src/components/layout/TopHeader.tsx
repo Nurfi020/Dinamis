@@ -16,7 +16,8 @@ import {
   Lock,
   Hammer,
   Store,
-  LayoutGrid
+  LayoutGrid,
+  Menu
 } from 'lucide-react';
 import { 
   UserProfile, 
@@ -42,6 +43,7 @@ interface TopHeaderProps {
   onSwitchPackage: (pkg: DemoPackage) => void;
   onSwitchIndustry: (industry: DemoIndustry) => void;
   onOpenLockedFeature: (title: string, desc: string, reqPkg: DemoPackage) => void;
+  onOpenDrawer?: () => void;
   devModeInfo?: DevModeInfo | null;
   onOpenProfile: () => void;
   onOpenFollowUps: () => void;
@@ -62,6 +64,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
   onSwitchPackage,
   onSwitchIndustry,
   onOpenLockedFeature,
+  onOpenDrawer,
   devModeInfo,
   onOpenProfile,
   onOpenFollowUps,
@@ -245,46 +248,61 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
   const orgContext = getOrgContext();
 
   return (
-    <header className="bg-white sticky top-0 z-20 px-4 sm:px-6 lg:px-8 py-3 border-b border-slate-200 flex flex-col lg:flex-row lg:items-center justify-between gap-3 shadow-2xs">
-      {/* 1. Left: Page Title, Subtitle & Organization Context */}
-      <div className="min-w-0">
-        <div className="flex flex-wrap items-center gap-2">
-          <h1 className="text-lg sm:text-xl font-bold text-slate-900 tracking-tight">
-            {title}
-          </h1>
+    <header className="bg-white sticky top-0 z-20 px-3.5 sm:px-6 lg:px-8 py-2 sm:py-3 border-b border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-2 sm:gap-3 shadow-2xs">
+      {/* 1. Left: Mobile Hamburger, Page Title, Subtitle & Organization Context */}
+      <div className="flex items-center gap-2 min-w-0">
+        {onOpenDrawer && (
+          <button
+            type="button"
+            onClick={onOpenDrawer}
+            className="md:hidden w-10 h-10 -ml-1 rounded-lg flex items-center justify-center text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer shrink-0"
+            aria-label="Buka Menu Navigasi"
+          >
+            <Menu className="w-5 h-5" />
+          </button>
+        )}
 
-          {/* Organization & Branch Context Pill */}
-          <div className="hidden xl:flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg bg-slate-50 border border-slate-200 text-xs text-slate-600">
-            {currentIndustry === 'contractor' ? (
-              <Hammer className="w-3.5 h-3.5 text-amber-600 shrink-0" />
-            ) : currentIndustry === 'umkm' ? (
-              <Store className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-            ) : (
-              <Building2 className="w-3.5 h-3.5 text-slate-600 shrink-0" />
-            )}
-            <span className="font-semibold text-slate-800 truncate max-w-[200px]">{orgContext.org}</span>
-            <span className="text-slate-300">•</span>
-            <span className="flex items-center gap-1 text-slate-500">
-              <MapPin className="w-3 h-3 text-slate-400" />
-              <span>{orgContext.branch}</span>
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+            <h1 className="text-base sm:text-lg lg:text-xl font-bold text-slate-900 tracking-tight truncate">
+              {title}
+            </h1>
+
+            {/* Organization & Branch Context Pill */}
+            <div className="hidden xl:flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg bg-slate-50 border border-slate-200 text-xs text-slate-600">
+              {currentIndustry === 'contractor' ? (
+                <Hammer className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+              ) : currentIndustry === 'umkm' ? (
+                <Store className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+              ) : (
+                <Building2 className="w-3.5 h-3.5 text-slate-600 shrink-0" />
+              )}
+              <span className="font-semibold text-slate-800 truncate max-w-[200px]">{orgContext.org}</span>
+              <span className="text-slate-300">•</span>
+              <span className="flex items-center gap-1 text-slate-500">
+                <MapPin className="w-3 h-3 text-slate-400" />
+                <span>{orgContext.branch}</span>
+              </span>
+            </div>
+
+            {/* Package / Industry Status Tag */}
+            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md border text-[10px] sm:text-[11px] font-semibold tracking-tight ${orgContext.badgeClass}`}>
+              <span>{orgContext.badge}</span>
             </span>
           </div>
 
-          {/* Package / Industry Status Tag */}
-          <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md border text-[11px] font-semibold tracking-tight ${orgContext.badgeClass}`}>
-            <span>{orgContext.badge}</span>
-          </span>
+          {subtitle && (
+            <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5 truncate hidden sm:block">{subtitle}</p>
+          )}
         </div>
-
-        {subtitle && (
-          <p className="text-xs text-slate-500 mt-0.5 truncate">{subtitle}</p>
-        )}
       </div>
 
       {/* 2. Right Controls: INDUSTRY + PACKAGE + ROLE + Actions */}
-      <div className="flex flex-wrap items-center gap-2">
-        {/* A. INDUSTRY SWITCHER CONTROL (Clean Segmented) */}
-        <div className="flex items-center bg-slate-100 p-0.5 rounded-lg border border-slate-200 shadow-2xs">
+      <div className="flex items-center gap-2 shrink-0">
+        {/* Switchers on Desktop ONLY */}
+        <div className="hidden md:flex items-center gap-2">
+          {/* A. INDUSTRY SWITCHER CONTROL (Clean Segmented) */}
+          <div className="flex items-center bg-slate-100 p-0.5 rounded-lg border border-slate-200 shadow-2xs">
           {(['general', 'umkm', 'contractor'] as DemoIndustry[]).map((indKey) => {
             const indConfig = DEMO_INDUSTRIES[indKey];
             const isActive = currentIndustry === indKey;
@@ -471,8 +489,9 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
             <option value="all">Semua Waktu</option>
           </select>
         </div>
+      </div>
 
-        {/* E. Notification Bell (Follow Up Count) */}
+      {/* E. Notification Bell (Follow Up Count) */}
         <button
           type="button"
           onClick={onOpenFollowUps}

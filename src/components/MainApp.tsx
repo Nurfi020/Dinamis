@@ -68,6 +68,7 @@ import { leadService, followUpService, profileService } from '../services/api';
 import { Sidebar } from './layout/Sidebar';
 import { BottomNav } from './layout/BottomNav';
 import { TopHeader } from './layout/TopHeader';
+import { MobileNavDrawer } from './layout/MobileNavDrawer';
 import { DashboardView } from './dashboard/DashboardView';
 import { SupervisorDashboardView } from './supervisor/SupervisorDashboardView';
 import { ManagerDashboardView } from './manager/ManagerDashboardView';
@@ -208,6 +209,7 @@ export function MainApp({
   const [isLogFollowUpOpen, setIsLogFollowUpOpen] = useState(false);
   const [leadForFollowUp, setLeadForFollowUp] = useState<Lead | null>(null);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
+  const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
 
   // Filters state from dashboard quick click
   const [initialFilterStatus, setInitialFilterStatus] = useState<string>('all');
@@ -1309,6 +1311,7 @@ export function MainApp({
           onSwitchPackage={handleSwitchPackage}
           onSwitchIndustry={handleSwitchIndustry}
           onOpenLockedFeature={handleOpenLockedFeature}
+          onOpenDrawer={() => setIsMobileDrawerOpen(true)}
           devModeInfo={devModeInfo}
           onOpenProfile={() => {
             setSelectedLeadId(null);
@@ -1324,7 +1327,7 @@ export function MainApp({
         />
 
         {/* Dynamic Views */}
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto">
+        <main className="flex-1 p-3.5 sm:p-6 lg:p-8 overflow-y-auto pb-24 md:pb-8">
           {/* A. Dashboard Tab per Role */}
           {activeTab === 'dashboard' && (
             <>
@@ -1589,11 +1592,37 @@ export function MainApp({
           setActiveTab(tab);
         }}
         onOpenAddLead={() => setIsAddModalOpen(true)}
+        onOpenDrawer={() => setIsMobileDrawerOpen(true)}
         followUpCount={followUpCount}
         currentRole={currentRole}
+        currentIndustry={currentIndustry}
       />
 
-      {/* 4. Modals */}
+      {/* 4. Mobile Navigation Drawer */}
+      <MobileNavDrawer
+        isOpen={isMobileDrawerOpen}
+        onClose={() => setIsMobileDrawerOpen(false)}
+        activeTab={activeTab}
+        setActiveTab={(tab) => {
+          setSelectedLeadId(null);
+          setInitialFilterStatus('all');
+          setActiveTab(tab);
+        }}
+        onOpenAddLead={() => setIsAddModalOpen(true)}
+        followUpCount={followUpCount}
+        onOpenHelp={() => setIsHelpOpen(true)}
+        currentRole={currentRole}
+        currentPersona={currentPersona}
+        currentPackage={currentPackage}
+        currentIndustry={currentIndustry}
+        onSwitchRole={handleSwitchRole}
+        onSwitchPackage={handleSwitchPackage}
+        onSwitchIndustry={handleSwitchIndustry}
+        onOpenLockedFeature={handleOpenLockedFeature}
+        devModeInfo={devModeInfo}
+      />
+
+      {/* 5. Modals */}
       <AddLeadModal
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
