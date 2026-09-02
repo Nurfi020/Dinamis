@@ -157,6 +157,7 @@ export type ActiveTab =
   | 'leads' 
   | 'pipeline' 
   | 'followup' 
+  | 'contractor_rab'
   | 'team_performance' 
   | 'branches' 
   | 'teams' 
@@ -257,4 +258,65 @@ export interface DemoIndustryConfig {
     subLabel: string;
     description: string;
   }[];
+}
+
+// ==========================================
+// PHASE 2D-1: CONTRACTOR RAB CORE DATA MODEL
+// ==========================================
+
+export type RABStatus = 'Draft' | 'Final';
+
+export type WorkCategory = 
+  | 'Pekerjaan Persiapan'
+  | 'Pekerjaan Pondasi & Struktur'
+  | 'Pekerjaan Dinding & Plesteran'
+  | 'Pekerjaan Atap & Plafon'
+  | 'Pekerjaan Lantai & Keramik'
+  | 'Pekerjaan Pintu, Jendela & Kaca'
+  | 'Pekerjaan Instalasi Listrik & MEP'
+  | 'Pekerjaan Sanitasi & Plumbing'
+  | 'Pekerjaan Pengecatan & Finishing'
+  | 'Pekerjaan Eksterior & Lanskap'
+  | 'Lain-lain';
+
+export interface RABItem {
+  id: string;
+  rabId: string;
+  category: WorkCategory;
+  itemName: string;
+  description?: string;
+  volume: number;
+  unit: string;
+  materialUnitPrice: number;
+  materialTotal: number;
+  laborUnitPrice: number;
+  laborTotal: number;
+  subtotal: number;
+}
+
+export interface RAB {
+  id: string;
+  rabNumber: string;
+  leadId?: string;
+  projectName: string;
+  clientName: string;
+  clientPhone: string;
+  projectLocation: string;
+  buildingAreaM2?: number;
+  status: RABStatus;
+  items: RABItem[];
+  materialTotal: number;
+  laborTotal: number;
+  subtotalCost: number;
+  overheadType: 'percent' | 'nominal';
+  overheadValue: number;
+  overheadAmount: number;
+  marginType: 'percent' | 'nominal';
+  marginValue: number;
+  marginAmount: number;
+  discountAmount: number;
+  grandTotal: number;
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
 }

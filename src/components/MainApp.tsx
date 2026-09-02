@@ -12,7 +12,9 @@ import {
   DemoRole,
   DemoPersona,
   DemoPackage,
-  DemoIndustry
+  DemoIndustry,
+  RAB,
+  RABItem
 } from '../types';
 import { 
   getStoredLeads, 
@@ -26,6 +28,12 @@ import {
 import { DEMO_PERSONAS } from '../data/enterpriseDemoData';
 import { DEMO_PACKAGES } from '../data/packageDemoData';
 import { DEMO_INDUSTRIES, CONTRACTOR_DEMO_LEADS, UMKM_DEMO_LEADS } from '../data/contractorDemoData';
+import { 
+  INITIAL_RABS, 
+  getStoredRABs, 
+  saveStoredRABs, 
+  calculateRABSummary 
+} from '../data/contractorRABData';
 import { leadService, followUpService, profileService } from '../services/api';
 import { Sidebar } from './layout/Sidebar';
 import { BottomNav } from './layout/BottomNav';
@@ -48,6 +56,8 @@ import { LogFollowUpModal } from './followup/LogFollowUpModal';
 import { FollowUpListView } from './followup/FollowUpListView';
 import { ReportsView } from './reports/ReportsView';
 import { ProfileView } from './profile/ProfileView';
+import { RABListView } from './contractor/RABListView';
+import { RABDetailView } from './contractor/RABDetailView';
 import { HelpGuideModal } from './common/HelpGuideModal';
 import { ToastContainer, ToastMessage } from './common/Toast';
 import { LockedFeatureModal } from './common/LockedFeatureModal';
@@ -99,6 +109,10 @@ export function MainApp({
   const [selectedLeadId, setSelectedLeadId] = useState<string | null>(initialLeadId);
   const [isClient, setIsClient] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+
+  // CONTRACTOR RAB STATE (Isolated Storage Engine)
+  const [rabs, setRabs] = useState<RAB[]>(INITIAL_RABS);
+  const [selectedRabId, setSelectedRabId] = useState<string | null>(null);
 
   // DEMO PACKAGE STATE (Basic / Business / Enterprise)
   const [currentPackage, setCurrentPackage] = useState<DemoPackage>('enterprise');
@@ -167,7 +181,7 @@ export function MainApp({
     }
   }, [initialOpenAddModal]);
 
-  // Load stored demo package and industry preferences from isolated keys on mount
+  // Load stored demo package, industry, and RAB preferences from isolated keys on mount
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const storedPkg = localStorage.getItem('kelola_lead_demo_package_v1') as DemoPackage;
@@ -184,6 +198,9 @@ export function MainApp({
           setLeads(UMKM_DEMO_LEADS);
         }
       }
+
+      const loadedRabs = getStoredRABs();
+      setRabs(loadedRabs);
     }
   }, []);
 
@@ -216,6 +233,7 @@ export function MainApp({
     }
 
     setSelectedLeadId(null);
+    setSelectedRabId(null);
     setActiveTab('dashboard');
     addToast(
       'info',
@@ -240,6 +258,7 @@ export function MainApp({
     }
 
     setSelectedLeadId(null);
+    setSelectedRabId(null);
     setActiveTab('dashboard');
     addToast(
       'info',
@@ -254,6 +273,7 @@ export function MainApp({
     setCurrentRole(role);
     setCurrentPersona(targetPersona);
     setSelectedLeadId(null);
+    setSelectedRabId(null);
     setActiveTab('dashboard');
     addToast('info', `Beralih ke ${role.toUpperCase()} Portal`, `Akun aktif: ${targetPersona.name} (${targetPersona.title})`);
   };
@@ -350,8 +370,9 @@ export function MainApp({
     addToast('info', 'Perangkat Dilepaskan', 'Lisensi berhasil dinonaktifkan dari perangkat ini.');
   };
 
-  // Find currently selected lead
+  // Find currently selected lead & RAB
   const selectedLead = leads.find((l) => l.id === selectedLeadId) || null;
+  const selectedRab = rabs.find((r) => r.id === selectedRabId) || null;
 
   // Active follow up badge calculation
   const followUpCount = leads.filter(
@@ -559,6 +580,179 @@ export function MainApp({
     }
   };
 
+  // ====================================================
+  // CONTRACTOR RAB HANDLERS (Isolated Storage Engine)
+  // ====================================================
+
+  const handleCreateRAB = (
+    newRabData: Omit<
+      RAB,
+      | 'id'
+      | 'createdAt'
+      | 'updatedAt'
+      | 'items'
+      | 'materialTotal'
+      | 'laborTotal'
+      | 'subtotalCost'
+      | 'overheadAmount'
+      | 'marginAmount'
+      | 'grandTotal'
+    >
+  ) => {
+    const id = `rab-${Date.now()}`;
+    const now = new Date().toISOString();
+    const newRAB: RAB = {
+      ...newRabData,
+      id,
+      items: [],
+      materialTotal: 0,
+      laborTotal: 0,
+      subtotalCost: 0,
+      overheadAmount: 0,
+      marginAmount: 0,
+      grandTotal: 0,
+      createdAt: now,
+      updatedAt: now,
+    };
+
+    setRabs((prev) => {
+      const updated = [newRAB, ...prev];
+      saveStoredRABs(updated);
+      return updated;
+    });
+
+    setSelectedRabId(id);
+    addToast('success', 'RAB Berhasil Dibuat', `${newRAB.rabNumber} — ${newRAB.projectName}`);
+  };
+
+  const handleUpdateRAB = (rabId: string, updatedData: Partial<RAB>) => {
+    setRabs((prev) => {
+      const updated = prev.map((r) => {
+        if (r.id !== rabId) return r;
+        const merged: RAB = {
+          ...r,
+          ...updatedData,
+          updatedAt: new Date().toISOString(),
+        };
+        const summary = calculateRABSummary(
+          merged.items || [],
+          merged.overheadType,
+          merged.overheadValue,
+          merged.marginType,
+          merged.marginValue,
+          merged.discountAmount
+        );
+        return {
+          ...merged,
+          ...summary,
+        };
+      });
+      saveStoredRABs(updated);
+      return updated;
+    });
+    addToast('success', 'RAB Diperbarui', 'Data proyek & kalkulasi biaya berhasil diperbarui.');
+  };
+
+  const handleDeleteRAB = (rabId: string) => {
+    setRabs((prev) => {
+      const updated = prev.filter((r) => r.id !== rabId);
+      saveStoredRABs(updated);
+      return updated;
+    });
+    if (selectedRabId === rabId) {
+      setSelectedRabId(null);
+    }
+    addToast('info', 'RAB Dihapus', 'Dokumen RAB telah berhasil dihapus.');
+  };
+
+  const handleAddRABItem = (newItemData: Omit<RABItem, 'id'>) => {
+    const itemId = `item-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`;
+    const newItem: RABItem = {
+      ...newItemData,
+      id: itemId,
+    };
+
+    setRabs((prev) => {
+      const updated = prev.map((r) => {
+        if (r.id !== newItemData.rabId) return r;
+        const updatedItems = [...r.items, newItem];
+        const summary = calculateRABSummary(
+          updatedItems,
+          r.overheadType,
+          r.overheadValue,
+          r.marginType,
+          r.marginValue,
+          r.discountAmount
+        );
+        return {
+          ...r,
+          items: updatedItems,
+          ...summary,
+          updatedAt: new Date().toISOString(),
+        };
+      });
+      saveStoredRABs(updated);
+      return updated;
+    });
+    addToast('success', 'Item Ditambahkan', `${newItem.itemName} (${newItem.volume} ${newItem.unit})`);
+  };
+
+  const handleUpdateRABItem = (itemId: string, updatedItemData: Partial<RABItem>) => {
+    setRabs((prev) => {
+      const updated = prev.map((r) => {
+        const hasItem = r.items.some((it) => it.id === itemId);
+        if (!hasItem) return r;
+        const updatedItems = r.items.map((it) =>
+          it.id === itemId ? { ...it, ...updatedItemData } : it
+        );
+        const summary = calculateRABSummary(
+          updatedItems,
+          r.overheadType,
+          r.overheadValue,
+          r.marginType,
+          r.marginValue,
+          r.discountAmount
+        );
+        return {
+          ...r,
+          items: updatedItems,
+          ...summary,
+          updatedAt: new Date().toISOString(),
+        };
+      });
+      saveStoredRABs(updated);
+      return updated;
+    });
+    addToast('success', 'Item Diperbarui', 'Data item pekerjaan dan kalkulasi subtotal telah diperbarui.');
+  };
+
+  const handleDeleteRABItem = (itemId: string) => {
+    setRabs((prev) => {
+      const updated = prev.map((r) => {
+        const hasItem = r.items.some((it) => it.id === itemId);
+        if (!hasItem) return r;
+        const updatedItems = r.items.filter((it) => it.id !== itemId);
+        const summary = calculateRABSummary(
+          updatedItems,
+          r.overheadType,
+          r.overheadValue,
+          r.marginType,
+          r.marginValue,
+          r.discountAmount
+        );
+        return {
+          ...r,
+          items: updatedItems,
+          ...summary,
+          updatedAt: new Date().toISOString(),
+        };
+      });
+      saveStoredRABs(updated);
+      return updated;
+    });
+    addToast('info', 'Item Dihapus', 'Item pekerjaan berhasil dihapus dari RAB.');
+  };
+
   // Header title & subtitle dynamically tailored to active tab, active role, active package, and active industry
   const getHeaderInfo = () => {
     const isContractor = currentIndustry === 'contractor';
@@ -568,6 +762,13 @@ export function MainApp({
       return {
         title: selectedLead.name,
         subtitle: `${selectedLead.product.split('-')[0].trim()} • ${selectedLead.city}`,
+      };
+    }
+
+    if (selectedRab && activeTab === 'contractor_rab') {
+      return {
+        title: selectedRab.projectName,
+        subtitle: `Dokumen ${selectedRab.rabNumber} • Klien: ${selectedRab.clientName} (${selectedRab.projectLocation})`,
       };
     }
     switch (activeTab) {
@@ -749,15 +950,21 @@ export function MainApp({
       case 'reports':
         return {
           title: isContractor 
-            ? 'Laporan Pipeline Proyek Konstruksi' 
+            ? 'Laporan Analisis Proyek' 
             : isUmkm
-            ? 'Laporan Penjualan & Konversi UMKM'
-            : (currentRole === 'manager' ? 'Laporan Kinerja Manajemen' : currentRole === 'supervisor' ? 'Laporan Performa Tim' : 'Laporan Performa Penjualan'),
+            ? 'Laporan Penjualan & Produk Terlaris'
+            : (currentRole === 'supervisor' ? 'Laporan Performa Tim Sales' : 'Laporan Performa Sales'),
           subtitle: isContractor
-            ? 'Analisis konversi survey ke SPK, efektivitas sumber proyek, dan closing'
+            ? 'Statistik konversi prospek proyek konstruksi, realisasi SPK, dan histori follow-up'
             : isUmkm
-            ? 'Analisis konversi calon pelanggan, efektivitas kanal promosi, dan omset closing'
-            : 'Analisis konversi lead, efektivitas saluran, dan tingkat closing',
+            ? 'Statistik konversi calon pelanggan, omset produk terlaris, dan histori transaksi'
+            : 'Statistik performa penjualan, konversi lead, dan riwayat aktivitas follow-up',
+        };
+
+      case 'contractor_rab':
+        return {
+          title: 'Rencana Anggaran Biaya (RAB)',
+          subtitle: 'Penyusunan estimasi biaya proyek, analisa harga satuan material & upah, serta margin profit kontraktor',
         };
 
       case 'profile':
@@ -991,6 +1198,32 @@ export function MainApp({
           )}
 
           {activeTab === 'reports' && <ReportsView leads={leads} />}
+
+          {/* D. Contractor Dedicated Tab: RAB */}
+          {activeTab === 'contractor_rab' && (
+            <>
+              {selectedRab ? (
+                <RABDetailView
+                  rab={selectedRab}
+                  onBack={() => setSelectedRabId(null)}
+                  onUpdateRAB={handleUpdateRAB}
+                  onDeleteRAB={handleDeleteRAB}
+                  onAddItem={handleAddRABItem}
+                  onUpdateItem={handleUpdateRABItem}
+                  onDeleteItem={handleDeleteRABItem}
+                />
+              ) : (
+                <RABListView
+                  rabs={rabs}
+                  leads={leads}
+                  onSelectRAB={(r) => setSelectedRabId(r.id)}
+                  onCreateRAB={handleCreateRAB}
+                  onUpdateRAB={handleUpdateRAB}
+                  onDeleteRAB={handleDeleteRAB}
+                />
+              )}
+            </>
+          )}
 
           {activeTab === 'profile' && (
             <ProfileView

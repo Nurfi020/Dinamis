@@ -20,7 +20,8 @@ import {
   ShieldCheck,
   Lock,
   Hammer,
-  Store
+  Store,
+  FileSpreadsheet
 } from 'lucide-react';
 import { ActiveTab, DevModeInfo, DemoRole, DemoPersona, DemoPackage, DemoIndustry } from '../../types';
 import { DEMO_PACKAGES } from '../../data/packageDemoData';
@@ -72,6 +73,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
           label: isContractor ? 'Prospek Proyek' : isUmkm ? 'Calon Pelanggan' : 'Semua Lead',
           icon: isContractor ? Hammer : isUmkm ? Store : Users,
         },
+        ...(isContractor ? [
+          {
+            id: 'contractor_rab' as ActiveTab,
+            label: 'Rencana Anggaran (RAB)',
+            icon: FileSpreadsheet,
+          },
+        ] : []),
         {
           id: 'add_lead_action' as ActiveTab,
           label: isContractor ? 'Tambah Proyek' : isUmkm ? 'Tambah Pelanggan' : 'Tambah Lead',
@@ -111,6 +119,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
             label: isContractor ? 'Prospek Proyek Tim' : isUmkm ? 'Pelanggan Tim Sales' : 'Lead Anggota Tim',
             icon: isContractor ? Hammer : isUmkm ? Store : Users,
           },
+          ...(isContractor ? [
+            {
+              id: 'contractor_rab' as ActiveTab,
+              label: 'Rencana Anggaran (RAB)',
+              icon: FileSpreadsheet,
+            },
+          ] : []),
           {
             id: 'add_lead_action' as ActiveTab,
             label: isContractor ? 'Tambah Proyek Tim' : isUmkm ? 'Tambah Pelanggan' : 'Tambah Lead Tim',
@@ -153,6 +168,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
           label: isContractor ? 'Prospek Proyek' : isUmkm ? 'Calon Pelanggan' : 'Semua Lead',
           icon: isContractor ? Hammer : isUmkm ? Store : Users,
         },
+        ...(isContractor ? [
+          {
+            id: 'contractor_rab' as ActiveTab,
+            label: 'Rencana Anggaran (RAB)',
+            icon: FileSpreadsheet,
+          },
+        ] : []),
         {
           id: 'add_lead_action' as ActiveTab,
           label: isContractor ? 'Tambah Proyek' : isUmkm ? 'Tambah Pelanggan' : 'Tambah Lead',
@@ -197,6 +219,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
             label: isContractor ? 'Prospek Proyek' : isUmkm ? 'Calon Pelanggan' : 'Semua Lead',
             icon: isContractor ? Hammer : isUmkm ? Store : Users,
           },
+          ...(isContractor ? [
+            {
+              id: 'contractor_rab' as ActiveTab,
+              label: 'Rencana Anggaran (RAB)',
+              icon: FileSpreadsheet,
+            },
+          ] : []),
           {
             id: 'add_lead_action' as ActiveTab,
             label: isContractor ? 'Tambah Proyek' : isUmkm ? 'Tambah Pelanggan' : 'Tambah Lead',
@@ -233,6 +262,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
             label: isContractor ? 'Prospek Proyek Tim' : isUmkm ? 'Pelanggan Tim Sales' : 'Lead Anggota Tim',
             icon: isContractor ? Hammer : isUmkm ? Store : Users,
           },
+          ...(isContractor ? [
+            {
+              id: 'contractor_rab' as ActiveTab,
+              label: 'Rencana Anggaran (RAB)',
+              icon: FileSpreadsheet,
+            },
+          ] : []),
           {
             id: 'add_lead_action' as ActiveTab,
             label: isContractor ? 'Tambah Proyek Tim' : isUmkm ? 'Tambah Pelanggan' : 'Tambah Lead Tim',
@@ -284,6 +320,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
             label: isContractor ? 'Pipeline Proyek Nasional' : isUmkm ? 'Semua Pipeline Pelanggan' : 'Semua Pipeline Lead',
             icon: Layers,
           },
+          ...(isContractor ? [
+            {
+              id: 'contractor_rab' as ActiveTab,
+              label: 'RAB & Estimasi Biaya',
+              icon: FileSpreadsheet,
+            },
+          ] : []),
           {
             id: 'reports' as ActiveTab,
             label: isContractor ? 'Laporan Direksi Proyek' : isUmkm ? 'Laporan Owner Bisnis' : 'Laporan Manajemen',
@@ -313,6 +356,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
             label: isContractor ? 'Master Cabang & Wilayah' : isUmkm ? 'Master Outlet & Toko' : 'Master Cabang & Tim',
             icon: Building2,
           },
+          ...(isContractor ? [
+            {
+              id: 'contractor_rab' as ActiveTab,
+              label: 'Master RAB Proyek',
+              icon: FileSpreadsheet,
+            },
+          ] : []),
           {
             id: 'admin_licenses' as ActiveTab,
             label: 'Manajemen Lisensi',
