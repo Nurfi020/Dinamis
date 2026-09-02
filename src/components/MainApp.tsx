@@ -21,7 +21,12 @@ import {
   ProjectMilestone,
   ProgressLogEntry,
   ProjectStatus,
-  ProjectStage
+  ProjectStage,
+  ProjectFinance,
+  BillingTerm,
+  ProjectInvoice,
+  InvoicePayment,
+  ProjectExpense
 } from '../types';
 import {
   getStoredLeads,
@@ -51,6 +56,14 @@ import {
   getStoredProjects,
   saveStoredProjects
 } from '../data/contractorProjectData';
+import {
+  INITIAL_FINANCES,
+  getStoredProjectFinances,
+  saveStoredProjectFinances,
+  initializeProjectFinance,
+  recalculateProjectFinance
+} from '../data/contractorFinanceData';
+import { formatRupiah } from '../utils/helpers';
 import { leadService, followUpService, profileService } from '../services/api';
 import { Sidebar } from './layout/Sidebar';
 import { BottomNav } from './layout/BottomNav';
@@ -81,6 +94,8 @@ import { CreateQuotationModal } from './contractor/quotation/CreateQuotationModa
 import { ProjectListView } from './contractor/project/ProjectListView';
 import { ProjectDetailView } from './contractor/project/ProjectDetailView';
 import { CreateProjectModal } from './contractor/project/CreateProjectModal';
+import { FinanceDashboardView } from './contractor/finance/FinanceDashboardView';
+import { ProjectFinanceDetailView } from './contractor/finance/ProjectFinanceDetailView';
 import { HelpGuideModal } from './common/HelpGuideModal';
 import { ToastContainer, ToastMessage } from './common/Toast';
 import { LockedFeatureModal } from './common/LockedFeatureModal';
@@ -148,6 +163,10 @@ export function MainApp({
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const [isCreateProjectModalOpen, setIsCreateProjectModalOpen] = useState<boolean>(false);
   const [preSelectedQuotationForProject, setPreSelectedQuotationForProject] = useState<string | null>(null);
+
+  // CONTRACTOR FINANCE STATE (Isolated Storage Engine)
+  const [finances, setFinances] = useState<ProjectFinance[]>(INITIAL_FINANCES);
+  const [selectedFinanceId, setSelectedFinanceId] = useState<string | null>(null);
 
   // DEMO PACKAGE STATE (Basic / Business / Enterprise)
   const [currentPackage, setCurrentPackage] = useState<DemoPackage>('enterprise');
@@ -242,6 +261,19 @@ export function MainApp({
 
       const loadedProjects = getStoredProjects();
       setProjects(loadedProjects);
+
+      const loadedFinances = getStoredProjectFinances();
+      // Ensure all loaded projects have corresponding finance records
+      let synchedFinances = [...loadedFinances];
+      for (const p of loadedProjects) {
+        if (!synchedFinances.some((f) => f.projectId === p.id)) {
+          const sourceRAB = loadedRabs.find((r) => r.id === p.rabId);
+          const newFin = initializeProjectFinance(p, sourceRAB);
+          synchedFinances.push(newFin);
+        }
+      }
+      setFinances(synchedFinances);
+      saveStoredProjectFinances(synchedFinances);
     }
   }, []);
 
@@ -277,6 +309,7 @@ export function MainApp({
     setSelectedRabId(null);
     setSelectedQuotationId(null);
     setSelectedProjectId(null);
+    setSelectedFinanceId(null);
     setActiveTab('dashboard');
     addToast(
       'info',
@@ -304,6 +337,7 @@ export function MainApp({
     setSelectedRabId(null);
     setSelectedQuotationId(null);
     setSelectedProjectId(null);
+    setSelectedFinanceId(null);
     setActiveTab('dashboard');
     addToast(
       'info',
@@ -321,6 +355,7 @@ export function MainApp({
     setSelectedRabId(null);
     setSelectedQuotationId(null);
     setSelectedProjectId(null);
+    setSelectedFinanceId(null);
     setActiveTab('dashboard');
     addToast('info', `Beralih ke ${role.toUpperCase()} Portal`, `Akun aktif: ${targetPersona.name} (${targetPersona.title})`);
   };
@@ -417,11 +452,13 @@ export function MainApp({
     addToast('info', 'Perangkat Dilepaskan', 'Lisensi berhasil dinonaktifkan dari perangkat ini.');
   };
 
-  // Find currently selected lead, RAB, Quotation & Project
+  // Find currently selected lead, RAB, Quotation, Project & Finance
   const selectedLead = leads.find((l) => l.id === selectedLeadId) || null;
   const selectedRab = rabs.find((r) => r.id === selectedRabId) || null;
   const selectedQuotation = quotations.find((q) => q.id === selectedQuotationId) || null;
   const selectedProject = projects.find((p) => p.id === selectedProjectId) || null;
+  const selectedFinance = finances.find((f) => f.id === selectedFinanceId || f.projectId === selectedFinanceId) || null;
+  const projectForSelectedFinance = selectedFinance ? projects.find((p) => p.id === selectedFinance.projectId) || null : null;
 
   // Active follow up badge calculation
   const followUpCount = leads.filter(
@@ -868,6 +905,15 @@ export function MainApp({
       return updated;
     });
 
+    // Auto-create snapshot finance record for new project
+    const sourceRAB = rabs.find((r) => r.id === newProject.rabId);
+    const newFinance = initializeProjectFinance(newProject, sourceRAB);
+    setFinances((prev) => {
+      const updated = [newFinance, ...prev];
+      saveStoredProjectFinances(updated);
+      return updated;
+    });
+
     setSelectedProjectId(newProject.id);
     setActiveTab('contractor_project');
     addToast('success', 'Proyek Baru Diterbitkan', `${newProject.projectNumber} — ${newProject.projectName}`);
@@ -912,6 +958,20 @@ export function MainApp({
     addToast('info', 'Proyek Dihapus', 'Data proyek konstruksi telah dihapus.');
   };
 
+  // ====================================================
+  // CONTRACTOR FINANCE HANDLERS (Isolated Storage Engine)
+  // ====================================================
+
+  const handleUpdateFinance = (updatedFinance: ProjectFinance) => {
+    const recalculated = recalculateProjectFinance(updatedFinance);
+    setFinances((prev) => {
+      const updated = prev.map((f) => (f.id === recalculated.id ? recalculated : f));
+      saveStoredProjectFinances(updated);
+      return updated;
+    });
+    addToast('success', 'Keuangan Diperbarui', 'Data penagihan dan pengeluaran proyek berhasil disimpan.');
+  };
+
   // Header title & subtitle dynamically tailored to active tab, active role, active package, and active industry
   const getHeaderInfo = () => {
     const isContractor = currentIndustry === 'contractor';
@@ -942,6 +1002,13 @@ export function MainApp({
       return {
         title: selectedProject.projectName,
         subtitle: `Proyek ${selectedProject.projectNumber} • SPK: ${selectedProject.contractNumber} (${selectedProject.stage})`,
+      };
+    }
+
+    if (selectedFinance && activeTab === 'contractor_finance') {
+      return {
+        title: selectedFinance.projectName,
+        subtitle: `Keuangan Proyek ${selectedFinance.projectNumber} • Kontrak: ${formatRupiah(selectedFinance.contractValueSnapshot)}`,
       };
     }
     switch (activeTab) {
@@ -1150,6 +1217,12 @@ export function MainApp({
         return {
           title: 'Monitoring Proyek & Progres Lapangan',
           subtitle: 'Pelacakan realisasi fisik, Kurva S, log opname mingguan, dan deviasi proyek konstruksi aktif',
+        };
+
+      case 'contractor_finance':
+        return {
+          title: 'Keuangan Proyek & Termin Penagihan',
+          subtitle: 'Monitoring arus kas, penagihan termin (BAP / Invoice), realisasi biaya lapangan vs RAB, dan margin laba kotor',
         };
 
       case 'profile':
@@ -1444,6 +1517,10 @@ export function MainApp({
                   onBack={() => setSelectedProjectId(null)}
                   onUpdateProject={handleUpdateProject}
                   onDeleteProject={handleDeleteProject}
+                  onOpenFinance={(prjId) => {
+                    setSelectedFinanceId(prjId);
+                    setActiveTab('contractor_finance');
+                  }}
                 />
               ) : (
                 <ProjectListView
@@ -1454,6 +1531,30 @@ export function MainApp({
                   onCreateProject={handleCreateProject}
                   onUpdateProject={handleUpdateProject}
                   onDeleteProject={handleDeleteProject}
+                />
+              )}
+            </>
+          )}
+
+          {/* G. Contractor Dedicated Tab: Project Finance & Cost Control */}
+          {activeTab === 'contractor_finance' && (
+            <>
+              {selectedFinance && projectForSelectedFinance ? (
+                <ProjectFinanceDetailView
+                  finance={selectedFinance}
+                  project={projectForSelectedFinance}
+                  onBack={() => setSelectedFinanceId(null)}
+                  onUpdateFinance={handleUpdateFinance}
+                />
+              ) : (
+                <FinanceDashboardView
+                  finances={finances}
+                  projects={projects}
+                  onSelectProjectFinance={(f) => setSelectedFinanceId(f.id)}
+                  onNavigateToProjects={() => {
+                    setSelectedProjectId(null);
+                    setActiveTab('contractor_project');
+                  }}
                 />
               )}
             </>

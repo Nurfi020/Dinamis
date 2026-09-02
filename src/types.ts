@@ -160,6 +160,7 @@ export type ActiveTab =
   | 'contractor_rab'
   | 'contractor_quotation'
   | 'contractor_project'
+  | 'contractor_finance'
   | 'team_performance'
   | 'branches'
   | 'teams'
@@ -461,6 +462,143 @@ export interface ContractorProject {
   // Site Supervisor / Field Management
   siteManagerName?: string;
   siteManagerPhone?: string;
+
+  createdAt: string;
+  updatedAt: string;
+}
+
+// ====================================================
+// PHASE 2D-4: CONTRACTOR PROJECT FINANCE & COST CONTROL
+// ====================================================
+
+export type BillingType = 'DP' | 'Termin' | 'Pelunasan' | 'Retensi';
+
+export type InvoiceStatus = 'Draft' | 'Issued' | 'Partial' | 'Paid' | 'Overdue' | 'Cancelled';
+
+export type ExpenseCategory = 'Material' | 'Labor' | 'Equipment' | 'Operational';
+
+export type PaymentMethod = 'Transfer Bank' | 'Tunai / Cash' | 'Giro / Cek' | 'Lainnya';
+
+export interface BillingTerm {
+  id: string;
+  projectId: string;
+  termNumber: number; // 0 for DP, 1..N for Termin, 99 for Retensi
+  type: BillingType;
+  label: string; // e.g. "Uang Muka (DP) 20%", "Termin 1 (Fisik 30%)", "Retensi 5%"
+  percentage: number; // e.g. 20, 25, 25, 20, 10
+  amount: number; // contractValue * percentage / 100
+  targetPhysicalProgressTrigger?: number; // e.g. 30% progress triggers Termin 1 eligibility
+  dueDate?: string; // YYYY-MM-DD
+  invoiceId?: string; // Linked invoice ID once generated
+  status: 'Unbilled' | 'Invoiced' | 'Paid';
+}
+
+export interface ProjectInvoice {
+  id: string;
+  projectId: string;
+  projectNumber: string;
+  projectName: string;
+  clientName: string;
+  clientPhone?: string;
+  clientAddress?: string;
+  invoiceNumber: string; // e.g. INV-2026-0001
+  billingTermId?: string;
+  type: BillingType;
+  title: string; // e.g. "Penagihan Uang Muka (DP) 20%"
+  invoiceDate: string; // YYYY-MM-DD
+  dueDate: string; // YYYY-MM-DD
+  amount: number; // Nilai Pokok Tagihan (sebelum pajak/diskon)
+  taxRatePercent?: number; // Default 0 or 11%
+  taxAmount?: number;
+  totalAmount: number; // amount + taxAmount
+  paidAmount: number; // Akumulasi pembayaran yang telah diterima
+  status: InvoiceStatus;
+  physicalProgressClaimPercent?: number; // Capaian progres fisik saat penagihan
+  bapNumber?: string; // Nomor Berita Acara Pembayaran e.g. BAP/2026/0001
+  bapDate?: string;
+  notes?: string;
+  bankAccountInfo?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface InvoicePayment {
+  id: string;
+  projectId: string;
+  invoiceId: string;
+  invoiceNumber: string;
+  paymentDate: string; // YYYY-MM-DD
+  amount: number;
+  paymentMethod: PaymentMethod;
+  referenceNumber?: string; // e.g. Bukti transfer / No. Kwitansi
+  notes?: string;
+  createdAt: string;
+}
+
+export interface ProjectExpense {
+  id: string;
+  projectId: string;
+  expenseDate: string; // YYYY-MM-DD
+  category: ExpenseCategory; // Material, Labor, Equipment, Operational
+  description: string;
+  amount: number;
+  vendorOrPayee: string; // Toko Bangunan / Mandor / Vendor Alat
+  referenceNumber?: string; // No. Nota / Kwitansi / Surat Jalan
+  workCategory?: string; // Ref: RAB Work Category (optional)
+  notes?: string;
+  createdAt: string;
+}
+
+export interface CategoryCostBudget {
+  category: ExpenseCategory;
+  budgetAmount: number;
+  actualAmount: number;
+  variance: number; // budgetAmount - actualAmount (+ hemat, - boros/over budget)
+  variancePercent: number;
+  status: 'Under_Budget' | 'On_Track' | 'Over_Budget' | 'No_Budget';
+  hasBudget: boolean;
+}
+
+export interface ProjectFinance {
+  id: string;
+  projectId: string;
+  projectNumber: string;
+  projectName: string;
+  clientName: string;
+
+  // Baseline Financial Snapshot (Immutable against external edits)
+  hasBudgetSnapshot: boolean; // true if initialized from valid RAB, false if RAB was missing/uninitialized
+  contractValueSnapshot: number;
+  budgetCostSnapshot: number; // 0 if hasBudgetSnapshot is false
+  categoryBudgetsSnapshot: {
+    material: number;
+    labor: number;
+    equipment: number;
+    operational: number;
+  };
+
+  // Sub-Collections
+  billingTerms: BillingTerm[];
+  invoices: ProjectInvoice[];
+  payments: InvoicePayment[];
+  expenses: ProjectExpense[];
+
+  // Aggregated KPIs
+  totalInvoiced: number;
+  totalCollected: number;
+  outstandingReceivable: number;
+  overdueReceivable: number;
+  totalActualExpense: number;
+
+  // Profitability KPIs
+  estimatedGrossProfit: number; // contractValue - budgetCost
+  estimatedGrossMarginPercent: number;
+  realizedGrossProfit: number; // contractValue - totalActualExpense
+  realizedGrossMarginPercent: number;
+
+  // Cash Flow KPIs
+  netCashFlow: number; // totalCollected - totalActualExpense
+  costVariance: number; // budgetCost - totalActualExpense
 
   createdAt: string;
   updatedAt: string;

@@ -24,7 +24,8 @@ import {
   Users,
   Activity,
   FileText,
-  ShieldCheck
+  ShieldCheck,
+  Wallet
 } from 'lucide-react';
 import { ContractorProject, ProjectMilestone, ProgressLogEntry, ProjectStatus, ProjectStage } from '../../../types';
 import { formatRupiah, formatIndonesianDate, formatFullIndonesianDate } from '../../../utils/helpers';
@@ -43,6 +44,7 @@ interface ProjectDetailViewProps {
   onBack: () => void;
   onUpdateProject: (id: string, updatedData: Partial<ContractorProject>) => void;
   onDeleteProject: (id: string) => void;
+  onOpenFinance?: (projectId: string) => void;
 }
 
 export const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
@@ -50,6 +52,7 @@ export const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
   onBack,
   onUpdateProject,
   onDeleteProject,
+  onOpenFinance,
 }) => {
   const [isLogModalOpen, setIsLogModalOpen] = useState(false);
   const [logToEdit, setLogToEdit] = useState<ProgressLogEntry | null>(null);
@@ -252,6 +255,18 @@ export const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
             <Plus className="w-3.5 h-3.5" />
             <span>Catat Opname Mingguan</span>
           </button>
+
+          {/* Jump to Project Finance */}
+          {onOpenFinance && (
+            <button
+              onClick={() => onOpenFinance(project.id)}
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg shadow-xs transition-colors cursor-pointer"
+              title="Buka Data Keuangan & Termin Proyek Ini"
+            >
+              <Wallet className="w-3.5 h-3.5 text-emerald-700" />
+              <span>Keuangan & Termin</span>
+            </button>
+          )}
 
           {/* Print / Progress Report Trigger */}
           <button

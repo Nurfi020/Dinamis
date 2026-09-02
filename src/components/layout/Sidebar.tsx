@@ -23,7 +23,8 @@ import {
   Store,
   FileSpreadsheet,
   FileText,
-  HardHat
+  HardHat,
+  Wallet
 } from 'lucide-react';
 import { ActiveTab, DevModeInfo, DemoRole, DemoPersona, DemoPackage, DemoIndustry } from '../../types';
 import { DEMO_PACKAGES } from '../../data/packageDemoData';
@@ -91,6 +92,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
             label: 'Proyek & Progress',
             icon: HardHat,
           },
+          {
+            id: 'contractor_finance' as ActiveTab,
+            label: 'Keuangan & Termin',
+            icon: Wallet,
+          },
         ] : []),
         {
           id: 'add_lead_action' as ActiveTab,
@@ -146,6 +152,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
               id: 'contractor_project' as ActiveTab,
               label: 'Proyek & Progress',
               icon: HardHat,
+            },
+            {
+              id: 'contractor_finance' as ActiveTab,
+              label: 'Keuangan & Termin',
+              icon: Wallet,
             },
           ] : []),
           {
@@ -205,6 +216,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
             id: 'contractor_project' as ActiveTab,
             label: 'Proyek & Progress',
             icon: HardHat,
+          },
+          {
+            id: 'contractor_finance' as ActiveTab,
+            label: 'Keuangan & Termin',
+            icon: Wallet,
           },
         ] : []),
         {
@@ -267,6 +283,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
               label: 'Proyek & Progress',
               icon: HardHat,
             },
+            {
+              id: 'contractor_finance' as ActiveTab,
+              label: 'Keuangan & Termin',
+              icon: Wallet,
+            },
           ] : []),
           {
             id: 'add_lead_action' as ActiveTab,
@@ -319,6 +340,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
               id: 'contractor_project' as ActiveTab,
               label: 'Proyek & Progress',
               icon: HardHat,
+            },
+            {
+              id: 'contractor_finance' as ActiveTab,
+              label: 'Keuangan & Termin',
+              icon: Wallet,
             },
           ] : []),
           {
@@ -388,6 +414,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
               label: 'Monitoring Proyek',
               icon: HardHat,
             },
+            {
+              id: 'contractor_finance' as ActiveTab,
+              label: 'Keuangan Proyek',
+              icon: Wallet,
+            },
           ] : []),
           {
             id: 'reports' as ActiveTab,
@@ -433,6 +464,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
               id: 'contractor_project' as ActiveTab,
               label: 'Master Proyek Konstruksi',
               icon: HardHat,
+            },
+            {
+              id: 'contractor_finance' as ActiveTab,
+              label: 'Master Keuangan Proyek',
+              icon: Wallet,
             },
           ] : []),
           {
