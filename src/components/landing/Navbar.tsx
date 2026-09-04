@@ -64,6 +64,18 @@ export const Navbar: React.FC = () => {
                       Software & Operasional Bisnis
                     </div>
                     <Link
+                      href="/crm/business"
+                      className="flex items-center justify-between p-2 rounded-xl hover:bg-[#EAF8F1] transition group"
+                    >
+                      <div>
+                        <div className="font-bold text-[#10231B] group-hover:text-[#16A36A]">Business CRM</div>
+                        <div className="text-xs text-[#64756D]">Customer & sales pipeline</div>
+                      </div>
+                      <span className="px-2 py-0.5 text-[10px] font-bold bg-[#EAF8F1] text-[#16A36A] rounded-full">
+                        Tersedia
+                      </span>
+                    </Link>
+                    <Link
                       href="/crm/contractor"
                       className="flex items-center justify-between p-2 rounded-xl hover:bg-[#EAF8F1] transition group"
                     >

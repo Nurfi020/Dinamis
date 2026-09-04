@@ -111,7 +111,7 @@ export default function ContractorCRMPage() {
                 </a>
 
                 <Link
-                  href="/login"
+                  href="/crm/contractor/demo"
                   className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-6 py-3.5 rounded-2xl bg-[#EAF8F1] border border-[#D1DDD6] text-[#0B3D2E] font-bold text-base hover:bg-[#16A36A] hover:text-white hover:border-[#16A36A] transition shadow-2xs active:scale-98"
                 >
                   <span>Lihat Demo</span>
@@ -274,7 +274,7 @@ export default function ContractorCRMPage() {
               <ArrowRight className="w-4 h-4 text-[#0B3D2E]" />
             </a>
             <Link
-              href="/login"
+              href="/crm/contractor/demo"
               className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-6 py-3.5 rounded-2xl bg-[#16A36A] text-white font-bold text-sm hover:bg-[#22C55E] transition shadow-xs"
             >
               <span>Lihat Demo</span>

@@ -19,6 +19,34 @@ export type CRMProduct = {
 
 export const CRM_PRODUCTS: CRMProduct[] = [
   {
+    id: 'business-crm',
+    slug: 'business',
+    name: 'Business CRM',
+    tagline: 'CRM Sederhana untuk Mengelola Customer & Sales',
+    description:
+      'Sistem CRM praktis untuk membantu bisnis mengelola lead, customer, follow-up, sales pipeline, dan riwayat aktivitas dalam satu tempat yang lebih rapi.',
+    category: 'UMKM & Bisnis Umum',
+    status: 'available',
+    href: '/crm/business',
+    demoHref: '/crm/business/demo',
+    maintenanceLevel: 'low',
+    automationLevel: 'automated',
+    badge: 'Tersedia',
+    features: [
+      'Database Lead & Customer Terpusat',
+      'Sales Pipeline & Tahapan Deals',
+      'Riwayat Aktivitas & Catatan Customer',
+      'Reminder Jadwal Follow-up Otomatis',
+      'Dashboard Ringkasan Penjualan',
+    ],
+    highlights: [
+      'Low Setup & Mudah Digunakan Tim',
+      'Role-based Access & Keamanan Data',
+    ],
+    ctaText: 'Lihat Business CRM',
+    isPrimary: false,
+  },
+  {
     id: 'contractor-crm',
     slug: 'contractor',
     name: 'Contractor CRM',
@@ -28,7 +56,7 @@ export const CRM_PRODUCTS: CRMProduct[] = [
     category: 'Konstruksi & Renovasi',
     status: 'available',
     href: '/crm/contractor',
-    demoHref: '/login',
+    demoHref: '/crm/contractor/demo',
     maintenanceLevel: 'low',
     automationLevel: 'automated',
     badge: 'Tersedia',
@@ -80,7 +108,7 @@ export const CRM_PRODUCTS: CRMProduct[] = [
     tagline: 'Manajemen Order Jasa & Invoice Termin',
     description:
       'Sistem pengelolaan antrean pekerjaan jasa profesional, penerbitan invoice termin bertahap, dan notifikasi status pengerjaan otomatis kepada klien.',
-    category: 'Jasa & Layanan Profesional',
+    category: 'Jasa & Layanan',
     status: 'coming-soon',
     href: '/crm#service',
     maintenanceLevel: 'low',
