@@ -7,6 +7,7 @@ export type CRMProduct = {
   category: string;
   status: 'available' | 'coming-soon';
   href: string;
+  demoHref?: string;
   maintenanceLevel: 'low' | 'medium';
   automationLevel: 'manual' | 'assisted' | 'automated';
   badge?: string;
@@ -27,6 +28,7 @@ export const CRM_PRODUCTS: CRMProduct[] = [
     category: 'Konstruksi & Renovasi',
     status: 'available',
     href: '/crm/contractor',
+    demoHref: '/login',
     maintenanceLevel: 'low',
     automationLevel: 'automated',
     badge: 'Tersedia',

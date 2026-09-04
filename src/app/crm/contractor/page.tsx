@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import { Navbar } from '@/components/landing/Navbar';
 import { Footer } from '@/components/landing/Footer';
 import {
@@ -108,6 +109,14 @@ export default function ContractorCRMPage() {
                   <span>Konsultasikan Kebutuhan Anda</span>
                   <ArrowRight className="w-4 h-4" />
                 </a>
+
+                <Link
+                  href="/login"
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-6 py-3.5 rounded-2xl bg-[#EAF8F1] border border-[#D1DDD6] text-[#0B3D2E] font-bold text-base hover:bg-[#16A36A] hover:text-white hover:border-[#16A36A] transition shadow-2xs active:scale-98"
+                >
+                  <span>Lihat Demo</span>
+                  <ChevronRight className="w-4 h-4" />
+                </Link>
 
                 <a
                   href="#features"
@@ -264,6 +273,13 @@ export default function ContractorCRMPage() {
               <span>Konsultasikan Kebutuhan Anda</span>
               <ArrowRight className="w-4 h-4 text-[#0B3D2E]" />
             </a>
+            <Link
+              href="/login"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-6 py-3.5 rounded-2xl bg-[#16A36A] text-white font-bold text-sm hover:bg-[#22C55E] transition shadow-xs"
+            >
+              <span>Lihat Demo</span>
+              <ChevronRight className="w-4 h-4" />
+            </Link>
             <a
               href="#features"
               className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl bg-white/10 border border-white/20 text-white font-semibold text-sm hover:bg-white/20 transition"

@@ -75,25 +75,37 @@ export const CRMProductCard: React.FC<CRMProductCardProps> = ({ product }) => {
       {/* Action Footer */}
       <div className="mt-8 pt-5 border-t border-[#E2EAE5]">
         {isAvailable ? (
-          product.href.startsWith('http') ? (
-            <a
-              href={product.href}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-full inline-flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-[#0B3D2E] text-white font-semibold text-sm hover:bg-[#16A36A] transition shadow-xs active:scale-98"
-            >
-              <span>{product.ctaText}</span>
-              <ArrowRight className="w-4 h-4" />
-            </a>
-          ) : (
-            <Link
-              href={product.href}
-              className="w-full inline-flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-[#0B3D2E] text-white font-semibold text-sm hover:bg-[#16A36A] transition shadow-xs active:scale-98"
-            >
-              <span>{product.ctaText}</span>
-              <ArrowRight className="w-4 h-4" />
-            </Link>
-          )
+          <div className={`flex ${product.demoHref ? 'flex-col sm:flex-row' : 'flex-col'} items-stretch sm:items-center gap-2.5`}>
+            {product.href.startsWith('http') ? (
+              <a
+                href={product.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full flex-1 inline-flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-[#0B3D2E] text-white font-semibold text-sm hover:bg-[#16A36A] transition shadow-xs active:scale-98"
+              >
+                <span>{product.ctaText}</span>
+                <ArrowRight className="w-4 h-4" />
+              </a>
+            ) : (
+              <Link
+                href={product.href}
+                className="w-full flex-1 inline-flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-[#0B3D2E] text-white font-semibold text-sm hover:bg-[#16A36A] transition shadow-xs active:scale-98"
+              >
+                <span>{product.ctaText}</span>
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            )}
+
+            {product.demoHref && (
+              <Link
+                href={product.demoHref}
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 py-3 px-5 rounded-xl bg-[#EAF8F1] border border-[#D1DDD6] text-[#0B3D2E] font-bold text-sm hover:bg-[#16A36A] hover:text-white hover:border-[#16A36A] transition shadow-2xs active:scale-98"
+              >
+                <span>Lihat Demo</span>
+                <ChevronRight className="w-4 h-4" />
+              </Link>
+            )}
+          </div>
         ) : (
           <div className="w-full inline-flex items-center justify-center gap-1.5 py-3 px-4 rounded-xl bg-[#F7FAF8] border border-[#E2EAE5] text-[#64756D] font-medium text-sm">
             <span>Segera Hadir</span>
